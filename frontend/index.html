@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Quizzy</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Background -->
+  <div class="bg"></div>
+
+  <!-- Cursor Glow -->
+  <div class="cursor-glow" aria-hidden="true"></div>
+  <canvas id="cursorTrail" aria-hidden="true"></canvas>
+
+
+  <!-- Navbar -->
+  <nav class="nav">
+    <div class="logo">
+      <span class="logo-icon" aria-hidden="true">
+        <svg viewBox="0 0 64 64" role="img" focusable="false">
+          <path d="M20 30c-5 0-9 4-9 9s4 9 9 9h12c7 0 12-5 12-12 0-6-4-10-9-11" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M38 16l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="currentColor"/>
+        </svg>
+      </span>
+      Quiz<span>zy</span>
+    </div>
+    <button id="themeToggle" aria-label="Toggle theme"></button>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-text">
+      <h1>Create <span>AI-powered</span><br>quizzes in seconds</h1>
+      <p>Smart quizzes with explanations, timers, and instant feedback.</p>
+    </div>
+
+    <div class="card hero-card">
+      <label>Topic or Study Material</label>
+      <textarea id="inputText" placeholder="Explain CPU scheduling..."></textarea>
+      <button id="generateBtn" disabled>Generate Quiz ✨</button>
+    </div>
+  </section>
+   <!-- Quiz -->
+  <div id="quiz"></div>
+
+  <!-- Features -->
+  <section class="features">
+    <div class="card">
+      <h3>Instant Generation</h3>
+      <p>Create quizzes from any topic instantly.</p>
+    </div>
+    <div class="card">
+      <h3>AI Explanations</h3>
+      <p>Understand why answers are correct.</p>
+    </div>
+    <div class="card">
+      <h3>Timed Practice</h3>
+      <p>Practice under exam conditions.</p>
+    </div>
+    <div class="card">
+      <h3>Smart Difficulty</h3>
+      <p>Questions adapt from easy to challenge mode.</p>
+    </div>
+    <div class="card">
+      <h3>Topic Breakdown</h3>
+      <p>See which concepts need more revision.</p>
+    </div>
+    <div class="card">
+      <h3>One‑Click Retake</h3>
+      <p>Regenerate and retry with a fresh set.</p>
+    </div>
+  </section>
+
+  <!--Testimonies-->
+  <section class="testimonials">
+    <h2>Loved by students</h2>
+    <div class="testimonial-grid">
+      <div class="testimonial">"Helped me revise before exams in minutes."<span>— CS Student</span></div>
+      <div class="testimonial">"Feels like a real startup product."<span>— Final Year</span></div>
+      <div class="testimonial">"Clean UI and very easy to use."<span>— Engineering Student</span></div>
+      <div class="testimonial">"The explanations make last‑minute revision stress‑free."<span>— Priya, 2nd Year</span></div>
+      <div class="testimonial">"Great for quick practice between classes."<span>— Aarav, CSE</span></div>
+    </div>
+  </section>
+
+
+  <!-- Loader -->
+  <div id="loader" class="loader hidden">
+    <video autoplay muted loop playsinline>
+      <source src="assets/loader.mp4" type="video/mp4">
+    </video>
+    <p>Quizzy is thinking…</p>
+  </div>
+
+  <footer>© 2026 Quizzy</footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

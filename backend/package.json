@@ -1,0 +1,14 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "server.js",
+  "dependencies": {
+    "@huggingface/inference": "^4.13.11",
+    "cors": "^2.8.6",
+    "express": "^4.22.1",
+    "groq": "^5.8.1",
+    "groq-sdk": "^0.37.0",
+    "openai": "^6.18.0"
+  }
+}

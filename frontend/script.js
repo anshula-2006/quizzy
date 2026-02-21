@@ -108,7 +108,7 @@ if (cursorTrail) {
 btn.onclick = async () => {
   loader.classList.remove("hidden");
 
-  const res = await fetch("http://localhost:3000/generate-quiz", {
+  const res = await fetch("/generate-quiz", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ text: input.value })

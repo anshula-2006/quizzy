@@ -1,6 +1,10 @@
 import API_BASE from "./src/config.js";
 
 const input = document.getElementById("inputText");
+const urlInput = document.getElementById("urlInput");
+const pdfInput = document.getElementById("pdfInput");
+const sourceHint = document.getElementById("sourceHint");
+const sourceBtns = document.querySelectorAll(".source-btn");
 const btn = document.getElementById("generateBtn");
 const quiz = document.getElementById("quiz");
 const toggle = document.getElementById("themeToggle");
@@ -13,8 +17,104 @@ const correctSound = new Audio("assets/correct.mp3");
 const wrongSound = new Audio("assets/wrong.mp3");
 
 let questions = [], index = 0, score = 0, timer, timeLeft = 15, answered = {}, choices = {};
+let activeSource = "text";
+const MAX_PDF_BYTES = 10 * 1024 * 1024;
 
-input.oninput = () => btn.disabled = input.value.trim() === "";
+function getDefaultHint(source) {
+  if (source === "text") return "Paste study text to generate a quiz.";
+  if (source === "url") return "Paste a public article URL to extract content.";
+  return "Upload a PDF file (max 10MB).";
+}
+
+function isValidHttpUrl(value) {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function validateActiveSourceInput(showError = false) {
+  let error = "";
+  [input, urlInput, pdfInput].forEach((el) => el?.classList.remove("input-invalid"));
+
+  if (activeSource === "text") {
+    if (input.value.trim().length === 0) {
+      error = "Please enter text content.";
+    }
+  } else if (activeSource === "url") {
+    const value = urlInput.value.trim();
+    if (!value) {
+      error = "Please enter a URL.";
+    } else if (!isValidHttpUrl(value)) {
+      error = "Enter a valid URL starting with http:// or https://";
+    }
+  } else if (activeSource === "pdf") {
+    const file = pdfInput.files?.[0];
+    if (!file) {
+      error = "Please choose a PDF file.";
+    } else if (
+      file.type !== "application/pdf" &&
+      !file.name.toLowerCase().endsWith(".pdf")
+    ) {
+      error = "Only PDF files are allowed.";
+    } else if (file.size > MAX_PDF_BYTES) {
+      error = "PDF is too large. Maximum size is 10MB.";
+    }
+  }
+
+  if (showError) {
+    sourceHint.textContent = error || getDefaultHint(activeSource);
+    sourceHint.style.color = error ? "#dc2626" : "";
+    if (error) {
+      const activeInput = activeSource === "text"
+        ? input
+        : activeSource === "url"
+          ? urlInput
+          : pdfInput;
+      activeInput?.classList.add("input-invalid");
+    }
+  }
+
+  return error;
+}
+
+function updateGenerateButtonState() {
+  btn.disabled = !!validateActiveSourceInput();
+}
+
+function setActiveSource(source) {
+  activeSource = source;
+  sourceBtns.forEach((node) => {
+    node.classList.toggle("active", node.dataset.source === source);
+  });
+
+  input.classList.toggle("hidden", source !== "text");
+  urlInput.classList.toggle("hidden", source !== "url");
+  pdfInput.classList.toggle("hidden", source !== "pdf");
+
+  sourceHint.textContent = getDefaultHint(source);
+  sourceHint.style.color = "";
+  updateGenerateButtonState();
+}
+
+input.addEventListener("input", () => {
+  validateActiveSourceInput(true);
+  updateGenerateButtonState();
+});
+urlInput.addEventListener("input", () => {
+  validateActiveSourceInput(true);
+  updateGenerateButtonState();
+});
+pdfInput.addEventListener("change", () => {
+  validateActiveSourceInput(true);
+  updateGenerateButtonState();
+});
+sourceBtns.forEach((node) => {
+  node.addEventListener("click", () => setActiveSource(node.dataset.source));
+});
+setActiveSource(activeSource);
 
 toggle.onclick = () => {
   document.body.classList.toggle("dark");
@@ -109,15 +209,56 @@ if (cursorTrail) {
   draw();
 }
 
+async function extractSourceText() {
+  let response;
+  const validationError = validateActiveSourceInput(true);
+  if (validationError) {
+    throw new Error(validationError);
+  }
+
+  if (activeSource === "pdf") {
+    const file = pdfInput.files?.[0];
+    if (!file) {
+      throw new Error("Please choose a PDF file");
+    }
+    const formData = new FormData();
+    formData.append("pdf", file);
+    response = await fetch(`${API_BASE}/extract-content`, {
+      method: "POST",
+      body: formData
+    });
+  } else {
+    const payload = activeSource === "url"
+      ? { url: urlInput.value.trim() }
+      : { text: input.value.trim() };
+    response = await fetch(`${API_BASE}/extract-content`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+  }
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || "Could not extract content");
+  }
+  if (!data.text || data.text.trim().length === 0) {
+    throw new Error("Extraction returned empty content");
+  }
+  return data.text;
+}
+
 btn.onclick = async () => {
   loader.classList.remove("hidden");
   btn.disabled = true;
 
   try {
+    const extractedText = await extractSourceText();
+
     const res = await fetch(`${API_BASE}/generate-quiz`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: input.value })
+      body: JSON.stringify({ text: extractedText })
     });
 
     const data = await res.json();
@@ -147,7 +288,7 @@ btn.onclick = async () => {
       </div>
     `;
   } finally {
-    btn.disabled = input.value.trim() === "";
+    updateGenerateButtonState();
   }
 };
 

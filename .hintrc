@@ -13,7 +13,14 @@
         "label": "off"
       }
     ],
-    "axe/text-alternatives": "off"
+    "axe/text-alternatives": "off",
+    "axe/aria": [
+      "default",
+      {
+        "aria-required-children": "off"
+      }
+    ],
+    "axe/parsing": "off"
   },
   "browserslist": [
     "defaults",

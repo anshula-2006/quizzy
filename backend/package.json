@@ -5,10 +5,13 @@
   "main": "server.js",
   "dependencies": {
     "@huggingface/inference": "^4.13.11",
+    "cheerio": "^1.1.2",
     "cors": "^2.8.6",
     "express": "^4.22.1",
     "groq": "^5.8.1",
     "groq-sdk": "^0.37.0",
+    "multer": "^2.0.2",
+    "pdf-parse": "^1.1.1",
     "openai": "^6.18.0"
   },
   "scripts": {

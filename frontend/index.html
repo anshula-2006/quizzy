@@ -40,8 +40,16 @@
 
     <div class="card hero-card">
       <label>Topic or Study Material</label>
+      <div class="source-switch" role="tablist" aria-label="Input source">
+        <button type="button" class="source-btn active" data-source="text">Text</button>
+        <button type="button" class="source-btn" data-source="url">URL</button>
+        <button type="button" class="source-btn" data-source="pdf">PDF</button>
+      </div>
       <textarea id="inputText" placeholder="Explain CPU scheduling..."></textarea>
-      <button id="generateBtn" disabled>Generate Quiz ✨</button>
+      <input id="urlInput" class="source-input hidden" type="url" placeholder="https://example.com/article" />
+      <input id="pdfInput" class="source-input hidden" type="file" accept=".pdf,application/pdf" />
+      <p id="sourceHint" class="source-hint">Paste study text to generate a quiz.</p>
+      <button id="generateBtn" disabled>Generate Quiz</button>
     </div>
   </section>
    <!-- Quiz -->

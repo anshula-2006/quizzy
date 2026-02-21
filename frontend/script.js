@@ -1,3 +1,5 @@
+import API_BASE from "./src/config.js";
+
 const input = document.getElementById("inputText");
 const btn = document.getElementById("generateBtn");
 const quiz = document.getElementById("quiz");
@@ -16,9 +18,11 @@ input.oninput = () => btn.disabled = input.value.trim() === "";
 
 toggle.onclick = () => {
   document.body.classList.toggle("dark");
-  robot.src = document.body.classList.contains("dark")
-    ? "assets/robot-dark.png"
-    : "assets/robot-light.png";
+  if (robot) {
+    robot.src = document.body.classList.contains("dark")
+      ? "assets/robot-dark.png"
+      : "assets/robot-light.png";
+  }
   setThemeIcon();
 };
 
@@ -107,23 +111,43 @@ if (cursorTrail) {
 
 btn.onclick = async () => {
   loader.classList.remove("hidden");
+  btn.disabled = true;
 
-  const res = await fetch("https://quizzy-3lt0.onrender.com/generate-quiz", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text: input.value })
-  });
+  try {
+    const res = await fetch(`${API_BASE}/generate-quiz`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: input.value })
+    });
 
-  const data = await res.json();
-  questions = data.questions;
-  index = score = 0;
-  answered = {};
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || "Failed to generate quiz");
+    }
+    if (!Array.isArray(data.questions) || data.questions.length === 0) {
+      throw new Error("No questions were returned");
+    }
 
-  setTimeout(() => {
+    questions = data.questions;
+    index = score = 0;
+    answered = {};
+
+    setTimeout(() => {
+      loader.classList.add("hidden");
+      quiz.scrollIntoView({ behavior: "smooth" });
+      showQuestion();
+    }, 1200);
+  } catch (err) {
     loader.classList.add("hidden");
-    quiz.scrollIntoView({ behavior: "smooth" });
-    showQuestion();
-  }, 1200);
+    quiz.innerHTML = `
+      <div class="card quiz-card">
+        <h2>Could not generate quiz</h2>
+        <p>${err.message}</p>
+      </div>
+    `;
+  } finally {
+    btn.disabled = input.value.trim() === "";
+  }
 };
 
 function showQuestion() {

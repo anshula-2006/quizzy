@@ -86,7 +86,9 @@ app.post("/extract-content", upload.single("pdf"), async (req, res) => {
 
     if (req.file) {
       sourceType = "pdf";
-      if (req.file.mimetype !== "application/pdf") {
+      const isPdfMime = req.file.mimetype === "application/pdf";
+      const isPdfName = (req.file.originalname || "").toLowerCase().endsWith(".pdf");
+      if (!isPdfMime && !isPdfName) {
         return res.status(400).json({ error: "Only PDF files are allowed" });
       }
       const parsedPdf = await pdfParse(req.file.buffer);
@@ -101,7 +103,7 @@ app.post("/extract-content", upload.single("pdf"), async (req, res) => {
       return res.status(400).json({ error: "Provide pdf, url, or text" });
     }
 
-    if (!extractedText || extractedText.length < 50) {
+    if (!extractedText || extractedText.length < 20) {
       return res.status(400).json({
         error: "Not enough extractable text. Provide richer content."
       });

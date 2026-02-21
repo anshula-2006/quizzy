@@ -467,12 +467,20 @@ btn.onclick = async () => {
   btn.disabled = true;
 
   try {
-    const extractedText = await extractSourceText();
+    let requestPayload;
+    const rawTextInput = input.value.trim();
+
+    if (activeSource === "text" && rawTextInput.length < 50) {
+      requestPayload = { topic: rawTextInput };
+    } else {
+      const extractedText = await extractSourceText();
+      requestPayload = { text: extractedText };
+    }
 
     const res = await fetch(`${API_BASE}/generate-quiz`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: extractedText })
+      body: JSON.stringify(requestPayload)
     });
 
     const data = await res.json();

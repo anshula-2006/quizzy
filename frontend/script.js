@@ -12,7 +12,7 @@ const cursorTrail = document.getElementById("cursorTrail");
 const correctSound = new Audio("assets/correct.mp3");
 const wrongSound = new Audio("assets/wrong.mp3");
 
-let questions = [], index = 0, score = 0, timer, timeLeft = 15, answered = {};
+let questions = [], index = 0, score = 0, timer, timeLeft = 15, answered = {}, choices = {};
 
 input.oninput = () => btn.disabled = input.value.trim() === "";
 
@@ -131,6 +131,7 @@ btn.onclick = async () => {
     questions = data.questions;
     index = score = 0;
     answered = {};
+    choices = {};
 
     setTimeout(() => {
       loader.classList.add("hidden");
@@ -171,9 +172,9 @@ function showQuestion() {
           ${String.fromCharCode(65+i)}. ${o}
         </div>`).join("")}
       <div class="quiz-actions">
-        <button class="ghost" onclick="prev()" ${index === 0 ? "disabled" : ""}>Previous</button>
-        <button class="ghost" onclick="finish()">Finish</button>
-        <button onclick="next()">Next</button>
+        <button id="prevBtn" class="ghost" ${index === 0 ? "disabled" : ""}>Previous</button>
+        <button id="finishBtn" class="ghost">Finish</button>
+        <button id="nextBtn">Next</button>
       </div>
     </div>
   `;
@@ -181,13 +182,24 @@ function showQuestion() {
   document.querySelectorAll(".option").forEach(opt =>
     opt.onclick = () => answer(opt, q)
   );
+  document.getElementById("prevBtn")?.addEventListener("click", prev);
+  document.getElementById("finishBtn")?.addEventListener("click", finish);
+  document.getElementById("nextBtn")?.addEventListener("click", next);
+
+  if (answered[index]) {
+    clearInterval(timer);
+    document.querySelector(".quiz-top span:last-child").innerText = "Done";
+    reveal(q, choices[index], true);
+    return;
+  }
 
   timer = setInterval(() => {
     timeLeft--;
     document.querySelector(".quiz-top span:last-child").innerText = timeLeft + "s";
     if (timeLeft <= 0 && !answered[index]) {
       answered[index] = true;
-      reveal(q);
+      choices[index] = null;
+      reveal(q, null, false);
       clearInterval(timer);
     }
   }, 1000);
@@ -196,28 +208,38 @@ function showQuestion() {
 function answer(el, q) {
   if (answered[index]) return;
   answered[index] = true;
+  choices[index] = el.dataset.o;
   clearInterval(timer);
-  reveal(q, el.dataset.o, el);
+  reveal(q, el.dataset.o, false);
 }
 
-function reveal(q, choice, el) {
+function reveal(q, choice, isReview) {
   document.querySelectorAll(".option").forEach(o => {
     o.classList.add("disabled");
     if (o.dataset.o === q.correct) o.classList.add("correct");
   });
 
   if (choice) {
+    const chosen = document.querySelector(`.option[data-o="${choice}"]`);
     if (choice === q.correct) {
-      score++; correctSound.play();
+      if (!isReview) {
+        score++;
+        correctSound.play();
+      }
     } else {
-      el.classList.add("wrong"); wrongSound.play();
+      chosen?.classList.add("wrong");
+      if (!isReview) {
+        wrongSound.play();
+      }
     }
   }
 
-  quiz.querySelector(".quiz-card").insertAdjacentHTML(
-    "beforeend",
-    `<div class="explanation">${q.explanation}</div>`
-  );
+  if (!quiz.querySelector(".explanation")) {
+    quiz.querySelector(".quiz-card").insertAdjacentHTML(
+      "beforeend",
+      `<div class="explanation">${q.explanation}</div>`
+    );
+  }
 }
 
 function next() {

@@ -7,6 +7,7 @@ const sourceHint = document.getElementById("sourceHint");
 const sourceBtns = document.querySelectorAll(".source-btn");
 const btn = document.getElementById("generateBtn");
 const quiz = document.getElementById("quiz");
+const evaluationBoard = document.getElementById("evaluationBoard");
 const toggle = document.getElementById("themeToggle");
 const robot = document.getElementById("robotMascot");
 const loader = document.getElementById("loader");
@@ -19,6 +20,10 @@ const wrongSound = new Audio("assets/wrong.mp3");
 let questions = [], index = 0, score = 0, timer, timeLeft = 15, answered = {}, choices = {};
 let activeSource = "text";
 const MAX_PDF_BYTES = 10 * 1024 * 1024;
+const HISTORY_KEY = "quizzy-history-v1";
+const MAX_HISTORY_ITEMS = 12;
+let attemptAnswers = [];
+let currentAttemptMeta = null;
 
 function getDefaultHint(source) {
   if (source === "text") return "Paste study text to generate a quiz.";
@@ -130,7 +135,216 @@ function setThemeIcon() {
   toggle.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
 }
 
+function getHistory() {
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveHistory(entries) {
+  try {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(entries.slice(0, MAX_HISTORY_ITEMS)));
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+function addHistoryEntry(entry) {
+  const entries = getHistory();
+  entries.unshift(entry);
+  saveHistory(entries);
+}
+
+function formatShortDate(isoValue) {
+  const dt = new Date(isoValue);
+  if (Number.isNaN(dt.getTime())) return "Unknown time";
+  return dt.toLocaleString([], {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
+function getStreak(entries) {
+  let streak = 0;
+  for (const item of entries) {
+    if ((item.percentage || 0) >= 70) streak++;
+    else break;
+  }
+  return streak;
+}
+
+function downloadFile(filename, content, mimeType) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function exportHistoryJson(entries) {
+  const payload = JSON.stringify(entries, null, 2);
+  downloadFile(
+    `quizzy-history-${new Date().toISOString().slice(0, 10)}.json`,
+    payload,
+    "application/json"
+  );
+}
+
+function csvEscape(value) {
+  const str = String(value ?? "");
+  if (/[",\n]/.test(str)) return `"${str.replace(/"/g, "\"\"")}"`;
+  return str;
+}
+
+function exportHistoryCsv(entries) {
+  const header = [
+    "created_at",
+    "source_type",
+    "score",
+    "total",
+    "percentage",
+    "question_index",
+    "question",
+    "selected",
+    "correct",
+    "is_correct"
+  ];
+
+  const rows = [header.join(",")];
+  entries.forEach((entry) => {
+    const answers = Array.isArray(entry.answers) ? entry.answers : [];
+    if (answers.length === 0) {
+      rows.push([
+        csvEscape(entry.createdAt),
+        csvEscape(entry.sourceType),
+        csvEscape(entry.score),
+        csvEscape(entry.total),
+        csvEscape(entry.percentage),
+        "",
+        "",
+        "",
+        "",
+        ""
+      ].join(","));
+      return;
+    }
+
+    answers.forEach((ans, idx) => {
+      rows.push([
+        csvEscape(entry.createdAt),
+        csvEscape(entry.sourceType),
+        csvEscape(entry.score),
+        csvEscape(entry.total),
+        csvEscape(entry.percentage),
+        csvEscape(idx + 1),
+        csvEscape(ans.question),
+        csvEscape(ans.selected || ""),
+        csvEscape(ans.correct || ""),
+        csvEscape(ans.isCorrect)
+      ].join(","));
+    });
+  });
+
+  downloadFile(
+    `quizzy-history-${new Date().toISOString().slice(0, 10)}.csv`,
+    rows.join("\n"),
+    "text/csv"
+  );
+}
+
+function renderEvaluationBoard() {
+  if (!evaluationBoard) return;
+  const entries = getHistory();
+
+  if (entries.length === 0) {
+    evaluationBoard.innerHTML = `
+      <div class="card evaluation-empty">
+        <h3>Evaluation Board</h3>
+        <p>Complete a quiz to see score trends, recent attempts, and answer review.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const latest = entries[0];
+  const latestAnswers = Array.isArray(latest.answers) ? latest.answers : [];
+  const best = Math.max(...entries.map((e) => e.percentage || 0));
+  const avg = Math.round(entries.reduce((sum, e) => sum + (e.percentage || 0), 0) / entries.length);
+  const streak = getStreak(entries);
+  const recent = entries.slice(0, 5);
+  const wrongCount = latestAnswers.filter((a) => !a.isCorrect).length;
+
+  evaluationBoard.innerHTML = `
+    <div class="evaluation-wrap">
+      <div class="evaluation-head">
+        <h3>Evaluation Board</h3>
+        <div class="evaluation-head-actions">
+          <button id="exportHistoryJsonBtn" class="ghost">Export JSON</button>
+          <button id="exportHistoryCsvBtn" class="ghost">Export CSV</button>
+          <button id="clearHistoryBtn" class="ghost">Clear History</button>
+        </div>
+      </div>
+      <div class="evaluation-stats">
+        <div class="card"><p>Total Quizzes</p><h4>${entries.length}</h4></div>
+        <div class="card"><p>Best Score</p><h4>${best}%</h4></div>
+        <div class="card"><p>Average</p><h4>${avg}%</h4></div>
+        <div class="card"><p>Current Streak</p><h4>${streak}</h4></div>
+      </div>
+      <div class="evaluation-grid">
+        <div class="card latest-attempt">
+          <h4>Latest Attempt</h4>
+          <p>${latest.score}/${latest.total} (${latest.percentage}%) • ${(latest.sourceType || "text").toUpperCase()} • ${formatShortDate(latest.createdAt)}</p>
+          <p>${wrongCount} question(s) need revision.</p>
+          <details>
+            <summary>Review Answers</summary>
+            <div class="answer-review">
+              ${latestAnswers.map((a, i) => `
+                <div class="answer-item ${a.isCorrect ? "good" : "bad"}">
+                  <strong>Q${i + 1}. ${a.question}</strong>
+                  <p>Your answer: ${a.selected || "Not answered"} | Correct: ${a.correct}</p>
+                </div>
+              `).join("")}
+            </div>
+          </details>
+        </div>
+        <div class="card recent-attempts">
+          <h4>Recent Attempts</h4>
+          ${recent.map((e) => `
+            <div class="attempt-row">
+              <span>${formatShortDate(e.createdAt)}</span>
+              <span>${e.score}/${e.total} (${e.percentage}%)</span>
+              <span>${(e.sourceType || "text").toUpperCase()}</span>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("clearHistoryBtn")?.addEventListener("click", () => {
+    localStorage.removeItem(HISTORY_KEY);
+    renderEvaluationBoard();
+  });
+  document.getElementById("exportHistoryJsonBtn")?.addEventListener("click", () => {
+    exportHistoryJson(entries);
+  });
+  document.getElementById("exportHistoryCsvBtn")?.addEventListener("click", () => {
+    exportHistoryCsv(entries);
+  });
+}
+
 setThemeIcon();
+renderEvaluationBoard();
 
 /* CURSOR GLOW (SMOOTH FOLLOW) */
 if (cursorGlow) {
@@ -273,6 +487,17 @@ btn.onclick = async () => {
     index = score = 0;
     answered = {};
     choices = {};
+    attemptAnswers = Array.from({ length: questions.length }, () => null);
+    currentAttemptMeta = {
+      createdAt: new Date().toISOString(),
+      sourceType: activeSource,
+      sourceInput:
+        activeSource === "pdf"
+          ? (pdfInput.files?.[0]?.name || "pdf")
+          : activeSource === "url"
+            ? urlInput.value.trim()
+            : input.value.trim().slice(0, 140)
+    };
 
     setTimeout(() => {
       loader.classList.add("hidden");
@@ -340,6 +565,12 @@ function showQuestion() {
     if (timeLeft <= 0 && !answered[index]) {
       answered[index] = true;
       choices[index] = null;
+      attemptAnswers[index] = {
+        question: q.question,
+        selected: null,
+        correct: q.correct,
+        isCorrect: false
+      };
       reveal(q, null, false);
       clearInterval(timer);
     }
@@ -350,6 +581,12 @@ function answer(el, q) {
   if (answered[index]) return;
   answered[index] = true;
   choices[index] = el.dataset.o;
+  attemptAnswers[index] = {
+    question: q.question,
+    selected: el.dataset.o,
+    correct: q.correct,
+    isCorrect: el.dataset.o === q.correct
+  };
   clearInterval(timer);
   reveal(q, el.dataset.o, false);
 }
@@ -394,12 +631,45 @@ function prev() {
   showQuestion();
 }
 
+function buildHistoryEntry() {
+  const answers = questions.map((q, i) => {
+    const a = attemptAnswers[i];
+    if (a) return a;
+    return {
+      question: q.question,
+      selected: null,
+      correct: q.correct,
+      isCorrect: false
+    };
+  });
+
+  const total = questions.length || 0;
+  const percentage = total ? Math.round((score / total) * 100) : 0;
+
+  return {
+    id: Date.now(),
+    createdAt: currentAttemptMeta?.createdAt || new Date().toISOString(),
+    sourceType: currentAttemptMeta?.sourceType || "text",
+    sourceInput: currentAttemptMeta?.sourceInput || "",
+    score,
+    total,
+    percentage,
+    answers
+  };
+}
+
 function finish() {
   confetti();
+  const entry = buildHistoryEntry();
+  addHistoryEntry(entry);
+  renderEvaluationBoard();
+
   quiz.innerHTML = `
     <div class="card quiz-card">
       <h2>Quiz Completed</h2>
       <h1>${score} / ${questions.length}</h1>
+      <p>Accuracy: ${entry.percentage}%</p>
+      <p>Source: ${entry.sourceType.toUpperCase()}</p>
     </div>
   `;
 }

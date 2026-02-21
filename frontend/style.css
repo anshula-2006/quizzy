@@ -407,6 +407,18 @@ button:disabled {
   cursor: not-allowed;
 }
 
+.ghost {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid rgba(15,23,42,0.18);
+  box-shadow: none;
+}
+
+body.dark .ghost {
+  color: #e5e7eb;
+  border-color: rgba(255,255,255,0.2);
+}
+
 #generateBtn {
   width: 100%;
 }
@@ -489,6 +501,83 @@ button:disabled {
   display: flex;
   justify-content: center;
   padding: 0 80px;
+}
+
+.evaluation-board {
+  padding: 8px 80px 20px;
+}
+
+.evaluation-wrap {
+  max-width: 980px;
+  margin: 0 auto 20px;
+}
+
+.evaluation-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.evaluation-head-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.evaluation-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(120px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.evaluation-stats h4 {
+  font-size: 1.5rem;
+}
+
+.evaluation-stats p {
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.evaluation-grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 12px;
+}
+
+.answer-review {
+  margin-top: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.answer-item {
+  border-radius: 12px;
+  padding: 10px;
+  border: 1px solid var(--border);
+}
+
+.answer-item.good {
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.answer-item.bad {
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.attempt-row {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr auto;
+  gap: 8px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.92rem;
+}
+
+.evaluation-empty {
+  max-width: 980px;
+  margin: 0 auto 20px;
 }
 
 .quiz-card {
@@ -613,7 +702,8 @@ footer {
   .nav,
   .hero,
   .features,
-  .testimonials {
+  .testimonials,
+  .evaluation-board {
     padding-left: 28px;
     padding-right: 28px;
   }
@@ -625,5 +715,10 @@ footer {
 
   #quiz {
     padding: 0 28px;
+  }
+
+  .evaluation-stats,
+  .evaluation-grid {
+    grid-template-columns: 1fr;
   }
 }

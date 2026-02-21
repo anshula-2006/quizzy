@@ -4,6 +4,9 @@ import Groq from "groq-sdk";
 import multer from "multer";
 import pdfParse from "pdf-parse";
 import * as cheerio from "cheerio";
+import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -76,6 +79,180 @@ async function extractFromUrl(rawUrl) {
 
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY
+});
+
+const mongoUri = process.env.MONGODB_URI;
+if (!mongoUri) {
+  console.warn("MONGODB_URI is not set. Auth routes will not work without MongoDB.");
+} else {
+  mongoose
+    .connect(mongoUri)
+    .then(() => console.log("MongoDB connected"))
+    .catch((err) => console.error("MongoDB connection error:", err.message));
+}
+
+const userSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true, trim: true },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    passwordHash: { type: String, required: true },
+    tokenVersion: { type: Number, default: 0 }
+  },
+  { timestamps: true }
+);
+
+const User = mongoose.models.User || mongoose.model("User", userSchema);
+
+function signAuthToken(user) {
+  const secret = process.env.JWT_SECRET || "dev-secret-change-me";
+  return jwt.sign(
+    { sub: user._id.toString(), email: user.email, name: user.name, tv: user.tokenVersion || 0 },
+    secret,
+    { expiresIn: "7d" }
+  );
+}
+
+async function requireAuth(req, res, next) {
+  try {
+    const authHeader = req.headers.authorization || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+    if (!token) return res.status(401).json({ error: "Missing auth token" });
+
+    const secret = process.env.JWT_SECRET || "dev-secret-change-me";
+    const payload = jwt.verify(token, secret);
+    const user = await User.findById(payload.sub).select("name email tokenVersion passwordHash");
+    if (!user) return res.status(401).json({ error: "Invalid auth token" });
+    if ((payload.tv || 0) !== (user.tokenVersion || 0)) {
+      return res.status(401).json({ error: "Session expired. Please log in again." });
+    }
+
+    req.user = user;
+    next();
+  } catch {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+}
+
+app.post("/auth/register", async (req, res) => {
+  try {
+    const name = (req.body?.name || "").trim();
+    const email = (req.body?.email || "").trim().toLowerCase();
+    const password = (req.body?.password || "").trim();
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: "Name, email, and password are required" });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ error: "Password must be at least 6 characters" });
+    }
+    if (!mongoUri) {
+      return res.status(500).json({ error: "Auth DB is not configured" });
+    }
+
+    const exists = await User.findOne({ email });
+    if (exists) {
+      return res.status(409).json({ error: "Email already registered" });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const user = await User.create({ name, email, passwordHash });
+    const token = signAuthToken(user);
+
+    return res.status(201).json({
+      token,
+      user: { id: user._id.toString(), name: user.name, email: user.email }
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message || "Registration failed" });
+  }
+});
+
+app.post("/auth/login", async (req, res) => {
+  try {
+    const email = (req.body?.email || "").trim().toLowerCase();
+    const password = (req.body?.password || "").trim();
+
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required" });
+    }
+    if (!mongoUri) {
+      return res.status(500).json({ error: "Auth DB is not configured" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
+    if (!isMatch) {
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
+
+    const token = signAuthToken(user);
+    return res.json({
+      token,
+      user: { id: user._id.toString(), name: user.name, email: user.email }
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message || "Login failed" });
+  }
+});
+
+app.get("/auth/me", requireAuth, async (req, res) => {
+  return res.json({
+    user: {
+      id: req.user._id.toString(),
+      name: req.user.name,
+      email: req.user.email
+    }
+  });
+});
+
+app.post("/auth/change-password", requireAuth, async (req, res) => {
+  try {
+    const currentPassword = (req.body?.currentPassword || "").trim();
+    const newPassword = (req.body?.newPassword || "").trim();
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: "Current and new password are required" });
+    }
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: "New password must be at least 6 characters" });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, req.user.passwordHash);
+    if (!isMatch) {
+      return res.status(401).json({ error: "Current password is incorrect" });
+    }
+
+    req.user.passwordHash = await bcrypt.hash(newPassword, 10);
+    req.user.tokenVersion = (req.user.tokenVersion || 0) + 1;
+    await req.user.save();
+
+    const token = signAuthToken(req.user);
+    return res.json({
+      message: "Password updated",
+      token,
+      user: {
+        id: req.user._id.toString(),
+        name: req.user.name,
+        email: req.user.email
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message || "Failed to change password" });
+  }
+});
+
+app.post("/auth/logout-all", requireAuth, async (req, res) => {
+  try {
+    req.user.tokenVersion = (req.user.tokenVersion || 0) + 1;
+    await req.user.save();
+    return res.json({ message: "Logged out from all devices" });
+  } catch (error) {
+    return res.status(500).json({ error: error.message || "Failed to logout all sessions" });
+  }
 });
 
 

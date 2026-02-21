@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quizzy Register</title>
+  <link rel="stylesheet" href="auth.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <main class="auth-card">
+    <h1>Create Account</h1>
+    <p>Sign up once and start generating quizzes.</p>
+
+    <form id="registerForm">
+      <div class="auth-field">
+        <label for="name">Name</label>
+        <input id="name" name="name" type="text" autocomplete="name" required />
+      </div>
+      <div class="auth-field">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" autocomplete="email" required />
+      </div>
+      <div class="auth-field">
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" autocomplete="new-password" required />
+      </div>
+      <button class="auth-btn" type="submit">Register</button>
+      <p id="message" class="auth-msg"></p>
+    </form>
+
+    <p class="auth-footer">
+      Already have an account?
+      <a href="./login.html">Log in</a>
+    </p>
+  </main>
+
+  <script src="auth.js"></script>
+  <script type="module" src="register.js"></script>
+</body>
+</html>

@@ -28,7 +28,13 @@
       </span>
       Quiz<span>zy</span>
     </div>
-    <button id="themeToggle" aria-label="Toggle theme"></button>
+    <div class="nav-actions">
+      <span id="authUser" class="auth-user hidden"></span>
+      <a id="loginLink" class="nav-link" href="./login.html">Login</a>
+      <a id="registerLink" class="nav-link" href="./register.html">Register</a>
+      <button id="logoutBtn" class="ghost hidden" type="button">Logout</button>
+      <button id="themeToggle" aria-label="Toggle theme"></button>
+    </div>
   </nav>
 
   <!-- Hero -->
@@ -107,6 +113,7 @@
 
   <footer>© 2026 Quizzy</footer>
 
+  <script src="auth.js"></script>
   <script type="module" src="script.js"></script>
 </body>
 </html>

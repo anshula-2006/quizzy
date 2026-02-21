@@ -9,6 +9,10 @@ const btn = document.getElementById("generateBtn");
 const quiz = document.getElementById("quiz");
 const evaluationBoard = document.getElementById("evaluationBoard");
 const toggle = document.getElementById("themeToggle");
+const authUser = document.getElementById("authUser");
+const loginLink = document.getElementById("loginLink");
+const registerLink = document.getElementById("registerLink");
+const logoutBtn = document.getElementById("logoutBtn");
 const robot = document.getElementById("robotMascot");
 const loader = document.getElementById("loader");
 const cursorGlow = document.querySelector(".cursor-glow");
@@ -24,6 +28,36 @@ const HISTORY_KEY = "quizzy-history-v1";
 const MAX_HISTORY_ITEMS = 12;
 let attemptAnswers = [];
 let currentAttemptMeta = null;
+const auth = window.QuizzyAuth;
+
+function renderAuthNav() {
+  if (!auth) return;
+  const session = auth.getSession();
+  if (!session) {
+    authUser?.classList.add("hidden");
+    logoutBtn?.classList.add("hidden");
+    loginLink?.classList.remove("hidden");
+    registerLink?.classList.remove("hidden");
+    return;
+  }
+
+  authUser.textContent = `Hi, ${session.name}`;
+  authUser?.classList.remove("hidden");
+  logoutBtn?.classList.remove("hidden");
+  loginLink?.classList.add("hidden");
+  registerLink?.classList.add("hidden");
+}
+
+async function bootstrapAuth() {
+  if (!auth) return;
+  const session = auth.getSession();
+  if (!session) {
+    renderAuthNav();
+    return;
+  }
+  await auth.me();
+  renderAuthNav();
+}
 
 function getDefaultHint(source) {
   if (source === "text") return "Paste study text to generate a quiz.";
@@ -120,6 +154,8 @@ sourceBtns.forEach((node) => {
   node.addEventListener("click", () => setActiveSource(node.dataset.source));
 });
 setActiveSource(activeSource);
+bootstrapAuth();
+logoutBtn?.addEventListener("click", () => auth?.logout());
 
 toggle.onclick = () => {
   document.body.classList.toggle("dark");

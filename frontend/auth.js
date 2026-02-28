@@ -1,7 +1,6 @@
+import API_BASE from "./src/config.js";
+
 const SESSION_KEY = "quizzy-session-v2";
-const API_BASE = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-  ? ""
-  : "https://quizzy-3lt0.onrender.com";
 
 function setSession(token, user) {
   localStorage.setItem(SESSION_KEY, JSON.stringify({
@@ -33,7 +32,7 @@ async function request(path, options = {}) {
   return { ok: true, data };
 }
 
-window.QuizzyAuth = {
+const QuizzyAuth = {
   async register({ name, email, password }) {
     const result = await request("/auth/register", {
       method: "POST",
@@ -107,3 +106,7 @@ window.QuizzyAuth = {
     window.location.href = "./login.html";
   }
 };
+
+window.QuizzyAuth = QuizzyAuth;
+
+export default QuizzyAuth;

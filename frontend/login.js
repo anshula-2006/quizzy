@@ -1,4 +1,4 @@
-const auth = window.QuizzyAuth;
+import auth from "./auth.js";
 const form = document.getElementById("loginForm");
 const message = document.getElementById("message");
 

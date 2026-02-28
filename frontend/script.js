@@ -1,4 +1,5 @@
 import API_BASE from "./src/config.js";
+import auth from "./auth.js";
 
 const input = document.getElementById("inputText");
 const urlInput = document.getElementById("urlInput");
@@ -28,7 +29,6 @@ const HISTORY_KEY = "quizzy-history-v1";
 const MAX_HISTORY_ITEMS = 12;
 let attemptAnswers = [];
 let currentAttemptMeta = null;
-const auth = window.QuizzyAuth;
 
 function renderAuthNav() {
   if (!auth) return;

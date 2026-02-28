@@ -77,9 +77,8 @@ async function extractFromUrl(rawUrl) {
   }
 }
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY
-});
+const groqApiKey = process.env.GROQ_API_KEY || "";
+const groq = groqApiKey ? new Groq({ apiKey: groqApiKey }) : null;
 
 const mongoUri = process.env.MONGODB_URI;
 if (!mongoUri) {
@@ -309,6 +308,11 @@ app.post("/generate-quiz", async (req, res) => {
 
   if (!text && !topic) {
     return res.status(400).json({ error: "Text or topic is required" });
+  }
+  if (!groq) {
+    return res.status(500).json({
+      error: "GROQ_API_KEY is not configured on the server"
+    });
   }
 
   const variation = Math.floor(Math.random() * 100000);

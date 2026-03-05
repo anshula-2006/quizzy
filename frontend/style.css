@@ -708,7 +708,7 @@ body.dark .ghost {
 .workspace {
   padding: 0 80px 20px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-columns: minmax(0, 1fr) 340px;
   gap: 16px;
   align-items: start;
 }
@@ -761,8 +761,14 @@ body.dark .ghost {
 
 .evaluation-grid {
   display: grid;
-  grid-template-columns: 1.3fr 1fr;
+  grid-template-columns: minmax(0, 1.3fr) minmax(280px, 1fr);
   gap: 12px;
+}
+
+.evaluation-grid .card,
+.latest-attempt,
+.recent-attempts {
+  min-width: 0;
 }
 
 .answer-review {
@@ -777,7 +783,11 @@ body.dark .ghost {
   grid-auto-flow: column;
   grid-auto-columns: 190px;
   gap: 6px;
+  width: 100%;
+  max-width: 100%;
   overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
   padding-bottom: 4px;
 }
 
@@ -794,6 +804,7 @@ body.dark .ghost {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  white-space: normal;
 }
 
 .review-q-btn.good {
@@ -811,7 +822,10 @@ body.dark .ghost {
   padding: 10px;
   background: rgba(255,255,255,0.75);
   max-height: 220px;
+  width: 100%;
+  max-width: 100%;
   overflow: auto;
+  word-break: break-word;
 }
 
 body.dark .review-q-btn,
@@ -852,6 +866,10 @@ body.dark .review-detail {
   position: sticky;
   top: 16px;
   padding: 18px;
+  width: 100%;
+  max-width: 340px;
+  justify-self: end;
+  z-index: 1;
 }
 
 .quiz-sidebar h3 {

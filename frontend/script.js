@@ -641,7 +641,7 @@ function renderEvaluationBoard() {
     const item = latestAnswers[idx];
     if (!item || !detailNode) return;
     const imageBlock = item.image && /^https:\/\/upload\.wikimedia\.org\/.+\.(png|jpg)$/i.test(item.image)
-      ? `<div class="explain-image-wrap"><img class="explain-image" src="${item.image}" alt="Review visual" loading="lazy" /></div>`
+      ? `<div class="explain-image-wrap"><img class="explain-image" src="${item.image}" alt="Review visual" loading="lazy" onerror="this.closest('.explain-image-wrap')?.remove()" /></div>`
       : "";
     detailNode.innerHTML = `
       <p><strong>${item.question}</strong></p>
@@ -900,7 +900,7 @@ function renderFlashcardsBoard(deck) {
   activeFlashIndex = Math.max(0, Math.min(activeFlashIndex, deck.flashcards.length - 1));
   const card = deck.flashcards[activeFlashIndex];
   const imageBlock = card.image && /^https:\/\/upload\.wikimedia\.org\/.+\.(png|jpg)$/i.test(card.image)
-    ? `<div class="explain-image-wrap"><img class="explain-image" src="${card.image}" alt="Flashcard visual" loading="lazy" /></div>`
+    ? `<div class="explain-image-wrap"><img class="explain-image" src="${card.image}" alt="Flashcard visual" loading="lazy" onerror="this.closest('.explain-image-wrap')?.remove()" /></div>`
     : "";
 
   flashcardsBoard.innerHTML = `
@@ -1140,7 +1140,7 @@ function reveal(q, choice, isReview) {
       ? `<p><strong>Why your answer was wrong:</strong> ${q.wrongExplanation || "Your selected answer does not match the validated correct answer and supporting concept."}</p>`
       : "";
     const imageBlock = q.image && /^https:\/\/upload\.wikimedia\.org\/.+\.(png|jpg)$/i.test(q.image)
-      ? `<div class="explain-image-wrap"><img class="explain-image" src="${q.image}" alt="Explanation visual" loading="lazy" /></div>`
+      ? `<div class="explain-image-wrap"><img class="explain-image" src="${q.image}" alt="Explanation visual" loading="lazy" onerror="this.closest('.explain-image-wrap')?.remove()" /></div>`
       : "";
 
     quiz.querySelector(".quiz-card").insertAdjacentHTML(

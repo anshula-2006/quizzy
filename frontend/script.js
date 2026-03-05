@@ -546,7 +546,7 @@ function renderSidebar() {
         <div class="score-spark">
           ${chartData.map((e, i) => `
             <div class="spark-col" title="Attempt ${i + 1}: ${e.percentage}%">
-              <div class="spark-bar" style="height:${Math.max(12, e.percentage)}%"></div>
+              <div class="spark-bar" style="height:${Math.max(12, Math.min(100, e.percentage || 0))}%"></div>
               <span>${e.percentage}%</span>
             </div>
           `).join("")}

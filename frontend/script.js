@@ -1137,11 +1137,25 @@ function buildHistoryEntry() {
   };
 }
 
+function autoSaveQuestionsFromEntry(entry) {
+  const answers = Array.isArray(entry?.answers) ? entry.answers : [];
+  answers.forEach((a) => {
+    if (!a?.question) return;
+    addSavedQuestion({
+      question: a.question,
+      correct: a.correct || "",
+      explanation: a.explanation || a.wrongExplanation || "",
+      image: a.image || null
+    });
+  });
+}
+
 function finish() {
   confetti();
   clearInterval(timer);
   const entry = buildHistoryEntry();
   addHistoryEntry(entry);
+  autoSaveQuestionsFromEntry(entry);
   renderEvaluationBoard();
   renderSidebar();
 

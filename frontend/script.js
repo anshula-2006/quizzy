@@ -14,21 +14,63 @@ const authUser = document.getElementById("authUser");
 const loginLink = document.getElementById("loginLink");
 const registerLink = document.getElementById("registerLink");
 const logoutBtn = document.getElementById("logoutBtn");
-const robot = document.getElementById("robotMascot");
 const loader = document.getElementById("loader");
 const cursorGlow = document.querySelector(".cursor-glow");
 const cursorTrail = document.getElementById("cursorTrail");
+const difficultyMode = document.getElementById("difficultyMode");
+const learnerMode = document.getElementById("learnerMode");
+const questionMode = document.getElementById("questionMode");
+const attemptList = document.getElementById("attemptList");
+const savedList = document.getElementById("savedList");
+const scoreBars = document.getElementById("scoreBars");
 
 const correctSound = new Audio("assets/correct.mp3");
 const wrongSound = new Audio("assets/wrong.mp3");
 
-let questions = [], index = 0, score = 0, timer, timeLeft = 15, answered = {}, choices = {};
+let questions = [];
+let index = 0;
+let score = 0;
+let timer;
+let timeLeft = 15;
+let answered = {};
+let choices = {};
 let activeSource = "text";
-const MAX_PDF_BYTES = 10 * 1024 * 1024;
-const HISTORY_KEY = "quizzy-history-v1";
-const MAX_HISTORY_ITEMS = 12;
+const MAX_PDF_BYTES = 50 * 1024 * 1024;
+const HISTORY_BASE = "quizzy-history-v2";
+const SAVED_BASE = "quizzy-saved-v1";
+const MAX_HISTORY_ITEMS = 20;
 let attemptAnswers = [];
 let currentAttemptMeta = null;
+let deathModeTriggered = false;
+
+function getScopeId() {
+  const session = auth?.getSession?.();
+  return session?.email || "guest";
+}
+
+function historyKey() {
+  return `${HISTORY_BASE}-${getScopeId()}`;
+}
+
+function savedKey() {
+  return `${SAVED_BASE}-${getScopeId()}`;
+}
+
+function getSettings() {
+  return {
+    difficulty: difficultyMode?.value || "moderate",
+    learnerMode: learnerMode?.value || "student",
+    questionMode: questionMode?.value || "mcq"
+  };
+}
+
+function getTimerSeconds() {
+  const { difficulty } = getSettings();
+  if (difficulty === "easy") return 22;
+  if (difficulty === "tough") return 12;
+  if (difficulty === "death") return 8;
+  return 15;
+}
 
 function renderAuthNav() {
   if (!auth) return;
@@ -51,18 +93,18 @@ function renderAuthNav() {
 async function bootstrapAuth() {
   if (!auth) return;
   const session = auth.getSession();
-  if (!session) {
-    renderAuthNav();
-    return;
+  if (session) {
+    await auth.me();
   }
-  await auth.me();
   renderAuthNav();
+  renderEvaluationBoard();
+  renderSidebar();
 }
 
 function getDefaultHint(source) {
   if (source === "text") return "Paste study text to generate a quiz.";
   if (source === "url") return "Paste a public article URL to extract content.";
-  return "Upload a PDF file (max 10MB).";
+  return "Upload a PDF file (max 50MB).";
 }
 
 function isValidHttpUrl(value) {
@@ -79,27 +121,19 @@ function validateActiveSourceInput(showError = false) {
   [input, urlInput, pdfInput].forEach((el) => el?.classList.remove("input-invalid"));
 
   if (activeSource === "text") {
-    if (input.value.trim().length === 0) {
-      error = "Please enter text content.";
-    }
+    if (input.value.trim().length === 0) error = "Please enter text content.";
   } else if (activeSource === "url") {
     const value = urlInput.value.trim();
-    if (!value) {
-      error = "Please enter a URL.";
-    } else if (!isValidHttpUrl(value)) {
-      error = "Enter a valid URL starting with http:// or https://";
-    }
+    if (!value) error = "Please enter a URL.";
+    else if (!isValidHttpUrl(value)) error = "Enter a valid URL starting with http:// or https://";
   } else if (activeSource === "pdf") {
     const file = pdfInput.files?.[0];
     if (!file) {
       error = "Please choose a PDF file.";
-    } else if (
-      file.type !== "application/pdf" &&
-      !file.name.toLowerCase().endsWith(".pdf")
-    ) {
+    } else if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
       error = "Only PDF files are allowed.";
     } else if (file.size > MAX_PDF_BYTES) {
-      error = "PDF is too large. Maximum size is 10MB.";
+      error = "PDF is too large. Maximum size is 50MB.";
     }
   }
 
@@ -107,11 +141,7 @@ function validateActiveSourceInput(showError = false) {
     sourceHint.textContent = error || getDefaultHint(activeSource);
     sourceHint.style.color = error ? "#dc2626" : "";
     if (error) {
-      const activeInput = activeSource === "text"
-        ? input
-        : activeSource === "url"
-          ? urlInput
-          : pdfInput;
+      const activeInput = activeSource === "text" ? input : activeSource === "url" ? urlInput : pdfInput;
       activeInput?.classList.add("input-invalid");
     }
   }
@@ -125,47 +155,14 @@ function updateGenerateButtonState() {
 
 function setActiveSource(source) {
   activeSource = source;
-  sourceBtns.forEach((node) => {
-    node.classList.toggle("active", node.dataset.source === source);
-  });
-
+  sourceBtns.forEach((node) => node.classList.toggle("active", node.dataset.source === source));
   input.classList.toggle("hidden", source !== "text");
   urlInput.classList.toggle("hidden", source !== "url");
   pdfInput.classList.toggle("hidden", source !== "pdf");
-
   sourceHint.textContent = getDefaultHint(source);
   sourceHint.style.color = "";
   updateGenerateButtonState();
 }
-
-input.addEventListener("input", () => {
-  validateActiveSourceInput(true);
-  updateGenerateButtonState();
-});
-urlInput.addEventListener("input", () => {
-  validateActiveSourceInput(true);
-  updateGenerateButtonState();
-});
-pdfInput.addEventListener("change", () => {
-  validateActiveSourceInput(true);
-  updateGenerateButtonState();
-});
-sourceBtns.forEach((node) => {
-  node.addEventListener("click", () => setActiveSource(node.dataset.source));
-});
-setActiveSource(activeSource);
-bootstrapAuth();
-logoutBtn?.addEventListener("click", () => auth?.logout());
-
-toggle.onclick = () => {
-  document.body.classList.toggle("dark");
-  if (robot) {
-    robot.src = document.body.classList.contains("dark")
-      ? "assets/robot-dark.png"
-      : "assets/robot-light.png";
-  }
-  setThemeIcon();
-};
 
 function setThemeIcon() {
   toggle.textContent = document.body.classList.contains("dark") ? "Sun" : "Moon";
@@ -173,7 +170,7 @@ function setThemeIcon() {
 
 function getHistory() {
   try {
-    const raw = localStorage.getItem(HISTORY_KEY);
+    const raw = localStorage.getItem(historyKey());
     const parsed = raw ? JSON.parse(raw) : [];
     return Array.isArray(parsed) ? parsed : [];
   } catch {
@@ -182,11 +179,7 @@ function getHistory() {
 }
 
 function saveHistory(entries) {
-  try {
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(entries.slice(0, MAX_HISTORY_ITEMS)));
-  } catch {
-    // Ignore storage errors
-  }
+  localStorage.setItem(historyKey(), JSON.stringify(entries.slice(0, MAX_HISTORY_ITEMS)));
 }
 
 function addHistoryEntry(entry) {
@@ -195,15 +188,33 @@ function addHistoryEntry(entry) {
   saveHistory(entries);
 }
 
+function getSavedQuestions() {
+  try {
+    const raw = localStorage.getItem(savedKey());
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveSavedQuestions(items) {
+  localStorage.setItem(savedKey(), JSON.stringify(items.slice(0, 60)));
+}
+
+function addSavedQuestion(item) {
+  const items = getSavedQuestions();
+  const exists = items.some((q) => q.question === item.question && q.correct === item.correct);
+  if (exists) return;
+  items.unshift(item);
+  saveSavedQuestions(items);
+  renderSidebar();
+}
+
 function formatShortDate(isoValue) {
   const dt = new Date(isoValue);
   if (Number.isNaN(dt.getTime())) return "Unknown time";
-  return dt.toLocaleString([], {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit"
-  });
+  return dt.toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
 function getStreak(entries) {
@@ -215,87 +226,53 @@ function getStreak(entries) {
   return streak;
 }
 
-function downloadFile(filename, content, mimeType) {
-  const blob = new Blob([content], { type: mimeType });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
+function getAssessmentLabel(percentage) {
+  if (percentage >= 90) return "Elite";
+  if (percentage >= 75) return "Strong";
+  if (percentage >= 60) return "Developing";
+  return "Needs Revision";
 }
 
-function exportHistoryJson(entries) {
-  const payload = JSON.stringify(entries, null, 2);
-  downloadFile(
-    `quizzy-history-${new Date().toISOString().slice(0, 10)}.json`,
-    payload,
-    "application/json"
-  );
-}
+function renderSidebar() {
+  const entries = getHistory();
+  const saved = getSavedQuestions();
 
-function csvEscape(value) {
-  const str = String(value ?? "");
-  if (/[",\n]/.test(str)) return `"${str.replace(/"/g, "\"\"")}"`;
-  return str;
-}
+  if (attemptList) {
+    attemptList.innerHTML = entries.length
+      ? entries.slice(0, 8).map((e) => `
+          <div class="mini-item">
+            <strong>${e.percentage}%</strong>
+            <span>${e.score}/${e.total} | ${formatShortDate(e.createdAt)}</span>
+            <small>${(e.settings?.difficulty || "moderate").toUpperCase()} | ${(e.settings?.questionMode || "mcq").toUpperCase()}</small>
+          </div>
+        `).join("")
+      : `<p class="mini-empty">No attempts yet.</p>`;
+  }
 
-function exportHistoryCsv(entries) {
-  const header = [
-    "created_at",
-    "source_type",
-    "score",
-    "total",
-    "percentage",
-    "question_index",
-    "question",
-    "selected",
-    "correct",
-    "is_correct"
-  ];
+  if (savedList) {
+    savedList.innerHTML = saved.length
+      ? saved.slice(0, 10).map((item) => `
+          <details class="saved-item">
+            <summary>${item.question}</summary>
+            <p><strong>Answer:</strong> ${item.correct}</p>
+            <p>${item.explanation || ""}</p>
+          </details>
+        `).join("")
+      : `<p class="mini-empty">No saved questions yet.</p>`;
+  }
 
-  const rows = [header.join(",")];
-  entries.forEach((entry) => {
-    const answers = Array.isArray(entry.answers) ? entry.answers : [];
-    if (answers.length === 0) {
-      rows.push([
-        csvEscape(entry.createdAt),
-        csvEscape(entry.sourceType),
-        csvEscape(entry.score),
-        csvEscape(entry.total),
-        csvEscape(entry.percentage),
-        "",
-        "",
-        "",
-        "",
-        ""
-      ].join(","));
-      return;
-    }
-
-    answers.forEach((ans, idx) => {
-      rows.push([
-        csvEscape(entry.createdAt),
-        csvEscape(entry.sourceType),
-        csvEscape(entry.score),
-        csvEscape(entry.total),
-        csvEscape(entry.percentage),
-        csvEscape(idx + 1),
-        csvEscape(ans.question),
-        csvEscape(ans.selected || ""),
-        csvEscape(ans.correct || ""),
-        csvEscape(ans.isCorrect)
-      ].join(","));
-    });
-  });
-
-  downloadFile(
-    `quizzy-history-${new Date().toISOString().slice(0, 10)}.csv`,
-    rows.join("\n"),
-    "text/csv"
-  );
+  if (scoreBars) {
+    const chartData = entries.slice(0, 8).reverse();
+    scoreBars.innerHTML = chartData.length
+      ? chartData.map((e, i) => `
+          <div class="score-row">
+            <span class="score-label">Q${i + 1}</span>
+            <div class="score-track"><div class="score-fill" style="width:${e.percentage}%"></div></div>
+            <span class="score-val">${e.percentage}%</span>
+          </div>
+        `).join("")
+      : `<p class="mini-empty">Scoreboard appears after your first quiz.</p>`;
+  }
 }
 
 function renderEvaluationBoard() {
@@ -305,8 +282,8 @@ function renderEvaluationBoard() {
   if (entries.length === 0) {
     evaluationBoard.innerHTML = `
       <div class="card evaluation-empty">
-        <h3>Evaluation Board</h3>
-        <p>Complete a quiz to see score trends, recent attempts, and answer review.</p>
+        <h3>Assessment Dashboard</h3>
+        <p>Attempt quizzes to unlock your progress board, trends, and review deck.</p>
       </div>
     `;
     return;
@@ -323,11 +300,9 @@ function renderEvaluationBoard() {
   evaluationBoard.innerHTML = `
     <div class="evaluation-wrap">
       <div class="evaluation-head">
-        <h3>Evaluation Board</h3>
+        <h3>Assessment Dashboard</h3>
         <div class="evaluation-head-actions">
-          <button id="exportHistoryJsonBtn" class="ghost">Export JSON</button>
-          <button id="exportHistoryCsvBtn" class="ghost">Export CSV</button>
-          <button id="clearHistoryBtn" class="ghost">Clear History</button>
+          <button id="clearHistoryBtn" class="ghost">Clear</button>
         </div>
       </div>
       <div class="evaluation-stats">
@@ -340,7 +315,7 @@ function renderEvaluationBoard() {
         <div class="card latest-attempt">
           <h4>Latest Attempt</h4>
           <p>${latest.score}/${latest.total} (${latest.percentage}%) | ${(latest.sourceType || "text").toUpperCase()} | ${formatShortDate(latest.createdAt)}</p>
-          <p>${wrongCount} question(s) need revision.</p>
+          <p>Assessment: <strong>${getAssessmentLabel(latest.percentage)}</strong>. ${wrongCount} question(s) need revision.</p>
           <details>
             <summary>Review Answers</summary>
             <div class="answer-review">
@@ -359,7 +334,7 @@ function renderEvaluationBoard() {
             <div class="attempt-row">
               <span>${formatShortDate(e.createdAt)}</span>
               <span>${e.score}/${e.total} (${e.percentage}%)</span>
-              <span>${(e.sourceType || "text").toUpperCase()}</span>
+              <span>${(e.settings?.difficulty || "moderate").toUpperCase()}</span>
             </div>
           `).join("")}
         </div>
@@ -368,21 +343,12 @@ function renderEvaluationBoard() {
   `;
 
   document.getElementById("clearHistoryBtn")?.addEventListener("click", () => {
-    localStorage.removeItem(HISTORY_KEY);
+    localStorage.removeItem(historyKey());
     renderEvaluationBoard();
-  });
-  document.getElementById("exportHistoryJsonBtn")?.addEventListener("click", () => {
-    exportHistoryJson(entries);
-  });
-  document.getElementById("exportHistoryCsvBtn")?.addEventListener("click", () => {
-    exportHistoryCsv(entries);
+    renderSidebar();
   });
 }
 
-setThemeIcon();
-renderEvaluationBoard();
-
-/* CURSOR GLOW (SMOOTH FOLLOW) */
 if (cursorGlow) {
   let targetX = window.innerWidth / 2;
   let targetY = window.innerHeight / 2;
@@ -405,7 +371,6 @@ if (cursorGlow) {
   follow();
 }
 
-/* CURSOR TRAIL (COLOR-CHANGING) */
 if (cursorTrail) {
   const ctx = cursorTrail.getContext("2d");
   let points = [];
@@ -423,19 +388,13 @@ if (cursorTrail) {
 
   const getPalette = () => {
     const isDark = document.body.classList.contains("dark");
-    return isDark
-      ? ["#fbcfe8", "#c7d2fe", "#a5f3fc", "#fecdd3"]
-      : ["#f5d0fe", "#c7d2fe", "#bae6fd", "#bbf7d0"];
+    return isDark ? ["#fbcfe8", "#c7d2fe", "#a5f3fc", "#fecdd3"] : ["#f5d0fe", "#c7d2fe", "#bae6fd", "#bbf7d0"];
   };
 
   const draw = () => {
     ctx.clearRect(0, 0, cursorTrail.width, cursorTrail.height);
-
-    for (let i = 0; i < points.length; i++) {
-      const p = points[i];
-      p.life -= 0.008;
-    }
-    points = points.filter(p => p.life > 0);
+    for (let i = 0; i < points.length; i++) points[i].life -= 0.008;
+    points = points.filter((p) => p.life > 0);
 
     const palette = getPalette();
     ctx.lineCap = "round";
@@ -452,35 +411,43 @@ if (cursorTrail) {
       ctx.lineTo(p2.x, p2.y);
       ctx.stroke();
     }
-
     requestAnimationFrame(draw);
   };
 
   draw();
 }
 
-async function extractSourceText() {
-  let response;
-  const validationError = validateActiveSourceInput(true);
-  if (validationError) {
-    throw new Error(validationError);
-  }
+function normalizeShortAnswer(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
+function gradeShortAnswer(userValue, q) {
+  const user = normalizeShortAnswer(userValue);
+  const primary = normalizeShortAnswer(q.shortAnswer || q.correct || "");
+  const alternates = Array.isArray(q.acceptableAnswers)
+    ? q.acceptableAnswers.map((a) => normalizeShortAnswer(a))
+    : [];
+  const valid = [primary, ...alternates].filter(Boolean);
+  return valid.some((ans) => user === ans || (ans.length > 4 && user.includes(ans)));
+}
+
+async function extractSourceText() {
+  const validationError = validateActiveSourceInput(true);
+  if (validationError) throw new Error(validationError);
+
+  let response;
   if (activeSource === "pdf") {
     const file = pdfInput.files?.[0];
-    if (!file) {
-      throw new Error("Please choose a PDF file");
-    }
+    if (!file) throw new Error("Please choose a PDF file");
     const formData = new FormData();
     formData.append("pdf", file);
-    response = await fetch(`${API_BASE}/extract-content`, {
-      method: "POST",
-      body: formData
-    });
+    response = await fetch(`${API_BASE}/extract-content`, { method: "POST", body: formData });
   } else {
-    const payload = activeSource === "url"
-      ? { url: urlInput.value.trim() }
-      : { text: input.value.trim() };
+    const payload = activeSource === "url" ? { url: urlInput.value.trim() } : { text: input.value.trim() };
     response = await fetch(`${API_BASE}/extract-content`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -489,28 +456,51 @@ async function extractSourceText() {
   }
 
   const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.error || "Could not extract content");
-  }
-  if (!data.text || data.text.trim().length === 0) {
-    throw new Error("Extraction returned empty content");
-  }
+  if (!response.ok) throw new Error(data.error || "Could not extract content");
+  if (!data.text || data.text.trim().length === 0) throw new Error("Extraction returned empty content");
   return data.text;
+}
+
+function normalizeQuestion(q) {
+  if (!q || typeof q !== "object") return null;
+  const type = q.type === "short" ? "short" : "mcq";
+
+  if (type === "mcq") {
+    const options = Array.isArray(q.options) && q.options.length >= 2
+      ? q.options.slice(0, 4)
+      : ["Option A", "Option B", "Option C", "Option D"];
+    const correct = String(q.correct || "A").trim().charAt(0).toUpperCase();
+    return {
+      ...q,
+      type,
+      options,
+      correct: ["A", "B", "C", "D"].includes(correct) ? correct : "A"
+    };
+  }
+
+  return {
+    ...q,
+    type,
+    shortAnswer: q.shortAnswer || q.correct || "",
+    acceptableAnswers: Array.isArray(q.acceptableAnswers) ? q.acceptableAnswers : []
+  };
 }
 
 btn.onclick = async () => {
   loader.classList.remove("hidden");
   btn.disabled = true;
+  deathModeTriggered = false;
 
   try {
+    const settings = getSettings();
     let requestPayload;
     const rawTextInput = input.value.trim();
 
     if (activeSource === "text" && rawTextInput.length < 50) {
-      requestPayload = { topic: rawTextInput };
+      requestPayload = { topic: rawTextInput, ...settings };
     } else {
       const extractedText = await extractSourceText();
-      requestPayload = { text: extractedText };
+      requestPayload = { text: extractedText, ...settings };
     }
 
     const res = await fetch(`${API_BASE}/generate-quiz`, {
@@ -520,15 +510,17 @@ btn.onclick = async () => {
     });
 
     const data = await res.json();
-    if (!res.ok) {
-      throw new Error(data.error || "Failed to generate quiz");
-    }
-    if (!Array.isArray(data.questions) || data.questions.length === 0) {
-      throw new Error("No questions were returned");
-    }
+    if (!res.ok) throw new Error(data.error || "Failed to generate quiz");
 
-    questions = data.questions;
-    index = score = 0;
+    const cleaned = (Array.isArray(data.questions) ? data.questions : [])
+      .map(normalizeQuestion)
+      .filter(Boolean);
+
+    if (cleaned.length === 0) throw new Error("No questions were returned");
+
+    questions = cleaned;
+    index = 0;
+    score = 0;
     answered = {};
     choices = {};
     attemptAnswers = Array.from({ length: questions.length }, () => null);
@@ -537,17 +529,18 @@ btn.onclick = async () => {
       sourceType: activeSource,
       sourceInput:
         activeSource === "pdf"
-          ? (pdfInput.files?.[0]?.name || "pdf")
+          ? pdfInput.files?.[0]?.name || "pdf"
           : activeSource === "url"
             ? urlInput.value.trim()
-            : input.value.trim().slice(0, 140)
+            : input.value.trim().slice(0, 140),
+      settings
     };
 
     setTimeout(() => {
       loader.classList.add("hidden");
       quiz.scrollIntoView({ behavior: "smooth" });
       showQuestion();
-    }, 1200);
+    }, 900);
   } catch (err) {
     loader.classList.add("hidden");
     quiz.innerHTML = `
@@ -561,26 +554,37 @@ btn.onclick = async () => {
   }
 };
 
+function renderShortAnswerInput() {
+  return `
+    <div class="short-wrap">
+      <textarea id="shortAnswerInput" class="short-answer" placeholder="Type your answer here..."></textarea>
+      <button id="submitShortBtn" type="button">Submit Answer</button>
+    </div>
+  `;
+}
+
 function showQuestion() {
   clearInterval(timer);
-  timeLeft = 15;
+  timeLeft = getTimerSeconds();
   const q = questions[index];
   const progress = Math.round(((index + 1) / questions.length) * 100);
 
   quiz.innerHTML = `
     <div class="card quiz-card">
       <div class="quiz-top">
-        <span>Q ${index + 1}/${questions.length}</span>
+        <span>Q ${index + 1}/${questions.length} | ${q.type.toUpperCase()}</span>
         <span>${timeLeft}s</span>
       </div>
       <div class="progress">
         <div class="progress-fill" style="width:${progress}%"></div>
       </div>
       <h2>${q.question}</h2>
-      ${q.options.map((o,i)=>`
-        <div class="option" data-o="${String.fromCharCode(65+i)}">
-          ${String.fromCharCode(65+i)}. ${o}
-        </div>`).join("")}
+      ${q.type === "mcq"
+        ? q.options.map((o, i) => `
+          <div class="option" data-o="${String.fromCharCode(65 + i)}">
+            ${String.fromCharCode(65 + i)}. ${o}
+          </div>`).join("")
+        : renderShortAnswerInput()}
       <div class="quiz-actions">
         <button id="prevBtn" class="ghost" ${index === 0 ? "disabled" : ""}>Previous</button>
         <button id="finishBtn" class="ghost">Finish</button>
@@ -589,9 +593,17 @@ function showQuestion() {
     </div>
   `;
 
-  document.querySelectorAll(".option").forEach(opt =>
-    opt.onclick = () => answer(opt, q)
-  );
+  if (q.type === "mcq") {
+    document.querySelectorAll(".option").forEach((opt) => {
+      opt.onclick = () => answerMcq(opt, q);
+    });
+  } else {
+    document.getElementById("submitShortBtn")?.addEventListener("click", () => {
+      const value = document.getElementById("shortAnswerInput")?.value || "";
+      answerShort(value, q);
+    });
+  }
+
   document.getElementById("prevBtn")?.addEventListener("click", prev);
   document.getElementById("finishBtn")?.addEventListener("click", finish);
   document.getElementById("nextBtn")?.addEventListener("click", next);
@@ -605,74 +617,134 @@ function showQuestion() {
 
   timer = setInterval(() => {
     timeLeft--;
-    document.querySelector(".quiz-top span:last-child").innerText = timeLeft + "s";
+    const clock = document.querySelector(".quiz-top span:last-child");
+    if (clock) clock.innerText = `${timeLeft}s`;
+
     if (timeLeft <= 0 && !answered[index]) {
       answered[index] = true;
       choices[index] = null;
       attemptAnswers[index] = {
         question: q.question,
         selected: null,
-        correct: q.correct,
-        isCorrect: false
+        correct: q.type === "short" ? q.shortAnswer : q.correct,
+        isCorrect: false,
+        type: q.type
       };
       reveal(q, null, false);
       clearInterval(timer);
+
+      if (getSettings().difficulty === "death") {
+        deathModeTriggered = true;
+        setTimeout(() => finish(), 350);
+      }
     }
   }, 1000);
 }
 
-function answer(el, q) {
+function answerMcq(el, q) {
   if (answered[index]) return;
   answered[index] = true;
   choices[index] = el.dataset.o;
+  const isCorrect = el.dataset.o === q.correct;
   attemptAnswers[index] = {
     question: q.question,
     selected: el.dataset.o,
     correct: q.correct,
-    isCorrect: el.dataset.o === q.correct
+    isCorrect,
+    type: "mcq"
   };
   clearInterval(timer);
   reveal(q, el.dataset.o, false);
+
+  if (!isCorrect && getSettings().difficulty === "death") {
+    deathModeTriggered = true;
+    setTimeout(() => finish(), 350);
+  }
+}
+
+function answerShort(value, q) {
+  if (answered[index]) return;
+  answered[index] = true;
+  choices[index] = value;
+  const isCorrect = gradeShortAnswer(value, q);
+  attemptAnswers[index] = {
+    question: q.question,
+    selected: value,
+    correct: q.shortAnswer,
+    isCorrect,
+    type: "short"
+  };
+  clearInterval(timer);
+  reveal(q, value, false);
+
+  if (!isCorrect && getSettings().difficulty === "death") {
+    deathModeTriggered = true;
+    setTimeout(() => finish(), 350);
+  }
 }
 
 function reveal(q, choice, isReview) {
-  document.querySelectorAll(".option").forEach(o => {
-    o.classList.add("disabled");
-    if (o.dataset.o === q.correct) o.classList.add("correct");
-  });
+  const isShort = q.type === "short";
 
-  if (choice) {
-    const chosen = document.querySelector(`.option[data-o="${choice}"]`);
-    if (choice === q.correct) {
-      if (!isReview) {
-        score++;
-        correctSound.play();
-      }
-    } else {
+  if (!isShort) {
+    document.querySelectorAll(".option").forEach((o) => {
+      o.classList.add("disabled");
+      if (o.dataset.o === q.correct) o.classList.add("correct");
+    });
+  } else {
+    document.getElementById("shortAnswerInput")?.setAttribute("disabled", "disabled");
+    document.getElementById("submitShortBtn")?.setAttribute("disabled", "disabled");
+  }
+
+  const isCorrect = attemptAnswers[index]?.isCorrect;
+  if (isCorrect && !isReview) {
+    score++;
+    correctSound.play();
+  } else if (!isCorrect && !isReview) {
+    wrongSound.play();
+    if (!isShort && choice) {
+      const chosen = document.querySelector(`.option[data-o="${choice}"]`);
       chosen?.classList.add("wrong");
-      if (!isReview) {
-        wrongSound.play();
-      }
     }
   }
 
   if (!quiz.querySelector(".explanation")) {
+    const answerText = isShort ? `Correct answer: ${q.shortAnswer || q.correct}` : `Correct option: ${q.correct}`;
     quiz.querySelector(".quiz-card").insertAdjacentHTML(
       "beforeend",
-      `<div class="explanation">${q.explanation}</div>`
+      `<div class="explanation"><p><strong>${answerText}</strong></p><p>${q.explanation || ""}</p><button id="saveQuestionBtn" class="ghost" type="button">Save Question</button></div>`
     );
+    document.getElementById("saveQuestionBtn")?.addEventListener("click", () => {
+      addSavedQuestion({
+        question: q.question,
+        correct: isShort ? (q.shortAnswer || q.correct) : q.correct,
+        explanation: q.explanation || ""
+      });
+    });
   }
 }
 
 function next() {
+  if (deathModeTriggered) return finish();
   index++;
-  index < questions.length ? showQuestion() : finish();
+  if (index < questions.length) showQuestion();
+  else finish();
 }
 
 function prev() {
-  if (index === 0) return;
+  if (index === 0 || getSettings().difficulty === "death") return;
   index--;
   showQuestion();
+}
+
+function buildFlashcards(entry) {
+  return entry.answers.slice(0, 8).map((a, i) => `
+    <details class="flash-card">
+      <summary>Card ${i + 1}: ${a.question}</summary>
+      <p><strong>Answer:</strong> ${a.correct}</p>
+      <p>Your response: ${a.selected || "Not answered"}</p>
+    </details>
+  `).join("");
 }
 
 function buildHistoryEntry() {
@@ -682,8 +754,9 @@ function buildHistoryEntry() {
     return {
       question: q.question,
       selected: null,
-      correct: q.correct,
-      isCorrect: false
+      correct: q.type === "short" ? q.shortAnswer : q.correct,
+      isCorrect: false,
+      type: q.type
     };
   });
 
@@ -695,6 +768,7 @@ function buildHistoryEntry() {
     createdAt: currentAttemptMeta?.createdAt || new Date().toISOString(),
     sourceType: currentAttemptMeta?.sourceType || "text",
     sourceInput: currentAttemptMeta?.sourceInput || "",
+    settings: currentAttemptMeta?.settings || getSettings(),
     score,
     total,
     percentage,
@@ -704,37 +778,64 @@ function buildHistoryEntry() {
 
 function finish() {
   confetti();
+  clearInterval(timer);
   const entry = buildHistoryEntry();
   addHistoryEntry(entry);
   renderEvaluationBoard();
+  renderSidebar();
+
+  const assessment = getAssessmentLabel(entry.percentage);
+  const deathMsg = deathModeTriggered ? `<p class="death-msg">Death mode ended after one miss. Brutal run.</p>` : "";
 
   quiz.innerHTML = `
     <div class="card quiz-card">
       <h2>Quiz Completed</h2>
       <h1>${score} / ${questions.length}</h1>
       <p>Accuracy: ${entry.percentage}%</p>
-      <p>Source: ${entry.sourceType.toUpperCase()}</p>
+      <p>Assessment: <strong>${assessment}</strong></p>
+      <p>Mode: ${(entry.settings?.difficulty || "moderate").toUpperCase()} | ${(entry.settings?.questionMode || "mcq").toUpperCase()} | ${(entry.settings?.learnerMode || "student").toUpperCase()}</p>
+      ${deathMsg}
+      <div class="flashcards-wrap">
+        <h3>Flashcards</h3>
+        ${buildFlashcards(entry)}
+      </div>
     </div>
   `;
 }
 
 function confetti() {
-  for (let i = 0; i < 120; i++) {
+  for (let i = 0; i < 90; i++) {
     const c = document.createElement("div");
     c.className = "confetti";
-    c.style.left = Math.random() * 100 + "vw";
-    c.style.background = `hsl(${Math.random()*360},100%,60%)`;
+    c.style.left = `${Math.random() * 100}vw`;
+    c.style.background = `hsl(${Math.random() * 360},100%,60%)`;
     document.body.appendChild(c);
-    setTimeout(() => c.remove(), 3000);
+    setTimeout(() => c.remove(), 2800);
   }
 }
 
-document.querySelectorAll("[data-count]").forEach(counter => {
-  let target = +counter.dataset.count, c = 0;
-  const run = () => {
-    c += Math.ceil(target / 60);
-    counter.innerText = c < target ? c : target;
-    if (c < target) requestAnimationFrame(run);
-  };
-  run();
+input.addEventListener("input", () => {
+  validateActiveSourceInput(true);
+  updateGenerateButtonState();
 });
+urlInput.addEventListener("input", () => {
+  validateActiveSourceInput(true);
+  updateGenerateButtonState();
+});
+pdfInput.addEventListener("change", () => {
+  validateActiveSourceInput(true);
+  updateGenerateButtonState();
+});
+sourceBtns.forEach((node) => node.addEventListener("click", () => setActiveSource(node.dataset.source)));
+logoutBtn?.addEventListener("click", () => auth?.logout());
+
+toggle.onclick = () => {
+  document.body.classList.toggle("dark");
+  setThemeIcon();
+};
+
+setThemeIcon();
+setActiveSource(activeSource);
+renderEvaluationBoard();
+renderSidebar();
+bootstrapAuth();

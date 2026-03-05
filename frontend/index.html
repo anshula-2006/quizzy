@@ -51,6 +51,33 @@
         <button type="button" class="source-btn" data-source="url">URL</button>
         <button type="button" class="source-btn" data-source="pdf">PDF</button>
       </div>
+      <div class="quiz-settings">
+        <div class="setting">
+          <label for="difficultyMode">Difficulty</label>
+          <select id="difficultyMode">
+            <option value="easy">Easy</option>
+            <option value="moderate" selected>Moderate</option>
+            <option value="tough">Tough</option>
+            <option value="death">Death Mode</option>
+          </select>
+        </div>
+        <div class="setting">
+          <label for="learnerMode">Learner Type</label>
+          <select id="learnerMode">
+            <option value="student" selected>Student</option>
+            <option value="teacher">Teacher</option>
+            <option value="self-study">Self-study</option>
+          </select>
+        </div>
+        <div class="setting">
+          <label for="questionMode">Question Type</label>
+          <select id="questionMode">
+            <option value="mcq" selected>MCQ only</option>
+            <option value="mixed">Mixed (MCQ + Short)</option>
+            <option value="short">Short answers</option>
+          </select>
+        </div>
+      </div>
       <textarea id="inputText" placeholder="Explain CPU scheduling..."></textarea>
       <input id="urlInput" class="source-input hidden" type="url" placeholder="https://example.com/article" />
       <input id="pdfInput" class="source-input hidden" type="file" accept=".pdf,application/pdf" />
@@ -58,9 +85,29 @@
       <button id="generateBtn" disabled>Generate Quiz</button>
     </div>
   </section>
-   <!-- Quiz -->
-  <div id="quiz"></div>
-  <section id="evaluationBoard" class="evaluation-board"></section>
+
+  <section class="workspace">
+    <div class="workspace-main">
+      <div id="quiz"></div>
+      <section id="evaluationBoard" class="evaluation-board"></section>
+    </div>
+    <aside id="quizSidebar" class="card quiz-sidebar">
+      <h3>Mission Control</h3>
+      <p class="sidebar-note">Sign in to keep your history, saved questions, flashcards, and score trends.</p>
+      <div class="sidebar-block">
+        <h4>Attempt Timeline</h4>
+        <div id="attemptList" class="sidebar-list"></div>
+      </div>
+      <div class="sidebar-block">
+        <h4>Saved Questions</h4>
+        <div id="savedList" class="sidebar-list"></div>
+      </div>
+      <div class="sidebar-block">
+        <h4>Scoreboard</h4>
+        <div id="scoreBars" class="score-bars"></div>
+      </div>
+    </aside>
+  </section>
 
   <!-- Features -->
   <section class="features">

@@ -17,7 +17,7 @@ app.use(cors());
 app.use(express.json());
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 }
+  limits: { fileSize: 50 * 1024 * 1024 }
 });
 
 function isBlockedHostname(hostname) {
@@ -307,7 +307,7 @@ app.post("/extract-content", upload.single("pdf"), async (req, res) => {
 });
 
 app.post("/generate-quiz", async (req, res) => {
-  const { text, topic } = req.body;
+  const { text, topic, difficulty = "moderate", learnerMode = "student", questionMode = "mcq" } = req.body;
 
   if (!text && !topic) {
     return res.status(400).json({ error: "Text or topic is required" });
@@ -323,7 +323,7 @@ app.post("/generate-quiz", async (req, res) => {
   let prompt = "";
 
 prompt = `
-Generate exactly 10 multiple-choice questions in JSON format.
+Generate exactly 10 quiz questions in JSON format.
 
 Return ONLY valid JSON. No extra text.
 
@@ -332,8 +332,11 @@ Format:
   "questions": [
     {
       "question": "Clear and factually accurate question",
-      "options": ["Option A", "Option B", "Option C", "Option D"],
-      "correct": "A",
+      "type": "mcq or short",
+      "options": ["Option A", "Option B", "Option C", "Option D"], 
+      "correct": "A for MCQ, or short factual answer for short type",
+      "shortAnswer": "Required for short type, otherwise null",
+      "acceptableAnswers": ["Optional synonyms for short type"],
       "explanation": "2-3 sentence clear explanation justifying why this option is correct",
       "image": "Direct Wikimedia Commons image URL ending with .jpg or .png, or null"
     }
@@ -348,6 +351,22 @@ Rules:
 - Explanation must clearly justify the correct answer
 - Do NOT guess facts
 - If unsure about accuracy, choose a safer factual question
+
+- Difficulty level: "${difficulty}".
+  - easy: direct recall and basic understanding
+  - moderate: application-focused
+  - tough: multi-step reasoning
+  - death: very hard and tricky but still fair and factual
+
+- Learner mode: "${learnerMode}".
+  - student: exam style and concept checks
+  - teacher: pedagogy, misconceptions, and assessment framing
+  - self-study: practical understanding and memory reinforcement
+
+- Question type mode: "${questionMode}".
+  - mcq: all 10 must be MCQ with 4 options
+  - short: all 10 must be short-answer with shortAnswer populated
+  - mixed: 6 MCQ + 4 short-answer
 
 - Generate a DIFFERENT set of questions every time.
 - Avoid repeating previously common questions.

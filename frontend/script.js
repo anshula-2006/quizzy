@@ -46,7 +46,6 @@ const SAVED_BASE = "quizzy-saved-v1";
 const MAX_HISTORY_ITEMS = 20;
 let attemptAnswers = [];
 let currentAttemptMeta = null;
-let deathModeTriggered = false;
 
 const ROLE_PRESETS = {
   student: { difficulty: "moderate", questionMode: "mixed", timerBias: 0 },
@@ -116,7 +115,7 @@ function getTimerSeconds() {
   let base = 15;
   if (difficulty === "easy") base = 22;
   if (difficulty === "tough") base = 12;
-  if (difficulty === "death") base = 8;
+  if (difficulty === "super") base = 9;
   return Math.max(6, base + (roleProfile?.timerBias || 0));
 }
 
@@ -588,7 +587,6 @@ function normalizeQuestion(q) {
 btn.onclick = async () => {
   loader.classList.remove("hidden");
   btn.disabled = true;
-  deathModeTriggered = false;
 
   try {
     const settings = getSettings();
@@ -731,11 +729,6 @@ function showQuestion() {
       };
       reveal(q, null, false);
       clearInterval(timer);
-
-      if (getSettings().difficulty === "death") {
-        deathModeTriggered = true;
-        setTimeout(() => finish(), 350);
-      }
     }
   }, 1000);
 }
@@ -754,11 +747,6 @@ function answerMcq(el, q) {
   };
   clearInterval(timer);
   reveal(q, el.dataset.o, false);
-
-  if (!isCorrect && getSettings().difficulty === "death") {
-    deathModeTriggered = true;
-    setTimeout(() => finish(), 350);
-  }
 }
 
 function answerShort(value, q) {
@@ -775,11 +763,6 @@ function answerShort(value, q) {
   };
   clearInterval(timer);
   reveal(q, value, false);
-
-  if (!isCorrect && getSettings().difficulty === "death") {
-    deathModeTriggered = true;
-    setTimeout(() => finish(), 350);
-  }
 }
 
 function reveal(q, choice, isReview) {
@@ -824,14 +807,13 @@ function reveal(q, choice, isReview) {
 }
 
 function next() {
-  if (deathModeTriggered) return finish();
   index++;
   if (index < questions.length) showQuestion();
   else finish();
 }
 
 function prev() {
-  if (index === 0 || getSettings().difficulty === "death") return;
+  if (index === 0) return;
   index--;
   showQuestion();
 }
@@ -884,7 +866,6 @@ function finish() {
   renderSidebar();
 
   const assessment = getAssessmentLabel(entry.percentage);
-  const deathMsg = deathModeTriggered ? `<p class="death-msg">Death mode ended after one miss. Brutal run.</p>` : "";
 
   quiz.innerHTML = `
     <div class="card quiz-card">
@@ -893,7 +874,6 @@ function finish() {
       <p>Accuracy: ${entry.percentage}%</p>
       <p>Assessment: <strong>${assessment}</strong></p>
       <p>Mode: ${(entry.settings?.difficulty || "moderate").toUpperCase()} | ${(entry.settings?.questionMode || "mcq").toUpperCase()} | ${(entry.settings?.learnerMode || "student").toUpperCase()}</p>
-      ${deathMsg}
       <div class="flashcards-wrap">
         <h3>Flashcards</h3>
         ${buildFlashcards(entry)}

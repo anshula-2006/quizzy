@@ -362,7 +362,7 @@ Rules:
   - easy: direct recall and basic understanding
   - moderate: application-focused
   - tough: multi-step reasoning
-  - death: very hard and tricky but still fair and factual
+  - super: very hard and tricky but still fair and factual (no sudden-death behavior)
 
 - Learner mode: "${learnerMode}".
   - student: exam style and concept checks

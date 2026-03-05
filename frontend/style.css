@@ -272,10 +272,26 @@ body.dark .card {
 
 /* Hero input card */
 .hero-card {
-  max-width: 420px;
+  max-width: 760px;
+  width: 100%;
   box-shadow: 0 30px 70px rgba(15,23,42,0.16);
   transform: rotate(-0.4deg);
   position: relative;
+}
+
+.hero-card-layout {
+  display: grid;
+  grid-template-columns: 0.95fr 1.25fr;
+  gap: 14px;
+}
+
+.settings-pane {
+  border-right: 1px solid var(--border);
+  padding-right: 10px;
+}
+
+.input-pane {
+  padding-left: 4px;
 }
 
 /* ================= HERO ICONS ================= */
@@ -413,6 +429,7 @@ body.dark .source-input {
 }
 
 .mode-option {
+  position: relative;
   border-radius: 10px;
   border: 1px solid rgba(15,23,42,0.16);
   background: rgba(255,255,255,0.85);
@@ -424,6 +441,22 @@ body.dark .source-input {
 
 .mode-option:hover {
   transform: translateY(-1px);
+}
+
+.mode-option::after {
+  content: attr(data-emoji);
+  position: absolute;
+  top: -10px;
+  right: -8px;
+  font-size: 0.95rem;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.mode-option:hover::after {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .mode-option.active {
@@ -443,6 +476,7 @@ body.dark .source-input {
 }
 
 .role-card {
+  position: relative;
   text-align: left;
   border-radius: 12px;
   border: 1px solid rgba(15,23,42,0.15);
@@ -455,6 +489,9 @@ body.dark .source-input {
 .role-card strong {
   display: block;
   margin-bottom: 3px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .role-card span {
@@ -468,6 +505,27 @@ body.dark .source-input {
   border-color: transparent;
   background: linear-gradient(135deg, rgba(255,109,179,0.2), rgba(106,91,255,0.22));
   box-shadow: 0 12px 26px rgba(106,91,255,0.18);
+}
+
+.role-card::after {
+  content: attr(data-emoji);
+  position: absolute;
+  right: 10px;
+  top: 8px;
+  font-size: 1.05rem;
+  opacity: 0;
+  transform: scale(0.92);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.role-card:hover::after {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.role-icon {
+  font-size: 1rem;
+  line-height: 1;
 }
 
 .mode-note {
@@ -902,11 +960,6 @@ body.dark .flash-card {
   background: rgba(15,23,42,0.6);
 }
 
-.death-msg {
-  color: #dc2626;
-  font-weight: 700;
-}
-
 /* ================= LOADER ================= */
 .loader {
   position: fixed;
@@ -969,6 +1022,21 @@ footer {
   .hero {
     grid-template-columns: 1fr;
     gap: 28px;
+  }
+
+  .hero-card-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-pane {
+    border-right: 0;
+    padding-right: 0;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+  }
+
+  .input-pane {
+    padding-left: 0;
   }
 
   .evaluation-stats,

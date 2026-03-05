@@ -45,57 +45,63 @@
     </div>
 
     <div class="card hero-card">
-      <label>Topic or Study Material</label>
-      <div class="source-switch" role="tablist" aria-label="Input source">
-        <button type="button" class="source-btn active" data-source="text">Text</button>
-        <button type="button" class="source-btn" data-source="url">URL</button>
-        <button type="button" class="source-btn" data-source="pdf">PDF</button>
+      <div class="hero-card-layout">
+        <div class="settings-pane">
+          <div class="quiz-settings">
+            <div class="setting">
+              <label>Difficulty</label>
+              <div class="mode-group" data-target="difficultyMode">
+                <button type="button" class="mode-option" data-value="easy" data-emoji="🙂">Easy</button>
+                <button type="button" class="mode-option active" data-value="moderate" data-emoji="⚡">Moderate</button>
+                <button type="button" class="mode-option" data-value="tough" data-emoji="🔥">Tough</button>
+                <button type="button" class="mode-option danger" data-value="super" data-emoji="🧠">Super</button>
+              </div>
+              <input type="hidden" id="difficultyMode" value="moderate" />
+            </div>
+            <div class="setting">
+              <label>Learner Type</label>
+              <div class="role-cards">
+                <button type="button" class="role-card active" data-role="student" data-emoji="🎓">
+                  <strong><span class="role-icon">🎓</span>Student</strong>
+                  <span>Exam prep, timed challenge, and concept correction.</span>
+                </button>
+                <button type="button" class="role-card" data-role="teacher" data-emoji="🧑‍🏫">
+                  <strong><span class="role-icon">🧑‍🏫</span>Teacher</strong>
+                  <span>Diagnostic questions, misconception checks, and pedagogy focus.</span>
+                </button>
+                <button type="button" class="role-card" data-role="self-study" data-emoji="📘">
+                  <strong><span class="role-icon">📘</span>Self-study</strong>
+                  <span>Retention-first flow with flashcard-heavy reinforcement.</span>
+                </button>
+              </div>
+              <p id="roleFlavor" class="mode-note">Student mode: balanced exam-oriented practice.</p>
+              <input type="hidden" id="learnerMode" value="student" />
+            </div>
+            <div class="setting">
+              <label>Question Type</label>
+              <div class="mode-group" data-target="questionMode">
+                <button type="button" class="mode-option active" data-value="mcq" data-emoji="✅">MCQ Only</button>
+                <button type="button" class="mode-option" data-value="mixed" data-emoji="🔀">Mixed</button>
+                <button type="button" class="mode-option" data-value="short" data-emoji="✍️">Short</button>
+              </div>
+              <input type="hidden" id="questionMode" value="mcq" />
+            </div>
+          </div>
+        </div>
+        <div class="input-pane">
+          <label>Topic or Study Material</label>
+          <div class="source-switch" role="tablist" aria-label="Input source">
+            <button type="button" class="source-btn active" data-source="text">Text</button>
+            <button type="button" class="source-btn" data-source="url">URL</button>
+            <button type="button" class="source-btn" data-source="pdf">PDF</button>
+          </div>
+          <textarea id="inputText" placeholder="Explain CPU scheduling..."></textarea>
+          <input id="urlInput" class="source-input hidden" type="url" placeholder="https://example.com/article" />
+          <input id="pdfInput" class="source-input hidden" type="file" accept=".pdf,application/pdf" />
+          <p id="sourceHint" class="source-hint">Paste study text to generate a quiz.</p>
+          <button id="generateBtn" disabled>Generate Quiz</button>
+        </div>
       </div>
-      <div class="quiz-settings">
-        <div class="setting">
-          <label>Difficulty</label>
-          <div class="mode-group" data-target="difficultyMode">
-            <button type="button" class="mode-option" data-value="easy">Easy</button>
-            <button type="button" class="mode-option active" data-value="moderate">Moderate</button>
-            <button type="button" class="mode-option" data-value="tough">Tough</button>
-            <button type="button" class="mode-option danger" data-value="death">Death</button>
-          </div>
-          <input type="hidden" id="difficultyMode" value="moderate" />
-        </div>
-        <div class="setting">
-          <label>Learner Type</label>
-          <div class="role-cards">
-            <button type="button" class="role-card active" data-role="student">
-              <strong>Student</strong>
-              <span>Exam prep, timed challenge, and concept correction.</span>
-            </button>
-            <button type="button" class="role-card" data-role="teacher">
-              <strong>Teacher</strong>
-              <span>Diagnostic questions, misconception checks, and pedagogy focus.</span>
-            </button>
-            <button type="button" class="role-card" data-role="self-study">
-              <strong>Self-study</strong>
-              <span>Retention-first flow with flashcard-heavy reinforcement.</span>
-            </button>
-          </div>
-          <p id="roleFlavor" class="mode-note">Student mode: balanced exam-oriented practice.</p>
-          <input type="hidden" id="learnerMode" value="student" />
-        </div>
-        <div class="setting">
-          <label>Question Type</label>
-          <div class="mode-group" data-target="questionMode">
-            <button type="button" class="mode-option active" data-value="mcq">MCQ Only</button>
-            <button type="button" class="mode-option" data-value="mixed">Mixed</button>
-            <button type="button" class="mode-option" data-value="short">Short</button>
-          </div>
-          <input type="hidden" id="questionMode" value="mcq" />
-        </div>
-      </div>
-      <textarea id="inputText" placeholder="Explain CPU scheduling..."></textarea>
-      <input id="urlInput" class="source-input hidden" type="url" placeholder="https://example.com/article" />
-      <input id="pdfInput" class="source-input hidden" type="file" accept=".pdf,application/pdf" />
-      <p id="sourceHint" class="source-hint">Paste study text to generate a quiz.</p>
-      <button id="generateBtn" disabled>Generate Quiz</button>
     </div>
   </section>
 

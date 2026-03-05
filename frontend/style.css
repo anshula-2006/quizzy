@@ -774,7 +774,11 @@ body.dark .ghost {
 .review-rail {
   margin-top: 10px;
   display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(160px, 1fr);
   gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
 }
 
 .review-q-btn {
@@ -799,8 +803,10 @@ body.dark .ghost {
   margin-top: 10px;
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 12px;
+  padding: 10px;
   background: rgba(255,255,255,0.75);
+  max-height: 220px;
+  overflow: auto;
 }
 
 body.dark .review-q-btn,
@@ -1137,6 +1143,38 @@ body.dark .quiz-actions .ghost {
   gap: 8px;
 }
 
+.flash-viewer {
+  margin-top: 8px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  background: rgba(255,255,255,0.72);
+}
+
+.flash-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.flash-nav {
+  display: flex;
+  gap: 8px;
+}
+
+.flash-front {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  background: rgba(255,255,255,0.84);
+  margin-bottom: 8px;
+}
+
+.flash-card.compact {
+  margin: 0;
+}
+
 .flash-card {
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -1146,6 +1184,12 @@ body.dark .quiz-actions .ghost {
 
 body.dark .flash-card {
   background: rgba(15,23,42,0.6);
+}
+
+body.dark .flash-viewer,
+body.dark .flash-front {
+  background: rgba(15,23,42,0.64);
+  color: #e5e7eb;
 }
 
 /* ================= LOADER ================= */

@@ -51,6 +51,8 @@ const FLASH_BASE = "quizzy-flash-v1";
 const MAX_HISTORY_ITEMS = 20;
 let attemptAnswers = [];
 let currentAttemptMeta = null;
+let activeFlashDeck = null;
+let activeFlashIndex = 0;
 
 const ROLE_PRESETS = {
   student: { difficulty: "moderate", questionMode: "mixed", timerBias: 0 },
@@ -890,29 +892,52 @@ function renderFlashcardsBoard(deck) {
   if (!flashcardsBoard) return;
   if (!deck || !Array.isArray(deck.flashcards) || deck.flashcards.length === 0) {
     flashcardsBoard.innerHTML = "";
+    activeFlashDeck = null;
+    activeFlashIndex = 0;
     return;
   }
+  activeFlashDeck = deck;
+  activeFlashIndex = Math.max(0, Math.min(activeFlashIndex, deck.flashcards.length - 1));
+  const card = deck.flashcards[activeFlashIndex];
+  const imageBlock = card.image && /^https:\/\/upload\.wikimedia\.org\/.+\.(png|jpg)$/i.test(card.image)
+    ? `<div class="explain-image-wrap"><img class="explain-image" src="${card.image}" alt="Flashcard visual" loading="lazy" /></div>`
+    : "";
 
   flashcardsBoard.innerHTML = `
     <div class="evaluation-wrap">
       <div class="card">
         <h3>Flashcards</h3>
         <p>${deck.title}</p>
-        <div class="flashcards-wrap">
-          ${deck.flashcards.map((card, i) => `
-            <details class="flash-card">
-              <summary>Card ${i + 1}: ${card.front}</summary>
-              <p><strong>Answer:</strong> ${card.back}</p>
-              <p><strong>Hint:</strong> ${card.hint || "-"}</p>
-              ${card.image && /^https:\/\/upload\.wikimedia\.org\/.+\.(png|jpg)$/i.test(card.image)
-                ? `<div class="explain-image-wrap"><img class="explain-image" src="${card.image}" alt="Flashcard visual" loading="lazy" /></div>`
-                : ""}
-            </details>
-          `).join("")}
+        <div class="flash-viewer">
+          <div class="flash-head">
+            <span>Card ${activeFlashIndex + 1} / ${deck.flashcards.length}</span>
+            <div class="flash-nav">
+              <button id="flashPrevBtn" class="ghost" type="button" ${activeFlashIndex === 0 ? "disabled" : ""}>Prev</button>
+              <button id="flashNextBtn" class="ghost" type="button" ${activeFlashIndex === deck.flashcards.length - 1 ? "disabled" : ""}>Next</button>
+            </div>
+          </div>
+          <div class="flash-front"><strong>${card.front}</strong></div>
+          <details class="flash-card compact" open>
+            <summary>Reveal answer</summary>
+            <p><strong>Answer:</strong> ${card.back}</p>
+            <p><strong>Hint:</strong> ${card.hint || "-"}</p>
+            ${imageBlock}
+          </details>
         </div>
       </div>
     </div>
   `;
+
+  document.getElementById("flashPrevBtn")?.addEventListener("click", () => {
+    if (!activeFlashDeck || activeFlashIndex <= 0) return;
+    activeFlashIndex -= 1;
+    renderFlashcardsBoard(activeFlashDeck);
+  });
+  document.getElementById("flashNextBtn")?.addEventListener("click", () => {
+    if (!activeFlashDeck || activeFlashIndex >= activeFlashDeck.flashcards.length - 1) return;
+    activeFlashIndex += 1;
+    renderFlashcardsBoard(activeFlashDeck);
+  });
 }
 
 flashcardsBtn?.addEventListener("click", async () => {

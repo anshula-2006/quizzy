@@ -464,6 +464,23 @@ function getFeedback(entries) {
   return "Consistency is building. Keep alternating mixed mode and short mode for stronger retention.";
 }
 
+function getTrend(entries) {
+  if (entries.length < 2) return { delta: 0, label: "No trend yet" };
+  const latest = entries[0].percentage || 0;
+  const previous = entries[1].percentage || 0;
+  const delta = latest - previous;
+  if (delta > 0) return { delta, label: `Up ${delta}% vs last attempt` };
+  if (delta < 0) return { delta, label: `Down ${Math.abs(delta)}% vs last attempt` };
+  return { delta: 0, label: "Stable vs last attempt" };
+}
+
+function getBandLabel(score) {
+  if (score >= 90) return "Mastery";
+  if (score >= 75) return "Strong";
+  if (score >= 60) return "Growing";
+  return "Recovery";
+}
+
 function renderSidebar() {
   const entries = getHistory();
   const saved = getSavedQuestions();
@@ -506,15 +523,38 @@ function renderSidebar() {
 
   if (scoreBars) {
     const chartData = entries.slice(0, 8).reverse();
-    scoreBars.innerHTML = chartData.length
-      ? chartData.map((e, i) => `
-          <div class="score-row">
-            <span class="score-label">Q${i + 1}</span>
-            <div class="score-track"><div class="score-fill" style="width:${e.percentage}%"></div></div>
-            <span class="score-val">${e.percentage}%</span>
+    if (!chartData.length) {
+      scoreBars.innerHTML = `<p class="mini-empty">Scoreboard appears after your first quiz.</p>`;
+    } else {
+      const latest = entries[0]?.percentage || 0;
+      const avg = Math.round(entries.reduce((sum, e) => sum + (e.percentage || 0), 0) / entries.length);
+      const trend = getTrend(entries);
+      scoreBars.innerHTML = `
+        <div class="score-hero">
+          <div class="score-ring" style="--p:${latest}">
+            <strong>${latest}%</strong>
+            <span>Latest</span>
           </div>
-        `).join("") + `<div class="analysis-card"><strong>Feedback</strong><p>${getFeedback(entries)}</p></div>`
-      : `<p class="mini-empty">Scoreboard appears after your first quiz.</p>`;
+          <div class="score-meta">
+            <div class="meta-chip">${getBandLabel(latest)}</div>
+            <div class="meta-chip muted">Avg ${avg}%</div>
+            <div class="meta-chip ${trend.delta > 0 ? "up" : trend.delta < 0 ? "down" : "flat"}">${trend.label}</div>
+          </div>
+        </div>
+        <div class="score-spark">
+          ${chartData.map((e, i) => `
+            <div class="spark-col" title="Attempt ${i + 1}: ${e.percentage}%">
+              <div class="spark-bar" style="height:${Math.max(12, e.percentage)}%"></div>
+              <span>${e.percentage}%</span>
+            </div>
+          `).join("")}
+        </div>
+        <div class="analysis-card">
+          <strong>Feedback</strong>
+          <p>${getFeedback(entries)}</p>
+        </div>
+      `;
+    }
   }
 }
 

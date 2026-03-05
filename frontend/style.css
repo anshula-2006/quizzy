@@ -897,6 +897,98 @@ body.dark .saved-item {
   gap: 8px;
 }
 
+.score-hero {
+  display: grid;
+  grid-template-columns: 88px 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.score-ring {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  background:
+    radial-gradient(circle at center, rgba(255,255,255,0.95) 50%, transparent 51%),
+    conic-gradient(var(--accent-2) calc(var(--p) * 1%), rgba(15,23,42,0.12) 0);
+  box-shadow: 0 10px 22px rgba(106,91,255,0.2);
+}
+
+.score-ring strong {
+  display: block;
+  font-size: 1rem;
+}
+
+.score-ring span {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.score-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.meta-chip {
+  border-radius: 999px;
+  padding: 4px 9px;
+  font-size: 0.74rem;
+  border: 1px solid rgba(15,23,42,0.12);
+  background: rgba(255,255,255,0.82);
+}
+
+.meta-chip.muted {
+  color: var(--muted);
+}
+
+.meta-chip.up {
+  color: #047857;
+  border-color: rgba(5, 150, 105, 0.35);
+}
+
+.meta-chip.down {
+  color: #b91c1c;
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+.meta-chip.flat {
+  color: #0369a1;
+  border-color: rgba(14, 165, 233, 0.35);
+}
+
+.score-spark {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 6px;
+  align-items: end;
+}
+
+.spark-col {
+  display: grid;
+  gap: 4px;
+  align-items: end;
+  justify-items: center;
+}
+
+.spark-bar {
+  width: 100%;
+  max-width: 14px;
+  min-height: 12px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--accent-3), var(--accent-2), var(--accent-1));
+  box-shadow: 0 8px 16px rgba(106,91,255,0.25);
+}
+
+.spark-col span {
+  font-size: 0.66rem;
+  color: var(--muted);
+}
+
 .analysis-card {
   margin-top: 10px;
   border: 1px solid var(--border);
@@ -907,6 +999,18 @@ body.dark .saved-item {
 
 body.dark .analysis-card {
   background: rgba(15,23,42,0.64);
+}
+
+body.dark .meta-chip {
+  background: rgba(15,23,42,0.7);
+  color: #e5e7eb;
+  border-color: rgba(255,255,255,0.18);
+}
+
+body.dark .score-ring {
+  background:
+    radial-gradient(circle at center, rgba(15,23,42,0.92) 50%, transparent 51%),
+    conic-gradient(var(--accent-3) calc(var(--p) * 1%), rgba(255,255,255,0.15) 0);
 }
 
 .score-row {

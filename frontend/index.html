@@ -77,18 +77,18 @@
               <p id="roleFlavor" class="mode-note">Student mode: balanced exam-oriented practice.</p>
               <input type="hidden" id="learnerMode" value="student" />
             </div>
-            <div class="setting">
-              <label>Question Type</label>
-              <div class="mode-group" data-target="questionMode">
-                <button type="button" class="mode-option active" data-value="mcq" data-emoji="✅">MCQ Only</button>
-                <button type="button" class="mode-option" data-value="mixed" data-emoji="🔀">Mixed</button>
-                <button type="button" class="mode-option" data-value="short" data-emoji="✍️">Short</button>
-              </div>
-              <input type="hidden" id="questionMode" value="mcq" />
-            </div>
           </div>
         </div>
         <div class="input-pane">
+          <div class="setting setting-right">
+            <label>Question Type</label>
+            <div class="mode-group mode-group-three" data-target="questionMode">
+              <button type="button" class="mode-option active" data-value="mcq" data-emoji="✅">MCQ Only</button>
+              <button type="button" class="mode-option" data-value="mixed" data-emoji="🔀">Mixed</button>
+              <button type="button" class="mode-option" data-value="short" data-emoji="✍️">Short</button>
+            </div>
+            <input type="hidden" id="questionMode" value="mcq" />
+          </div>
           <label>Topic or Study Material</label>
           <div class="source-switch" role="tablist" aria-label="Input source">
             <button type="button" class="source-btn active" data-source="text">Text</button>

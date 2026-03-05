@@ -229,7 +229,7 @@ body.dark #themeToggle {
 .hero {
   padding: 60px 80px 32px;
   display: grid;
-  grid-template-columns: 1.2fr 1fr;
+  grid-template-columns: 1fr 1.45fr;
   gap: 48px;
   align-items: center;
   position: relative;
@@ -272,17 +272,18 @@ body.dark .card {
 
 /* Hero input card */
 .hero-card {
-  max-width: 760px;
+  max-width: 980px;
   width: 100%;
   box-shadow: 0 30px 70px rgba(15,23,42,0.16);
-  transform: rotate(-0.4deg);
+  transform: rotate(-0.2deg);
   position: relative;
+  padding: 28px;
 }
 
 .hero-card-layout {
   display: grid;
-  grid-template-columns: 0.95fr 1.25fr;
-  gap: 14px;
+  grid-template-columns: 1.02fr 1.38fr;
+  gap: 18px;
 }
 
 .settings-pane {
@@ -292,6 +293,10 @@ body.dark .card {
 
 .input-pane {
   padding-left: 4px;
+}
+
+.setting-right {
+  margin-bottom: 10px;
 }
 
 /* ================= HERO ICONS ================= */
@@ -408,8 +413,8 @@ body.dark .source-input {
 
 .quiz-settings {
   display: grid;
-  gap: 10px;
-  margin: 8px 0;
+  gap: 12px;
+  margin: 4px 0;
 }
 
 .setting {
@@ -428,14 +433,18 @@ body.dark .source-input {
   gap: 8px;
 }
 
+.mode-group-three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .mode-option {
   position: relative;
   border-radius: 10px;
   border: 1px solid rgba(15,23,42,0.16);
   background: rgba(255,255,255,0.85);
   color: var(--ink);
-  padding: 10px 12px;
-  font-size: 0.85rem;
+  padding: 11px 12px;
+  font-size: 0.92rem;
   box-shadow: none;
 }
 
@@ -482,7 +491,7 @@ body.dark .source-input {
   border: 1px solid rgba(15,23,42,0.15);
   background: rgba(255,255,255,0.8);
   color: var(--ink);
-  padding: 10px 12px;
+  padding: 12px 13px;
   box-shadow: none;
 }
 
@@ -495,7 +504,7 @@ body.dark .source-input {
 }
 
 .role-card span {
-  font-size: 0.8rem;
+  font-size: 0.86rem;
   color: var(--muted);
   line-height: 1.3;
   display: block;
@@ -556,7 +565,7 @@ body.dark .mode-option.active {
 
 textarea {
   width: 100%;
-  height: 120px;
+  height: 132px;
   padding: 14px;
   margin: 12px 0;
   border-radius: 12px;
@@ -1025,6 +1034,10 @@ footer {
   }
 
   .hero-card-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .mode-group-three {
     grid-template-columns: 1fr;
   }
 

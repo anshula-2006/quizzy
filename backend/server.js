@@ -344,6 +344,7 @@ Format:
       "shortAnswer": "Required for short type, otherwise null",
       "acceptableAnswers": ["Optional synonyms for short type"],
       "explanation": "2-3 sentence clear explanation justifying why this option is correct",
+      "wrongExplanation": "1-2 sentence explanation of why a common wrong answer is wrong (or null)",
       "image": "Direct Wikimedia Commons image URL ending with .jpg or .png, or null"
     }
   ]
@@ -355,6 +356,7 @@ Rules:
 - Avoid opinion-based or ambiguous questions
 - Explanation must be at least 2 sentences
 - Explanation must clearly justify the correct answer
+- wrongExplanation should be concise and directly explain the misconception
 - Do NOT guess facts
 - If unsure about accuracy, choose a safer factual question
 

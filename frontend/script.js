@@ -112,10 +112,10 @@ function getSettings() {
 
 function getTimerSeconds() {
   const { difficulty, roleProfile } = getSettings();
-  let base = 15;
-  if (difficulty === "easy") base = 22;
-  if (difficulty === "tough") base = 12;
-  if (difficulty === "super") base = 9;
+  let base = 30;
+  if (difficulty === "easy") base = 36;
+  if (difficulty === "tough") base = 24;
+  if (difficulty === "super") base = 20;
   return Math.max(6, base + (roleProfile?.timerBias || 0));
 }
 
@@ -662,15 +662,16 @@ function renderShortAnswerInput() {
 
 function showQuestion() {
   clearInterval(timer);
-  timeLeft = getTimerSeconds();
   const q = questions[index];
+  const isShort = q.type === "short";
+  timeLeft = isShort ? null : getTimerSeconds();
   const progress = Math.round(((index + 1) / questions.length) * 100);
 
   quiz.innerHTML = `
     <div class="card quiz-card">
       <div class="quiz-top">
         <span>Q ${index + 1}/${questions.length} | ${q.type.toUpperCase()}</span>
-        <span>${timeLeft}s</span>
+        <span>${isShort ? "No time limit" : `${timeLeft}s`}</span>
       </div>
       <div class="progress">
         <div class="progress-fill" style="width:${progress}%"></div>
@@ -711,6 +712,8 @@ function showQuestion() {
     reveal(q, choices[index], true);
     return;
   }
+
+  if (isShort) return;
 
   timer = setInterval(() => {
     timeLeft--;
@@ -792,15 +795,23 @@ function reveal(q, choice, isReview) {
 
   if (!quiz.querySelector(".explanation")) {
     const answerText = isShort ? `Correct answer: ${q.shortAnswer || q.correct}` : `Correct option: ${q.correct}`;
+    const wrongBlock = !isCorrect
+      ? `<p><strong>Why your answer was wrong:</strong> ${q.wrongExplanation || "Your selected answer does not match the validated correct answer and supporting concept."}</p>`
+      : "";
+    const imageBlock = q.image && /^https:\/\/upload\.wikimedia\.org\/.+\.(png|jpg)$/i.test(q.image)
+      ? `<div class="explain-image-wrap"><img class="explain-image" src="${q.image}" alt="Explanation visual" loading="lazy" /></div>`
+      : "";
+
     quiz.querySelector(".quiz-card").insertAdjacentHTML(
       "beforeend",
-      `<div class="explanation"><p><strong>${answerText}</strong></p><p>${q.explanation || ""}</p><button id="saveQuestionBtn" class="ghost" type="button">Save Question</button></div>`
+      `<div class="explanation"><p><strong>${answerText}</strong></p><p>${q.explanation || ""}</p>${wrongBlock}${imageBlock}<button id="saveQuestionBtn" class="ghost" type="button">Save Question</button></div>`
     );
     document.getElementById("saveQuestionBtn")?.addEventListener("click", () => {
       addSavedQuestion({
         question: q.question,
         correct: isShort ? (q.shortAnswer || q.correct) : q.correct,
-        explanation: q.explanation || ""
+        explanation: q.explanation || "",
+        image: q.image || null
       });
     });
   }

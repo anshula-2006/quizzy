@@ -20,6 +20,11 @@ const cursorTrail = document.getElementById("cursorTrail");
 const difficultyMode = document.getElementById("difficultyMode");
 const learnerMode = document.getElementById("learnerMode");
 const questionMode = document.getElementById("questionMode");
+const roleFlavor = document.getElementById("roleFlavor");
+const sidebarTitle = document.getElementById("sidebarTitle");
+const timelineTitle = document.getElementById("timelineTitle");
+const savedTitle = document.getElementById("savedTitle");
+const scoreTitle = document.getElementById("scoreTitle");
 const attemptList = document.getElementById("attemptList");
 const savedList = document.getElementById("savedList");
 const scoreBars = document.getElementById("scoreBars");
@@ -43,6 +48,42 @@ let attemptAnswers = [];
 let currentAttemptMeta = null;
 let deathModeTriggered = false;
 
+const ROLE_PRESETS = {
+  student: { difficulty: "moderate", questionMode: "mixed", timerBias: 0 },
+  teacher: { difficulty: "tough", questionMode: "short", timerBias: -2 },
+  "self-study": { difficulty: "easy", questionMode: "mcq", timerBias: 4 }
+};
+
+const ROLE_FLAVORS = {
+  student: "Student mode: balanced exam-oriented practice.",
+  teacher: "Teacher mode: diagnostic, explanation-heavy checks built for classroom use.",
+  "self-study": "Self-study mode: retention-first with memory reinforcement and confidence building."
+};
+
+const ROLE_LABELS = {
+  student: {
+    sidebar: "Student Mission Board",
+    timeline: "Attempt Timeline",
+    saved: "Revision Bank",
+    score: "Exam Scoreboard",
+    dashboard: "Assessment Dashboard"
+  },
+  teacher: {
+    sidebar: "Teacher Control Desk",
+    timeline: "Class Diagnostics",
+    saved: "Question Bank",
+    score: "Cohort Readiness",
+    dashboard: "Teaching Insights"
+  },
+  "self-study": {
+    sidebar: "Self-Study Lab",
+    timeline: "Practice Journey",
+    saved: "Memory Vault",
+    score: "Growth Scoreboard",
+    dashboard: "Learning Dashboard"
+  }
+};
+
 function getScopeId() {
   const session = auth?.getSession?.();
   return session?.email || "guest";
@@ -57,19 +98,74 @@ function savedKey() {
 }
 
 function getSettings() {
+  const learner = learnerMode?.value || "student";
+  const preset = ROLE_PRESETS[learner] || ROLE_PRESETS.student;
   return {
     difficulty: difficultyMode?.value || "moderate",
-    learnerMode: learnerMode?.value || "student",
-    questionMode: questionMode?.value || "mcq"
+    learnerMode: learner,
+    questionMode: questionMode?.value || "mcq",
+    roleProfile: {
+      timerBias: preset.timerBias,
+      flavor: ROLE_FLAVORS[learner] || ROLE_FLAVORS.student
+    }
   };
 }
 
 function getTimerSeconds() {
-  const { difficulty } = getSettings();
-  if (difficulty === "easy") return 22;
-  if (difficulty === "tough") return 12;
-  if (difficulty === "death") return 8;
-  return 15;
+  const { difficulty, roleProfile } = getSettings();
+  let base = 15;
+  if (difficulty === "easy") base = 22;
+  if (difficulty === "tough") base = 12;
+  if (difficulty === "death") base = 8;
+  return Math.max(6, base + (roleProfile?.timerBias || 0));
+}
+
+function setGroupValue(targetId, value) {
+  const hidden = document.getElementById(targetId);
+  if (hidden) hidden.value = value;
+
+  const group = document.querySelector(`.mode-group[data-target="${targetId}"]`);
+  group?.querySelectorAll(".mode-option").forEach((btnNode) => {
+    btnNode.classList.toggle("active", btnNode.dataset.value === value);
+  });
+}
+
+function setRole(role) {
+  if (!learnerMode) return;
+  learnerMode.value = role;
+  document.querySelectorAll(".role-card").forEach((node) => {
+    node.classList.toggle("active", node.dataset.role === role);
+  });
+  if (roleFlavor) roleFlavor.textContent = ROLE_FLAVORS[role] || ROLE_FLAVORS.student;
+  const labels = ROLE_LABELS[role] || ROLE_LABELS.student;
+  if (sidebarTitle) sidebarTitle.textContent = labels.sidebar;
+  if (timelineTitle) timelineTitle.textContent = labels.timeline;
+  if (savedTitle) savedTitle.textContent = labels.saved;
+  if (scoreTitle) scoreTitle.textContent = labels.score;
+}
+
+function applyRolePreset(role) {
+  const preset = ROLE_PRESETS[role] || ROLE_PRESETS.student;
+  setGroupValue("difficultyMode", preset.difficulty);
+  setGroupValue("questionMode", preset.questionMode);
+}
+
+function wireModeControls() {
+  document.querySelectorAll(".mode-group").forEach((group) => {
+    group.querySelectorAll(".mode-option").forEach((node) => {
+      node.addEventListener("click", () => {
+        setGroupValue(group.dataset.target, node.dataset.value);
+      });
+    });
+  });
+
+  document.querySelectorAll(".role-card").forEach((node) => {
+    node.addEventListener("click", () => {
+      const role = node.dataset.role || "student";
+      setRole(role);
+      applyRolePreset(role);
+    });
+  });
 }
 
 function renderAuthNav() {
@@ -279,10 +375,13 @@ function renderEvaluationBoard() {
   if (!evaluationBoard) return;
   const entries = getHistory();
 
+  const role = learnerMode?.value || "student";
+  const labels = ROLE_LABELS[role] || ROLE_LABELS.student;
+
   if (entries.length === 0) {
     evaluationBoard.innerHTML = `
       <div class="card evaluation-empty">
-        <h3>Assessment Dashboard</h3>
+        <h3>${labels.dashboard}</h3>
         <p>Attempt quizzes to unlock your progress board, trends, and review deck.</p>
       </div>
     `;
@@ -300,7 +399,7 @@ function renderEvaluationBoard() {
   evaluationBoard.innerHTML = `
     <div class="evaluation-wrap">
       <div class="evaluation-head">
-        <h3>Assessment Dashboard</h3>
+        <h3>${labels.dashboard}</h3>
         <div class="evaluation-head-actions">
           <button id="clearHistoryBtn" class="ghost">Clear</button>
         </div>
@@ -835,6 +934,9 @@ toggle.onclick = () => {
 };
 
 setThemeIcon();
+wireModeControls();
+setRole("student");
+applyRolePreset("student");
 setActiveSource(activeSource);
 renderEvaluationBoard();
 renderSidebar();

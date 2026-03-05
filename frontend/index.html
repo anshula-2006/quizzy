@@ -53,29 +53,42 @@
       </div>
       <div class="quiz-settings">
         <div class="setting">
-          <label for="difficultyMode">Difficulty</label>
-          <select id="difficultyMode">
-            <option value="easy">Easy</option>
-            <option value="moderate" selected>Moderate</option>
-            <option value="tough">Tough</option>
-            <option value="death">Death Mode</option>
-          </select>
+          <label>Difficulty</label>
+          <div class="mode-group" data-target="difficultyMode">
+            <button type="button" class="mode-option" data-value="easy">Easy</button>
+            <button type="button" class="mode-option active" data-value="moderate">Moderate</button>
+            <button type="button" class="mode-option" data-value="tough">Tough</button>
+            <button type="button" class="mode-option danger" data-value="death">Death</button>
+          </div>
+          <input type="hidden" id="difficultyMode" value="moderate" />
         </div>
         <div class="setting">
-          <label for="learnerMode">Learner Type</label>
-          <select id="learnerMode">
-            <option value="student" selected>Student</option>
-            <option value="teacher">Teacher</option>
-            <option value="self-study">Self-study</option>
-          </select>
+          <label>Learner Type</label>
+          <div class="role-cards">
+            <button type="button" class="role-card active" data-role="student">
+              <strong>Student</strong>
+              <span>Exam prep, timed challenge, and concept correction.</span>
+            </button>
+            <button type="button" class="role-card" data-role="teacher">
+              <strong>Teacher</strong>
+              <span>Diagnostic questions, misconception checks, and pedagogy focus.</span>
+            </button>
+            <button type="button" class="role-card" data-role="self-study">
+              <strong>Self-study</strong>
+              <span>Retention-first flow with flashcard-heavy reinforcement.</span>
+            </button>
+          </div>
+          <p id="roleFlavor" class="mode-note">Student mode: balanced exam-oriented practice.</p>
+          <input type="hidden" id="learnerMode" value="student" />
         </div>
         <div class="setting">
-          <label for="questionMode">Question Type</label>
-          <select id="questionMode">
-            <option value="mcq" selected>MCQ only</option>
-            <option value="mixed">Mixed (MCQ + Short)</option>
-            <option value="short">Short answers</option>
-          </select>
+          <label>Question Type</label>
+          <div class="mode-group" data-target="questionMode">
+            <button type="button" class="mode-option active" data-value="mcq">MCQ Only</button>
+            <button type="button" class="mode-option" data-value="mixed">Mixed</button>
+            <button type="button" class="mode-option" data-value="short">Short</button>
+          </div>
+          <input type="hidden" id="questionMode" value="mcq" />
         </div>
       </div>
       <textarea id="inputText" placeholder="Explain CPU scheduling..."></textarea>
@@ -92,18 +105,18 @@
       <section id="evaluationBoard" class="evaluation-board"></section>
     </div>
     <aside id="quizSidebar" class="card quiz-sidebar">
-      <h3>Mission Control</h3>
+      <h3 id="sidebarTitle">Mission Control</h3>
       <p class="sidebar-note">Sign in to keep your history, saved questions, flashcards, and score trends.</p>
       <div class="sidebar-block">
-        <h4>Attempt Timeline</h4>
+        <h4 id="timelineTitle">Attempt Timeline</h4>
         <div id="attemptList" class="sidebar-list"></div>
       </div>
       <div class="sidebar-block">
-        <h4>Saved Questions</h4>
+        <h4 id="savedTitle">Saved Questions</h4>
         <div id="savedList" class="sidebar-list"></div>
       </div>
       <div class="sidebar-block">
-        <h4>Scoreboard</h4>
+        <h4 id="scoreTitle">Scoreboard</h4>
         <div id="scoreBars" class="score-bars"></div>
       </div>
     </aside>

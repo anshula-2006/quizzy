@@ -319,6 +319,12 @@ app.post("/generate-quiz", async (req, res) => {
   }
 
   const variation = Math.floor(Math.random() * 100000);
+  const roleGuide =
+    learnerMode === "teacher"
+      ? "Teacher mode: include misconception-focused prompts, quick justifications that can be used in class, and assessment-style wording suitable for evaluating a group."
+      : learnerMode === "self-study"
+        ? "Self-study mode: emphasize clarity, memory cues, and practical reinforcement; keep progression confidence-building before increasing challenge."
+        : "Student mode: prioritize exam readiness, timed-practice realism, and conceptual traps commonly seen in tests.";
 
   let prompt = "";
 
@@ -362,6 +368,7 @@ Rules:
   - student: exam style and concept checks
   - teacher: pedagogy, misconceptions, and assessment framing
   - self-study: practical understanding and memory reinforcement
+  - Apply this strict learner guide: ${roleGuide}
 
 - Question type mode: "${questionMode}".
   - mcq: all 10 must be MCQ with 4 options

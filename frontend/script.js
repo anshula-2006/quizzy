@@ -7,8 +7,10 @@ const pdfInput = document.getElementById("pdfInput");
 const sourceHint = document.getElementById("sourceHint");
 const sourceBtns = document.querySelectorAll(".source-btn");
 const btn = document.getElementById("generateBtn");
+const flashcardsBtn = document.getElementById("flashcardsBtn");
 const quiz = document.getElementById("quiz");
 const evaluationBoard = document.getElementById("evaluationBoard");
+const flashcardsBoard = document.getElementById("flashcardsBoard");
 const toggle = document.getElementById("themeToggle");
 const authUser = document.getElementById("authUser");
 const loginLink = document.getElementById("loginLink");
@@ -24,9 +26,11 @@ const roleFlavor = document.getElementById("roleFlavor");
 const sidebarTitle = document.getElementById("sidebarTitle");
 const timelineTitle = document.getElementById("timelineTitle");
 const savedTitle = document.getElementById("savedTitle");
+const flashTitle = document.getElementById("flashTitle");
 const scoreTitle = document.getElementById("scoreTitle");
 const attemptList = document.getElementById("attemptList");
 const savedList = document.getElementById("savedList");
+const flashList = document.getElementById("flashList");
 const scoreBars = document.getElementById("scoreBars");
 
 const correctSound = new Audio("assets/correct.mp3");
@@ -43,6 +47,7 @@ let activeSource = "text";
 const MAX_PDF_BYTES = 50 * 1024 * 1024;
 const HISTORY_BASE = "quizzy-history-v2";
 const SAVED_BASE = "quizzy-saved-v1";
+const FLASH_BASE = "quizzy-flash-v1";
 const MAX_HISTORY_ITEMS = 20;
 let attemptAnswers = [];
 let currentAttemptMeta = null;
@@ -64,6 +69,7 @@ const ROLE_LABELS = {
     sidebar: "Student Mission Board",
     timeline: "Attempt Timeline",
     saved: "Revision Bank",
+    flash: "Flashcard Decks",
     score: "Exam Scoreboard",
     dashboard: "Assessment Dashboard"
   },
@@ -71,6 +77,7 @@ const ROLE_LABELS = {
     sidebar: "Teacher Control Desk",
     timeline: "Class Diagnostics",
     saved: "Question Bank",
+    flash: "Teaching Flashcards",
     score: "Cohort Readiness",
     dashboard: "Teaching Insights"
   },
@@ -78,6 +85,7 @@ const ROLE_LABELS = {
     sidebar: "Self-Study Lab",
     timeline: "Practice Journey",
     saved: "Memory Vault",
+    flash: "Memory Decks",
     score: "Growth Scoreboard",
     dashboard: "Learning Dashboard"
   }
@@ -94,6 +102,33 @@ function historyKey() {
 
 function savedKey() {
   return `${SAVED_BASE}-${getScopeId()}`;
+}
+
+function flashKey() {
+  return `${FLASH_BASE}-${getScopeId()}`;
+}
+
+function mergeGuestDataToUser(sessionUser) {
+  if (!sessionUser?.email) return;
+  const userSuffix = sessionUser.email;
+  const mergeList = (base, limit = 50, idFn = (x) => JSON.stringify(x)) => {
+    const guestRaw = localStorage.getItem(`${base}-guest`);
+    const userRaw = localStorage.getItem(`${base}-${userSuffix}`);
+    const guest = guestRaw ? JSON.parse(guestRaw) : [];
+    const user = userRaw ? JSON.parse(userRaw) : [];
+    const combined = [...user, ...guest];
+    const dedupMap = new Map();
+    combined.forEach((item) => dedupMap.set(idFn(item), item));
+    localStorage.setItem(`${base}-${userSuffix}`, JSON.stringify(Array.from(dedupMap.values()).slice(0, limit)));
+  };
+
+  try {
+    mergeList(HISTORY_BASE, MAX_HISTORY_ITEMS, (x) => String(x?.id || x?.createdAt || Math.random()));
+    mergeList(SAVED_BASE, 60, (x) => `${x?.question || ""}-${x?.correct || ""}`);
+    mergeList(FLASH_BASE, 25, (x) => String(x?.id || x?.createdAt || Math.random()));
+  } catch {
+    // Ignore merge errors.
+  }
 }
 
 function getSettings() {
@@ -140,6 +175,7 @@ function setRole(role) {
   if (sidebarTitle) sidebarTitle.textContent = labels.sidebar;
   if (timelineTitle) timelineTitle.textContent = labels.timeline;
   if (savedTitle) savedTitle.textContent = labels.saved;
+  if (flashTitle) flashTitle.textContent = labels.flash;
   if (scoreTitle) scoreTitle.textContent = labels.score;
 }
 
@@ -190,6 +226,7 @@ async function bootstrapAuth() {
   const session = auth.getSession();
   if (session) {
     await auth.me();
+    mergeGuestDataToUser(auth.getSession?.());
   }
   renderAuthNav();
   renderEvaluationBoard();
@@ -245,7 +282,9 @@ function validateActiveSourceInput(showError = false) {
 }
 
 function updateGenerateButtonState() {
-  btn.disabled = !!validateActiveSourceInput();
+  const invalid = !!validateActiveSourceInput();
+  btn.disabled = invalid;
+  if (flashcardsBtn) flashcardsBtn.disabled = invalid;
 }
 
 function setActiveSource(source) {
@@ -306,6 +345,26 @@ function addSavedQuestion(item) {
   renderSidebar();
 }
 
+function getFlashDecks() {
+  try {
+    const raw = localStorage.getItem(flashKey());
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveFlashDecks(items) {
+  localStorage.setItem(flashKey(), JSON.stringify(items.slice(0, 25)));
+}
+
+function addFlashDeck(deck) {
+  const decks = getFlashDecks();
+  decks.unshift(deck);
+  saveFlashDecks(decks);
+}
+
 function formatShortDate(isoValue) {
   const dt = new Date(isoValue);
   if (Number.isNaN(dt.getTime())) return "Unknown time";
@@ -328,9 +387,24 @@ function getAssessmentLabel(percentage) {
   return "Needs Revision";
 }
 
+function getFeedback(entries) {
+  if (!entries.length) return "Start a quiz to unlock personalized feedback.";
+  const latest = entries[0];
+  const avg = Math.round(entries.reduce((sum, e) => sum + (e.percentage || 0), 0) / entries.length);
+  const wrong = (latest.answers || []).filter((a) => !a.isCorrect);
+  const shortWrong = wrong.filter((a) => a.type === "short").length;
+  const mcqWrong = wrong.filter((a) => a.type === "mcq").length;
+
+  if (avg >= 85) return "Great momentum. Push to Super mode and mixed questions to keep improving.";
+  if (shortWrong > mcqWrong) return "Focus on short-answer precision. Use flashcards to reinforce exact phrasing and key facts.";
+  if (mcqWrong > shortWrong) return "Focus on option elimination strategy. Review explanations for each incorrect choice.";
+  return "Consistency is building. Keep alternating mixed mode and short mode for stronger retention.";
+}
+
 function renderSidebar() {
   const entries = getHistory();
   const saved = getSavedQuestions();
+  const decks = getFlashDecks();
 
   if (attemptList) {
     attemptList.innerHTML = entries.length
@@ -356,6 +430,17 @@ function renderSidebar() {
       : `<p class="mini-empty">No saved questions yet.</p>`;
   }
 
+  if (flashList) {
+    flashList.innerHTML = decks.length
+      ? decks.slice(0, 6).map((deck) => `
+          <details class="saved-item">
+            <summary>${deck.title} (${deck.flashcards.length})</summary>
+            ${deck.flashcards.slice(0, 3).map((c) => `<p><strong>${c.front}</strong><br/>${c.back}</p>`).join("")}
+          </details>
+        `).join("")
+      : `<p class="mini-empty">No flashcard decks generated yet.</p>`;
+  }
+
   if (scoreBars) {
     const chartData = entries.slice(0, 8).reverse();
     scoreBars.innerHTML = chartData.length
@@ -365,7 +450,7 @@ function renderSidebar() {
             <div class="score-track"><div class="score-fill" style="width:${e.percentage}%"></div></div>
             <span class="score-val">${e.percentage}%</span>
           </div>
-        `).join("")
+        `).join("") + `<div class="analysis-card"><strong>Feedback</strong><p>${getFeedback(entries)}</p></div>`
       : `<p class="mini-empty">Scoreboard appears after your first quiz.</p>`;
   }
 }
@@ -414,17 +499,14 @@ function renderEvaluationBoard() {
           <h4>Latest Attempt</h4>
           <p>${latest.score}/${latest.total} (${latest.percentage}%) | ${(latest.sourceType || "text").toUpperCase()} | ${formatShortDate(latest.createdAt)}</p>
           <p>Assessment: <strong>${getAssessmentLabel(latest.percentage)}</strong>. ${wrongCount} question(s) need revision.</p>
-          <details>
-            <summary>Review Answers</summary>
-            <div class="answer-review">
-              ${latestAnswers.map((a, i) => `
-                <div class="answer-item ${a.isCorrect ? "good" : "bad"}">
-                  <strong>Q${i + 1}. ${a.question}</strong>
-                  <p>Your answer: ${a.selected || "Not answered"} | Correct: ${a.correct}</p>
-                </div>
-              `).join("")}
-            </div>
-          </details>
+          <div class="review-rail">
+            ${latestAnswers.map((a, i) => `
+              <button class="review-q-btn ${a.isCorrect ? "good" : "bad"}" data-review-index="${i}">
+                Q${i + 1}. ${a.question}
+              </button>
+            `).join("")}
+          </div>
+          <div id="reviewDetail" class="review-detail">Click a question to view full explanation.</div>
         </div>
         <div class="card recent-attempts">
           <h4>Recent Attempts</h4>
@@ -445,6 +527,29 @@ function renderEvaluationBoard() {
     renderEvaluationBoard();
     renderSidebar();
   });
+
+  const detailNode = document.getElementById("reviewDetail");
+  const renderReviewDetail = (idx) => {
+    const item = latestAnswers[idx];
+    if (!item || !detailNode) return;
+    const imageBlock = item.image && /^https:\/\/upload\.wikimedia\.org\/.+\.(png|jpg)$/i.test(item.image)
+      ? `<div class="explain-image-wrap"><img class="explain-image" src="${item.image}" alt="Review visual" loading="lazy" /></div>`
+      : "";
+    detailNode.innerHTML = `
+      <p><strong>${item.question}</strong></p>
+      <p>Your answer: ${item.selected || "Not answered"}</p>
+      <p>Correct answer: ${item.correct || "-"}</p>
+      <p>${item.explanation || "No explanation saved."}</p>
+      ${imageBlock}
+    `;
+  };
+
+  document.querySelectorAll(".review-q-btn").forEach((btnNode) => {
+    btnNode.addEventListener("click", () => {
+      renderReviewDetail(Number(btnNode.dataset.reviewIndex || 0));
+    });
+  });
+  if (latestAnswers.length) renderReviewDetail(0);
 }
 
 if (cursorGlow) {
@@ -559,6 +664,29 @@ async function extractSourceText() {
   return data.text;
 }
 
+async function buildContentPayload() {
+  const rawTextInput = input.value.trim();
+  if (activeSource === "text" && rawTextInput.length < 50) {
+    return {
+      topic: rawTextInput,
+      sourceType: "topic",
+      sourceInput: rawTextInput
+    };
+  }
+
+  const extractedText = await extractSourceText();
+  return {
+    text: extractedText,
+    sourceType: activeSource,
+    sourceInput:
+      activeSource === "pdf"
+        ? pdfInput.files?.[0]?.name || "pdf"
+        : activeSource === "url"
+          ? urlInput.value.trim()
+          : input.value.trim().slice(0, 140)
+  };
+}
+
 function normalizeQuestion(q) {
   if (!q || typeof q !== "object") return null;
   const type = q.type === "short" ? "short" : "mcq";
@@ -587,18 +715,12 @@ function normalizeQuestion(q) {
 btn.onclick = async () => {
   loader.classList.remove("hidden");
   btn.disabled = true;
+  if (flashcardsBtn) flashcardsBtn.disabled = true;
 
   try {
     const settings = getSettings();
-    let requestPayload;
-    const rawTextInput = input.value.trim();
-
-    if (activeSource === "text" && rawTextInput.length < 50) {
-      requestPayload = { topic: rawTextInput, ...settings };
-    } else {
-      const extractedText = await extractSourceText();
-      requestPayload = { text: extractedText, ...settings };
-    }
+    const contentPayload = await buildContentPayload();
+    const requestPayload = { ...contentPayload, ...settings };
 
     const res = await fetch(`${API_BASE}/generate-quiz`, {
       method: "POST",
@@ -623,13 +745,8 @@ btn.onclick = async () => {
     attemptAnswers = Array.from({ length: questions.length }, () => null);
     currentAttemptMeta = {
       createdAt: new Date().toISOString(),
-      sourceType: activeSource,
-      sourceInput:
-        activeSource === "pdf"
-          ? pdfInput.files?.[0]?.name || "pdf"
-          : activeSource === "url"
-            ? urlInput.value.trim()
-            : input.value.trim().slice(0, 140),
+      sourceType: contentPayload.sourceType,
+      sourceInput: contentPayload.sourceInput,
       settings
     };
 
@@ -650,6 +767,90 @@ btn.onclick = async () => {
     updateGenerateButtonState();
   }
 };
+
+function normalizeFlashcards(payload) {
+  const cards = Array.isArray(payload?.flashcards) ? payload.flashcards : [];
+  return cards
+    .map((c) => ({
+      front: (c?.front || "").trim(),
+      back: (c?.back || "").trim(),
+      hint: (c?.hint || "").trim(),
+      image: c?.image || null
+    }))
+    .filter((c) => c.front && c.back);
+}
+
+function renderFlashcardsBoard(deck) {
+  if (!flashcardsBoard) return;
+  if (!deck || !Array.isArray(deck.flashcards) || deck.flashcards.length === 0) {
+    flashcardsBoard.innerHTML = "";
+    return;
+  }
+
+  flashcardsBoard.innerHTML = `
+    <div class="evaluation-wrap">
+      <div class="card">
+        <h3>Flashcards</h3>
+        <p>${deck.title}</p>
+        <div class="flashcards-wrap">
+          ${deck.flashcards.map((card, i) => `
+            <details class="flash-card">
+              <summary>Card ${i + 1}: ${card.front}</summary>
+              <p><strong>Answer:</strong> ${card.back}</p>
+              <p><strong>Hint:</strong> ${card.hint || "-"}</p>
+              ${card.image && /^https:\/\/upload\.wikimedia\.org\/.+\.(png|jpg)$/i.test(card.image)
+                ? `<div class="explain-image-wrap"><img class="explain-image" src="${card.image}" alt="Flashcard visual" loading="lazy" /></div>`
+                : ""}
+            </details>
+          `).join("")}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+flashcardsBtn?.addEventListener("click", async () => {
+  loader.classList.remove("hidden");
+  btn.disabled = true;
+  flashcardsBtn.disabled = true;
+  try {
+    const settings = getSettings();
+    const contentPayload = await buildContentPayload();
+    const res = await fetch(`${API_BASE}/generate-flashcards`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...contentPayload, ...settings })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Failed to generate flashcards");
+
+    const cards = normalizeFlashcards(data);
+    if (!cards.length) throw new Error("No flashcards were returned");
+
+    const deck = {
+      id: Date.now(),
+      createdAt: new Date().toISOString(),
+      sourceType: contentPayload.sourceType,
+      title: (contentPayload.topic || contentPayload.sourceInput || "Study Deck").slice(0, 90),
+      flashcards: cards
+    };
+    addFlashDeck(deck);
+    renderFlashcardsBoard(deck);
+    renderSidebar();
+  } catch (err) {
+    flashcardsBoard.innerHTML = `
+      <div class="evaluation-wrap">
+        <div class="card">
+          <h3>Could not generate flashcards</h3>
+          <p>${err.message}</p>
+        </div>
+      </div>
+    `;
+  } finally {
+    loader.classList.add("hidden");
+    updateGenerateButtonState();
+  }
+});
 
 function renderShortAnswerInput() {
   return `
@@ -728,7 +929,10 @@ function showQuestion() {
         selected: null,
         correct: q.type === "short" ? q.shortAnswer : q.correct,
         isCorrect: false,
-        type: q.type
+        type: q.type,
+        explanation: q.explanation || "",
+        wrongExplanation: q.wrongExplanation || "",
+        image: q.image || null
       };
       reveal(q, null, false);
       clearInterval(timer);
@@ -746,7 +950,10 @@ function answerMcq(el, q) {
     selected: el.dataset.o,
     correct: q.correct,
     isCorrect,
-    type: "mcq"
+    type: "mcq",
+    explanation: q.explanation || "",
+    wrongExplanation: q.wrongExplanation || "",
+    image: q.image || null
   };
   clearInterval(timer);
   reveal(q, el.dataset.o, false);
@@ -762,7 +969,10 @@ function answerShort(value, q) {
     selected: value,
     correct: q.shortAnswer,
     isCorrect,
-    type: "short"
+    type: "short",
+    explanation: q.explanation || "",
+    wrongExplanation: q.wrongExplanation || "",
+    image: q.image || null
   };
   clearInterval(timer);
   reveal(q, value, false);
@@ -829,16 +1039,6 @@ function prev() {
   showQuestion();
 }
 
-function buildFlashcards(entry) {
-  return entry.answers.slice(0, 8).map((a, i) => `
-    <details class="flash-card">
-      <summary>Card ${i + 1}: ${a.question}</summary>
-      <p><strong>Answer:</strong> ${a.correct}</p>
-      <p>Your response: ${a.selected || "Not answered"}</p>
-    </details>
-  `).join("");
-}
-
 function buildHistoryEntry() {
   const answers = questions.map((q, i) => {
     const a = attemptAnswers[i];
@@ -848,7 +1048,10 @@ function buildHistoryEntry() {
       selected: null,
       correct: q.type === "short" ? q.shortAnswer : q.correct,
       isCorrect: false,
-      type: q.type
+      type: q.type,
+      explanation: q.explanation || "",
+      wrongExplanation: q.wrongExplanation || "",
+      image: q.image || null
     };
   });
 
@@ -885,10 +1088,7 @@ function finish() {
       <p>Accuracy: ${entry.percentage}%</p>
       <p>Assessment: <strong>${assessment}</strong></p>
       <p>Mode: ${(entry.settings?.difficulty || "moderate").toUpperCase()} | ${(entry.settings?.questionMode || "mcq").toUpperCase()} | ${(entry.settings?.learnerMode || "student").toUpperCase()}</p>
-      <div class="flashcards-wrap">
-        <h3>Flashcards</h3>
-        ${buildFlashcards(entry)}
-      </div>
+      <p>Generate flashcards from your source using the Flashcards button.</p>
     </div>
   `;
 }
@@ -931,4 +1131,5 @@ applyRolePreset("student");
 setActiveSource(activeSource);
 renderEvaluationBoard();
 renderSidebar();
+renderFlashcardsBoard(getFlashDecks()[0] || null);
 bootstrapAuth();

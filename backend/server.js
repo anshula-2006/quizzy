@@ -427,6 +427,69 @@ try {
   }
 });
 
+app.post("/generate-flashcards", async (req, res) => {
+  const { text, topic, difficulty = "moderate", learnerMode = "student" } = req.body;
+
+  if (!text && !topic) {
+    return res.status(400).json({ error: "Text or topic is required" });
+  }
+  if (!groq) {
+    return res.status(500).json({
+      error: "GROQ_API_KEY is not configured on the server"
+    });
+  }
+
+  const prompt = `
+Generate exactly 12 study flashcards in JSON.
+Return ONLY valid JSON.
+
+Format:
+{
+  "flashcards": [
+    {
+      "front": "Question/prompt side",
+      "back": "Concise accurate answer",
+      "hint": "Memory cue or clue",
+      "image": "Direct Wikimedia Commons image URL ending with .jpg or .png, or null"
+    }
+  ]
+}
+
+Rules:
+- learnerMode: "${learnerMode}"
+- difficulty: "${difficulty}"
+- Keep answers factually accurate and concise.
+- Use topic/text content as primary source.
+- Include a hint for each card.
+- If image is not confidently relevant, use null.
+
+Topic: "${topic || "general"}"
+Content: ${text || "Use general knowledge"}
+`;
+
+  try {
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.7
+    });
+
+    const rawOutput = completion?.choices?.[0]?.message?.content || "";
+    const firstBrace = rawOutput.indexOf("{");
+    const lastBrace = rawOutput.lastIndexOf("}");
+
+    if (firstBrace === -1 || lastBrace === -1) {
+      return res.status(500).json({ error: "AI returned invalid JSON" });
+    }
+
+    const jsonString = rawOutput.slice(firstBrace, lastBrace + 1);
+    const parsedOutput = JSON.parse(jsonString);
+    return res.json(parsedOutput);
+  } catch (error) {
+    return res.status(500).json({ error: error.message || "Flashcard generation failed" });
+  }
+});
+
 app.get("/", (req, res) => {
   res.send("Backend is running");
 });

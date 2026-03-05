@@ -620,6 +620,17 @@ body.dark .ghost {
   width: 100%;
 }
 
+.generate-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.generate-actions #generateBtn,
+.generate-actions #flashcardsBtn {
+  width: 100%;
+}
+
 /* ================= FEATURES ================= */
 .features {
   padding: 32px 80px;
@@ -760,6 +771,44 @@ body.dark .ghost {
   gap: 8px;
 }
 
+.review-rail {
+  margin-top: 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.review-q-btn {
+  border-radius: 10px;
+  text-align: left;
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.8);
+  box-shadow: none;
+  color: var(--ink);
+}
+
+.review-q-btn.good {
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+.review-q-btn.bad {
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.review-detail {
+  margin-top: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  background: rgba(255,255,255,0.75);
+}
+
+body.dark .review-q-btn,
+body.dark .review-detail {
+  background: rgba(15,23,42,0.65);
+  color: #e5e7eb;
+}
+
 .answer-item {
   border-radius: 12px;
   padding: 10px;
@@ -846,6 +895,18 @@ body.dark .saved-item {
 .score-bars {
   display: grid;
   gap: 8px;
+}
+
+.analysis-card {
+  margin-top: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px;
+  background: rgba(255,255,255,0.74);
+}
+
+body.dark .analysis-card {
+  background: rgba(15,23,42,0.64);
 }
 
 .score-row {

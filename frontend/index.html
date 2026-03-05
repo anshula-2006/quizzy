@@ -99,7 +99,10 @@
           <input id="urlInput" class="source-input hidden" type="url" placeholder="https://example.com/article" />
           <input id="pdfInput" class="source-input hidden" type="file" accept=".pdf,application/pdf" />
           <p id="sourceHint" class="source-hint">Paste study text to generate a quiz.</p>
-          <button id="generateBtn" disabled>Generate Quiz</button>
+          <div class="generate-actions">
+            <button id="generateBtn" disabled>Generate Quiz</button>
+            <button id="flashcardsBtn" class="ghost" disabled>Generate Flashcards</button>
+          </div>
         </div>
       </div>
     </div>
@@ -108,6 +111,7 @@
   <section class="workspace">
     <div class="workspace-main">
       <div id="quiz"></div>
+      <section id="flashcardsBoard" class="evaluation-board"></section>
       <section id="evaluationBoard" class="evaluation-board"></section>
     </div>
     <aside id="quizSidebar" class="card quiz-sidebar">
@@ -120,6 +124,10 @@
       <div class="sidebar-block">
         <h4 id="savedTitle">Saved Questions</h4>
         <div id="savedList" class="sidebar-list"></div>
+      </div>
+      <div class="sidebar-block">
+        <h4 id="flashTitle">Flashcard Decks</h4>
+        <div id="flashList" class="sidebar-list"></div>
       </div>
       <div class="sidebar-block">
         <h4 id="scoreTitle">Scoreboard</h4>

@@ -27,6 +27,10 @@ export default defineConfig({
       "/generate-quiz": {
         target: "https://quizzy-3lt0.onrender.com",
         changeOrigin: true
+      },
+      "/generate-flashcards": {
+        target: "https://quizzy-3lt0.onrender.com",
+        changeOrigin: true
       }
     }
   }

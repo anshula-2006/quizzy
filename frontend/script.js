@@ -260,7 +260,7 @@ function setActiveSource(source) {
 }
 
 function setThemeIcon() {
-  toggle.textContent = document.body.classList.contains("dark") ? "Sun" : "Moon";
+  toggle.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
 }
 
 function getHistory() {

@@ -7,6 +7,9 @@ import * as cheerio from "cheerio";
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+
+dotenv.config({ path: new URL("./.env", import.meta.url) });
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -331,7 +334,7 @@ Format:
       "question": "Clear and factually accurate question",
       "options": ["Option A", "Option B", "Option C", "Option D"],
       "correct": "A",
-      "explanation": "2–3 sentence clear explanation justifying why this option is correct",
+      "explanation": "2-3 sentence clear explanation justifying why this option is correct",
       "image": "Direct Wikimedia Commons image URL ending with .jpg or .png, or null"
     }
   ]
@@ -369,7 +372,7 @@ Content: ${text || "Use general knowledge"}
       temperature: 0.9
     });
 
-const rawOutput = completion.choices[0].message.content;
+const rawOutput = completion?.choices?.[0]?.message?.content || "";
 
 try {
   const firstBrace = rawOutput.indexOf("{");
@@ -397,7 +400,7 @@ try {
 });
 
 app.get("/", (req, res) => {
-  res.send("Backend is running 🚀");
+  res.send("Backend is running");
 });
 
 app.listen(port, () => {

@@ -168,7 +168,7 @@ toggle.onclick = () => {
 };
 
 function setThemeIcon() {
-  toggle.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
+  toggle.textContent = document.body.classList.contains("dark") ? "Sun" : "Moon";
 }
 
 function getHistory() {
@@ -339,7 +339,7 @@ function renderEvaluationBoard() {
       <div class="evaluation-grid">
         <div class="card latest-attempt">
           <h4>Latest Attempt</h4>
-          <p>${latest.score}/${latest.total} (${latest.percentage}%) • ${(latest.sourceType || "text").toUpperCase()} • ${formatShortDate(latest.createdAt)}</p>
+          <p>${latest.score}/${latest.total} (${latest.percentage}%) | ${(latest.sourceType || "text").toUpperCase()} | ${formatShortDate(latest.createdAt)}</p>
           <p>${wrongCount} question(s) need revision.</p>
           <details>
             <summary>Review Answers</summary>

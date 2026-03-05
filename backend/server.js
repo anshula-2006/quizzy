@@ -105,6 +105,69 @@ const userSchema = new mongoose.Schema(
 
 const User = mongoose.models.User || mongoose.model("User", userSchema);
 
+const quizAttemptSchema = new mongoose.Schema(
+  {
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
+    sourceType: { type: String, default: "text" },
+    sourceInput: { type: String, default: "" },
+    settings: { type: mongoose.Schema.Types.Mixed, default: {} },
+    score: { type: Number, default: 0 },
+    total: { type: Number, default: 0 },
+    percentage: { type: Number, default: 0 },
+    answers: { type: [mongoose.Schema.Types.Mixed], default: [] },
+    createdAt: { type: Date, default: Date.now }
+  },
+  { timestamps: true }
+);
+
+const savedQuestionSchema = new mongoose.Schema(
+  {
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
+    question: { type: String, required: true },
+    correct: { type: String, default: "" },
+    explanation: { type: String, default: "" },
+    image: { type: String, default: null }
+  },
+  { timestamps: true }
+);
+
+savedQuestionSchema.index({ user: 1, question: 1, correct: 1 }, { unique: true });
+
+const flashDeckSchema = new mongoose.Schema(
+  {
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
+    title: { type: String, default: "Study Deck" },
+    sourceType: { type: String, default: "text" },
+    flashcards: { type: [mongoose.Schema.Types.Mixed], default: [] }
+  },
+  { timestamps: true }
+);
+
+const QuizAttempt = mongoose.models.QuizAttempt || mongoose.model("QuizAttempt", quizAttemptSchema);
+const SavedQuestion = mongoose.models.SavedQuestion || mongoose.model("SavedQuestion", savedQuestionSchema);
+const FlashDeck = mongoose.models.FlashDeck || mongoose.model("FlashDeck", flashDeckSchema);
+
+function ensureAuthDb(res) {
+  if (!mongoUri) {
+    res.status(500).json({ error: "Auth DB is not configured" });
+    return false;
+  }
+  return true;
+}
+
+function toClientDoc(doc) {
+  if (!doc) return null;
+  const copy = { ...doc };
+  if (copy._id) {
+    copy.id = copy._id.toString();
+    delete copy._id;
+  }
+  if (copy.user && typeof copy.user !== "string") {
+    copy.user = copy.user.toString();
+  }
+  return copy;
+}
+
 function signAuthToken(user) {
   const secret = process.env.JWT_SECRET || "dev-secret-change-me";
   return jwt.sign(
@@ -254,6 +317,103 @@ app.post("/auth/logout-all", requireAuth, async (req, res) => {
     return res.json({ message: "Logged out from all devices" });
   } catch (error) {
     return res.status(500).json({ error: error.message || "Failed to logout all sessions" });
+  }
+});
+
+app.get("/data/bootstrap", requireAuth, async (req, res) => {
+  try {
+    if (!ensureAuthDb(res)) return;
+    const userId = req.user._id;
+    const [attempts, savedQuestions, flashDecks] = await Promise.all([
+      QuizAttempt.find({ user: userId }).sort({ createdAt: -1 }).limit(50).lean(),
+      SavedQuestion.find({ user: userId }).sort({ createdAt: -1 }).limit(100).lean(),
+      FlashDeck.find({ user: userId }).sort({ createdAt: -1 }).limit(30).lean()
+    ]);
+    return res.json({
+      attempts: attempts.map(toClientDoc),
+      savedQuestions: savedQuestions.map(toClientDoc),
+      flashDecks: flashDecks.map(toClientDoc)
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message || "Failed to fetch user data" });
+  }
+});
+
+app.post("/data/attempts", requireAuth, async (req, res) => {
+  try {
+    if (!ensureAuthDb(res)) return;
+    const payload = req.body || {};
+    const created = await QuizAttempt.create({
+      user: req.user._id,
+      sourceType: payload.sourceType || "text",
+      sourceInput: payload.sourceInput || "",
+      settings: payload.settings || {},
+      score: Number(payload.score || 0),
+      total: Number(payload.total || 0),
+      percentage: Number(payload.percentage || 0),
+      answers: Array.isArray(payload.answers) ? payload.answers : [],
+      createdAt: payload.createdAt ? new Date(payload.createdAt) : new Date()
+    });
+    return res.status(201).json({ attempt: toClientDoc(created.toObject()) });
+  } catch (error) {
+    return res.status(500).json({ error: error.message || "Failed to save attempt" });
+  }
+});
+
+app.delete("/data/attempts", requireAuth, async (req, res) => {
+  try {
+    if (!ensureAuthDb(res)) return;
+    await QuizAttempt.deleteMany({ user: req.user._id });
+    return res.json({ message: "Attempts cleared" });
+  } catch (error) {
+    return res.status(500).json({ error: error.message || "Failed to clear attempts" });
+  }
+});
+
+app.post("/data/saved-questions", requireAuth, async (req, res) => {
+  try {
+    if (!ensureAuthDb(res)) return;
+    const payload = req.body || {};
+    const question = String(payload.question || "").trim();
+    if (!question) {
+      return res.status(400).json({ error: "Question is required" });
+    }
+    const doc = await SavedQuestion.findOneAndUpdate(
+      { user: req.user._id, question, correct: String(payload.correct || "").trim() },
+      {
+        $setOnInsert: {
+          user: req.user._id,
+          question,
+          correct: String(payload.correct || "").trim(),
+          explanation: String(payload.explanation || "").trim(),
+          image: payload.image || null
+        }
+      },
+      { upsert: true, new: true }
+    ).lean();
+    return res.status(201).json({ savedQuestion: toClientDoc(doc) });
+  } catch (error) {
+    return res.status(500).json({ error: error.message || "Failed to save question" });
+  }
+});
+
+app.post("/data/flash-decks", requireAuth, async (req, res) => {
+  try {
+    if (!ensureAuthDb(res)) return;
+    const payload = req.body || {};
+    const cards = Array.isArray(payload.flashcards) ? payload.flashcards : [];
+    if (!cards.length) {
+      return res.status(400).json({ error: "Flashcards are required" });
+    }
+    const created = await FlashDeck.create({
+      user: req.user._id,
+      title: String(payload.title || "Study Deck").slice(0, 120),
+      sourceType: String(payload.sourceType || "text"),
+      flashcards: cards
+    });
+    return res.status(201).json({ flashDeck: toClientDoc(created.toObject()) });
+  } catch (error) {
+    return res.status(500).json({ error: error.message || "Failed to save flash deck" });
   }
 });
 

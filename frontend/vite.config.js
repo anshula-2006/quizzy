@@ -24,6 +24,10 @@ export default defineConfig({
         target: "https://quizzy-3lt0.onrender.com",
         changeOrigin: true
       },
+      "/data": {
+        target: "https://quizzy-3lt0.onrender.com",
+        changeOrigin: true
+      },
       "/generate-quiz": {
         target: "https://quizzy-3lt0.onrender.com",
         changeOrigin: true

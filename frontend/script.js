@@ -108,6 +108,35 @@ function flashKey() {
   return `${FLASH_BASE}-${getScopeId()}`;
 }
 
+function getAuthToken() {
+  try {
+    const raw = localStorage.getItem("quizzy-session-v2");
+    const parsed = raw ? JSON.parse(raw) : null;
+    return parsed?.token || "";
+  } catch {
+    return "";
+  }
+}
+
+function isLoggedIn() {
+  return Boolean(getAuthToken());
+}
+
+async function cloudRequest(path, options = {}) {
+  const token = getAuthToken();
+  if (!token) return { ok: false, error: "No session token" };
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    ...(options.headers || {})
+  };
+  const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    return { ok: false, error: data.error || "Cloud request failed" };
+  }
+  return { ok: true, data };
+}
+
 function mergeGuestDataToUser(sessionUser) {
   if (!sessionUser?.email) return;
   const userSuffix = sessionUser.email;
@@ -221,12 +250,25 @@ function renderAuthNav() {
   registerLink?.classList.add("hidden");
 }
 
+async function loadCloudDataIntoLocal() {
+  if (!isLoggedIn()) return;
+  const result = await cloudRequest("/data/bootstrap");
+  if (!result.ok) return;
+  const attempts = Array.isArray(result.data?.attempts) ? result.data.attempts : [];
+  const savedQuestions = Array.isArray(result.data?.savedQuestions) ? result.data.savedQuestions : [];
+  const flashDecks = Array.isArray(result.data?.flashDecks) ? result.data.flashDecks : [];
+  saveHistory(attempts);
+  saveSavedQuestions(savedQuestions);
+  saveFlashDecks(flashDecks);
+}
+
 async function bootstrapAuth() {
   if (!auth) return;
   const session = auth.getSession();
   if (session) {
     await auth.me();
     mergeGuestDataToUser(auth.getSession?.());
+    await loadCloudDataIntoLocal();
   }
   renderAuthNav();
   renderEvaluationBoard();
@@ -320,6 +362,13 @@ function addHistoryEntry(entry) {
   const entries = getHistory();
   entries.unshift(entry);
   saveHistory(entries);
+  if (isLoggedIn()) {
+    cloudRequest("/data/attempts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(entry)
+    });
+  }
 }
 
 function getSavedQuestions() {
@@ -342,6 +391,13 @@ function addSavedQuestion(item) {
   if (exists) return;
   items.unshift(item);
   saveSavedQuestions(items);
+  if (isLoggedIn()) {
+    cloudRequest("/data/saved-questions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(item)
+    });
+  }
   renderSidebar();
 }
 
@@ -363,6 +419,13 @@ function addFlashDeck(deck) {
   const decks = getFlashDecks();
   decks.unshift(deck);
   saveFlashDecks(decks);
+  if (isLoggedIn()) {
+    cloudRequest("/data/flash-decks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(deck)
+    });
+  }
 }
 
 function formatShortDate(isoValue) {
@@ -522,8 +585,11 @@ function renderEvaluationBoard() {
     </div>
   `;
 
-  document.getElementById("clearHistoryBtn")?.addEventListener("click", () => {
+  document.getElementById("clearHistoryBtn")?.addEventListener("click", async () => {
     localStorage.removeItem(historyKey());
+    if (isLoggedIn()) {
+      await cloudRequest("/data/attempts", { method: "DELETE" });
+    }
     renderEvaluationBoard();
     renderSidebar();
   });

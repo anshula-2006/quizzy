@@ -770,7 +770,18 @@ async function extractSourceText() {
   }
 
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error || "Could not extract content");
+  if (!response.ok) {
+    if (activeSource === "pdf") {
+      const baseError = data.error || "Could not extract PDF content";
+      const ocrAvailability = data.imageOcrAvailable
+        ? "OCR available"
+        : "OCR unavailable (set OCR_API_KEY on backend)";
+      const ocrFailure = data.ocrError ? `OCR error: ${data.ocrError}` : "";
+      const details = [baseError, ocrAvailability, ocrFailure].filter(Boolean).join(" | ");
+      throw new Error(details);
+    }
+    throw new Error(data.error || "Could not extract content");
+  }
   if (!data.text || data.text.trim().length === 0) throw new Error("Extraction returned empty content");
 
   if (activeSource === "pdf") {

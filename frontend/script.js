@@ -702,7 +702,7 @@ if (cursorTrail) {
 
   const getPalette = () => {
     const isDark = document.body.classList.contains("dark");
-    return isDark ? ["#fbcfe8", "#c7d2fe", "#a5f3fc", "#fecdd3"] : ["#f5d0fe", "#c7d2fe", "#bae6fd", "#bbf7d0"];
+    return isDark ? ["#8fd9a8", "#5aa679", "#b7eac8", "#3f8f63"] : ["#b7eac8", "#8fd9a8", "#d8f4e1", "#67c285"];
   };
 
   const draw = () => {

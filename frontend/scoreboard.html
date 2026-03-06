@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quizzy Scoreboard</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="bg"></div>
+
+  <nav class="nav">
+    <div class="logo">
+      <span class="logo-icon" aria-hidden="true">
+        <svg viewBox="0 0 64 64" role="img" focusable="false">
+          <path d="M20 30c-5 0-9 4-9 9s4 9 9 9h12c7 0 12-5 12-12 0-6-4-10-9-11" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M38 16l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="currentColor"/>
+        </svg>
+      </span>
+      Quiz<span>zy</span>
+    </div>
+    <div class="nav-actions">
+      <a class="nav-link" href="./index.html">Home</a>
+      <a class="nav-link active" href="./scoreboard.html">Scoreboard</a>
+      <span id="authUser" class="auth-user hidden"></span>
+      <a id="loginLink" class="nav-link" href="./login.html">Login</a>
+      <a id="registerLink" class="nav-link" href="./register.html">Register</a>
+      <button id="logoutBtn" class="ghost hidden" type="button">Logout</button>
+      <button id="themeToggle" aria-label="Toggle theme"></button>
+    </div>
+  </nav>
+
+  <main class="scoreboard-shell">
+    <section class="card scoreboard-head">
+      <div>
+        <h1>Progress Scoreboard</h1>
+        <p>All your attempts, trends, and learning momentum in one place.</p>
+      </div>
+      <div class="scoreboard-head-actions">
+        <button id="refreshBoardBtn" class="ghost" type="button">Refresh</button>
+        <button id="clearBoardBtn" class="ghost" type="button">Clear History</button>
+      </div>
+    </section>
+
+    <section id="scoreboardContent" class="scoreboard-content"></section>
+  </main>
+
+  <script type="module" src="scoreboard.js"></script>
+</body>
+</html>

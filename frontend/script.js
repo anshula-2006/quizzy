@@ -27,11 +27,9 @@ const sidebarTitle = document.getElementById("sidebarTitle");
 const timelineTitle = document.getElementById("timelineTitle");
 const savedTitle = document.getElementById("savedTitle");
 const flashTitle = document.getElementById("flashTitle");
-const scoreTitle = document.getElementById("scoreTitle");
 const attemptList = document.getElementById("attemptList");
 const savedList = document.getElementById("savedList");
 const flashList = document.getElementById("flashList");
-const scoreBars = document.getElementById("scoreBars");
 
 const correctSound = new Audio("assets/correct.mp3");
 const wrongSound = new Audio("assets/wrong.mp3");
@@ -210,7 +208,6 @@ function setRole(role) {
   if (timelineTitle) timelineTitle.textContent = labels.timeline;
   if (savedTitle) savedTitle.textContent = labels.saved;
   if (flashTitle) flashTitle.textContent = labels.flash;
-  if (scoreTitle) scoreTitle.textContent = labels.score;
 }
 
 function applyRolePreset(role) {
@@ -526,41 +523,6 @@ function renderSidebar() {
       : `<p class="mini-empty">No flashcard decks generated yet.</p>`;
   }
 
-  if (scoreBars) {
-    const chartData = entries.slice(0, 8).reverse();
-    if (!chartData.length) {
-      scoreBars.innerHTML = `<p class="mini-empty">Scoreboard appears after your first quiz.</p>`;
-    } else {
-      const latest = entries[0]?.percentage || 0;
-      const avg = Math.round(entries.reduce((sum, e) => sum + (e.percentage || 0), 0) / entries.length);
-      const trend = getTrend(entries);
-      scoreBars.innerHTML = `
-        <div class="score-hero">
-          <div class="score-ring" style="--p:${latest}">
-            <strong>${latest}%</strong>
-            <span>Latest</span>
-          </div>
-          <div class="score-meta">
-            <div class="meta-chip">${getBandLabel(latest)}</div>
-            <div class="meta-chip muted">Avg ${avg}%</div>
-            <div class="meta-chip ${trend.delta > 0 ? "up" : trend.delta < 0 ? "down" : "flat"}">${trend.label}</div>
-          </div>
-        </div>
-        <div class="score-spark">
-          ${chartData.map((e, i) => `
-            <div class="spark-col" title="Attempt ${i + 1}: ${e.percentage}%">
-              <div class="spark-bar" style="height:${Math.max(12, Math.min(100, e.percentage || 0))}%"></div>
-              <span>${e.percentage}%</span>
-            </div>
-          `).join("")}
-        </div>
-        <div class="analysis-card">
-          <strong>Feedback</strong>
-          <p>${getFeedback(entries)}</p>
-        </div>
-      `;
-    }
-  }
 }
 
 function renderEvaluationBoard() {

@@ -10,7 +10,8 @@ export default defineConfig({
       input: {
         main: resolve(rootDir, "index.html"),
         login: resolve(rootDir, "login.html"),
-        register: resolve(rootDir, "register.html")
+        register: resolve(rootDir, "register.html"),
+        scoreboard: resolve(rootDir, "scoreboard.html")
       }
     }
   },

@@ -770,42 +770,15 @@ async function extractSourceText() {
   }
 
   const data = await response.json();
-  if (!response.ok) {
-    if (activeSource === "pdf") {
-      const baseError = data.error || "Could not extract PDF content";
-      const ocrAvailability = data.imageOcrAvailable
-        ? "OCR available"
-        : "OCR unavailable (set OCR_API_KEY on backend)";
-      const ocrFailure = data.ocrError ? `OCR error: ${data.ocrError}` : "";
-      const details = [baseError, ocrAvailability, ocrFailure].filter(Boolean).join(" | ");
-      throw new Error(details);
-    }
-    throw new Error(data.error || "Could not extract content");
-  }
+  if (!response.ok) throw new Error(data.error || "Could not extract content");
   if (!data.text || data.text.trim().length === 0) throw new Error("Extraction returned empty content");
-
-  if (activeSource === "pdf") {
-    if (data.usedImageOcr) {
-      sourceHint.textContent = "OCR used: scanned/image PDF text was extracted.";
-      sourceHint.style.color = "#0f766e";
-    } else if (data.imageOcrAvailable) {
-      sourceHint.textContent = "PDF text extracted directly. OCR is available if needed.";
-      sourceHint.style.color = "";
-    } else {
-      sourceHint.textContent = "PDF text extracted directly. OCR is off (set OCR_API_KEY to enable).";
-      sourceHint.style.color = "#b45309";
-    }
-  } else {
-    sourceHint.textContent = getDefaultHint(activeSource);
-    sourceHint.style.color = "";
-  }
+  sourceHint.textContent = getDefaultHint(activeSource);
+  sourceHint.style.color = "";
 
   return {
     text: data.text,
     extractionId: data.extractionId || null,
-    fullReady: Boolean(data.fullReady),
-    usedImageOcr: Boolean(data.usedImageOcr),
-    imageOcrAvailable: Boolean(data.imageOcrAvailable)
+    fullReady: Boolean(data.fullReady)
   };
 }
 

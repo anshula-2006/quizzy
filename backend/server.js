@@ -3,7 +3,6 @@ import cors from "cors";
 import Groq from "groq-sdk";
 import multer from "multer";
 import pdfParse from "pdf-parse";
-import OpenAI, { toFile } from "openai";
 import * as cheerio from "cheerio";
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
@@ -21,7 +20,6 @@ const MAX_PDF_UPLOAD_BYTES = 100 * 1024 * 1024;
 const FAST_PDF_PARSE_MAX_PAGES = 12;
 const FAST_EXTRACT_MAX_CHARS = 8000;
 const FULL_EXTRACT_MAX_CHARS = 20000;
-const OCR_TRIGGER_MIN_CHARS = 500;
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: MAX_PDF_UPLOAD_BYTES }
@@ -89,29 +87,10 @@ function startFullPdfExtraction(extractionId, buffer) {
     const startedAt = Date.now();
     try {
       const parsed = await pdfParse(buffer);
-      let clean = cleanExtractedText(parsed.text);
-      let usedImageOcr = false;
-      let ocrError = null;
-      if (shouldTryPdfOcr(clean)) {
-        const ocrResult = await extractPdfTextWithOcr(buffer);
-        ocrError = ocrResult.error;
-        if (ocrResult.text.length > clean.length) {
-          clean = ocrResult.text;
-          usedImageOcr = true;
-        }
-      }
+      const clean = cleanExtractedText(parsed.text);
       const text = clean.length > FULL_EXTRACT_MAX_CHARS ? clean.slice(0, FULL_EXTRACT_MAX_CHARS) : clean;
-      upsertPdfJob(extractionId, {
-        fullReady: true,
-        fullText: text,
-        parsing: false,
-        error: null,
-        usedImageOcr,
-        ocrError
-      });
-      console.log(
-        `[extract-content/full] ready extractionId=${extractionId} chars=${text.length} imageOcr=${usedImageOcr} totalMs=${Date.now() - startedAt}`
-      );
+      upsertPdfJob(extractionId, { fullReady: true, fullText: text, parsing: false, error: null });
+      console.log(`[extract-content/full] ready extractionId=${extractionId} chars=${text.length} totalMs=${Date.now() - startedAt}`);
     } catch (error) {
       upsertPdfJob(extractionId, { fullReady: false, fullText: "", parsing: false, error: error.message || "Full extraction failed" });
       console.log(`[extract-content/full] failed extractionId=${extractionId} totalMs=${Date.now() - startedAt} error=${error?.message || "unknown"}`);
@@ -181,61 +160,6 @@ async function extractFromUrl(rawUrl) {
 
 const groqApiKey = process.env.GROQ_API_KEY || "";
 const groq = groqApiKey ? new Groq({ apiKey: groqApiKey }) : null;
-const openaiApiKey = process.env.OCR_API_KEY || process.env.OPENAI_API_KEY || "";
-const openai = openaiApiKey ? new OpenAI({ apiKey: openaiApiKey }) : null;
-const OPENAI_PDF_MODEL = process.env.OPENAI_PDF_MODEL || "gpt-4.1-mini";
-
-function shouldTryPdfOcr(text) {
-  const clean = cleanExtractedText(text);
-  if (!clean) return true;
-  if (clean.length < OCR_TRIGGER_MIN_CHARS) return true;
-  const wordCount = clean.split(" ").filter(Boolean).length;
-  if (wordCount < 80) return true;
-  return false;
-}
-
-async function extractPdfTextWithOcr(buffer) {
-  if (!openai) return { text: "", error: "OCR API key not configured" };
-
-  let uploadedFile = null;
-  try {
-    uploadedFile = await openai.files.create({
-      purpose: "user_data",
-      file: await toFile(buffer, "upload.pdf", { type: "application/pdf" })
-    });
-
-    const response = await openai.responses.create({
-      model: OPENAI_PDF_MODEL,
-      input: [
-        {
-          role: "user",
-          content: [
-            { type: "input_file", file_id: uploadedFile.id },
-            {
-              type: "input_text",
-              text: "Extract all readable text from this PDF, including text in scanned or image-based pages. Return plain text only."
-            }
-          ]
-        }
-      ],
-      max_output_tokens: 5000
-    });
-
-    return { text: cleanExtractedText(response.output_text || ""), error: null };
-  } catch (error) {
-    const message = error?.message || "unknown";
-    console.warn(`[extract-content/ocr] failed error=${message}`);
-    return { text: "", error: message };
-  } finally {
-    if (uploadedFile?.id) {
-      try {
-        await openai.files.del(uploadedFile.id);
-      } catch {
-        // Best-effort cleanup only.
-      }
-    }
-  }
-}
 
 const mongoUri = process.env.MONGODB_URI;
 if (!mongoUri) {
@@ -580,8 +504,6 @@ app.post("/extract-content", upload.single("pdf"), async (req, res) => {
     let cacheKey = "";
     let extractionId = "";
     let fullReady = true;
-    let usedImageOcr = false;
-    let ocrError = null;
 
     if (req.file) {
       sourceType = "pdf";
@@ -606,14 +528,6 @@ app.post("/extract-content", upload.single("pdf"), async (req, res) => {
       }
       const parsedPdf = await pdfParse(req.file.buffer, { max: FAST_PDF_PARSE_MAX_PAGES });
       extractedText = cleanExtractedText(parsedPdf.text);
-      if (shouldTryPdfOcr(extractedText)) {
-        const ocrResult = await extractPdfTextWithOcr(req.file.buffer);
-        ocrError = ocrResult.error;
-        if (ocrResult.text.length > extractedText.length) {
-          extractedText = ocrResult.text;
-          usedImageOcr = true;
-        }
-      }
       startFullPdfExtraction(extractionId, req.file.buffer);
       fullReady = Boolean(getPdfJob(extractionId)?.fullReady);
     } else if (req.body?.url) {
@@ -641,15 +555,8 @@ app.post("/extract-content", upload.single("pdf"), async (req, res) => {
     }
 
     if (!extractedText || extractedText.length < 20) {
-      const responsePayload = {
-        error: "Not enough extractable text. Provide richer content."
-      };
-      if (sourceType === "pdf") {
-        responsePayload.imageOcrAvailable = Boolean(openai);
-        responsePayload.ocrError = ocrError;
-      }
       return res.status(400).json({
-        ...responsePayload
+        error: "Not enough extractable text. Provide richer content."
       });
     }
 
@@ -666,9 +573,6 @@ app.post("/extract-content", upload.single("pdf"), async (req, res) => {
     if (sourceType === "pdf") {
       payload.fastMode = true;
       payload.maxParsedPages = FAST_PDF_PARSE_MAX_PAGES;
-      payload.usedImageOcr = usedImageOcr;
-      payload.imageOcrAvailable = Boolean(openai);
-      payload.ocrError = ocrError;
     }
     if (cacheKey) setCachedExtraction(cacheKey, payload);
     console.log(
@@ -703,10 +607,7 @@ app.get("/extract-content-status", (req, res) => {
     extractionId,
     fullReady: Boolean(job?.fullReady && job?.fullText),
     parsing: Boolean(job?.parsing),
-    error: job?.error || null,
-    usedImageOcr: Boolean(job?.usedImageOcr),
-    imageOcrAvailable: Boolean(openai),
-    ocrError: job?.ocrError || null
+    error: job?.error || null
   });
 });
 

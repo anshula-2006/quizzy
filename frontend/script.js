@@ -17,8 +17,6 @@ const loginLink = document.getElementById("loginLink");
 const registerLink = document.getElementById("registerLink");
 const logoutBtn = document.getElementById("logoutBtn");
 const loader = document.getElementById("loader");
-const cursorGlow = document.querySelector(".cursor-glow");
-const cursorTrail = document.getElementById("cursorTrail");
 const difficultyMode = document.getElementById("difficultyMode");
 const learnerMode = document.getElementById("learnerMode");
 const questionMode = document.getElementById("questionMode");
@@ -623,74 +621,6 @@ function renderEvaluationBoard() {
     });
   });
   if (latestAnswers.length) renderReviewDetail(0);
-}
-
-if (cursorGlow) {
-  let targetX = window.innerWidth / 2;
-  let targetY = window.innerHeight / 2;
-  let currentX = targetX;
-  let currentY = targetY;
-
-  window.addEventListener("mousemove", (e) => {
-    targetX = e.clientX;
-    targetY = e.clientY;
-  });
-
-  const follow = () => {
-    currentX += (targetX - currentX) * 0.08;
-    currentY += (targetY - currentY) * 0.08;
-    cursorGlow.style.left = `${currentX}px`;
-    cursorGlow.style.top = `${currentY}px`;
-    requestAnimationFrame(follow);
-  };
-
-  follow();
-}
-
-if (cursorTrail) {
-  const ctx = cursorTrail.getContext("2d");
-  let points = [];
-
-  const resize = () => {
-    cursorTrail.width = window.innerWidth;
-    cursorTrail.height = window.innerHeight;
-  };
-  resize();
-  window.addEventListener("resize", resize);
-
-  window.addEventListener("mousemove", (e) => {
-    points.push({ x: e.clientX, y: e.clientY, life: 1 });
-  });
-
-  const getPalette = () => {
-    const isDark = document.body.classList.contains("dark");
-    return isDark ? ["#8fd9a8", "#5aa679", "#b7eac8", "#3f8f63"] : ["#b7eac8", "#8fd9a8", "#d8f4e1", "#67c285"];
-  };
-
-  const draw = () => {
-    ctx.clearRect(0, 0, cursorTrail.width, cursorTrail.height);
-    for (let i = 0; i < points.length; i++) points[i].life -= 0.008;
-    points = points.filter((p) => p.life > 0);
-
-    const palette = getPalette();
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    for (let i = 1; i < points.length; i++) {
-      const p1 = points[i - 1];
-      const p2 = points[i];
-      const alpha = Math.max(0, Math.min(p2.life, 1));
-      const colorIndex = Math.floor(i / 10) % palette.length;
-      ctx.strokeStyle = `${palette[colorIndex]}${Math.round(alpha * 255).toString(16).padStart(2, "0")}`;
-      ctx.lineWidth = 6 * alpha + 1;
-      ctx.beginPath();
-      ctx.moveTo(p1.x, p1.y);
-      ctx.lineTo(p2.x, p2.y);
-      ctx.stroke();
-    }
-    requestAnimationFrame(draw);
-  };
-
-  draw();
 }
 
 function normalizeShortAnswer(value) {

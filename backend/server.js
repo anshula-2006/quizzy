@@ -21,6 +21,7 @@ const MAX_PDF_UPLOAD_BYTES = 100 * 1024 * 1024;
 const FAST_PDF_PARSE_MAX_PAGES = 12;
 const FAST_EXTRACT_MAX_CHARS = 8000;
 const FULL_EXTRACT_MAX_CHARS = 20000;
+const OCR_TRIGGER_MIN_CHARS = 500;
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: MAX_PDF_UPLOAD_BYTES }
@@ -90,10 +91,12 @@ function startFullPdfExtraction(extractionId, buffer) {
       const parsed = await pdfParse(buffer);
       let clean = cleanExtractedText(parsed.text);
       let usedImageOcr = false;
-      if (clean.length < 20) {
-        const ocrText = await extractPdfTextWithOcr(buffer);
-        if (ocrText.length > clean.length) {
-          clean = ocrText;
+      let ocrError = null;
+      if (shouldTryPdfOcr(clean)) {
+        const ocrResult = await extractPdfTextWithOcr(buffer);
+        ocrError = ocrResult.error;
+        if (ocrResult.text.length > clean.length) {
+          clean = ocrResult.text;
           usedImageOcr = true;
         }
       }
@@ -103,7 +106,8 @@ function startFullPdfExtraction(extractionId, buffer) {
         fullText: text,
         parsing: false,
         error: null,
-        usedImageOcr
+        usedImageOcr,
+        ocrError
       });
       console.log(
         `[extract-content/full] ready extractionId=${extractionId} chars=${text.length} imageOcr=${usedImageOcr} totalMs=${Date.now() - startedAt}`
@@ -181,8 +185,17 @@ const openaiApiKey = process.env.OCR_API_KEY || process.env.OPENAI_API_KEY || ""
 const openai = openaiApiKey ? new OpenAI({ apiKey: openaiApiKey }) : null;
 const OPENAI_PDF_MODEL = process.env.OPENAI_PDF_MODEL || "gpt-4.1-mini";
 
+function shouldTryPdfOcr(text) {
+  const clean = cleanExtractedText(text);
+  if (!clean) return true;
+  if (clean.length < OCR_TRIGGER_MIN_CHARS) return true;
+  const wordCount = clean.split(" ").filter(Boolean).length;
+  if (wordCount < 80) return true;
+  return false;
+}
+
 async function extractPdfTextWithOcr(buffer) {
-  if (!openai) return "";
+  if (!openai) return { text: "", error: "OCR API key not configured" };
 
   let uploadedFile = null;
   try {
@@ -208,10 +221,11 @@ async function extractPdfTextWithOcr(buffer) {
       max_output_tokens: 5000
     });
 
-    return cleanExtractedText(response.output_text || "");
+    return { text: cleanExtractedText(response.output_text || ""), error: null };
   } catch (error) {
-    console.warn(`[extract-content/ocr] failed error=${error?.message || "unknown"}`);
-    return "";
+    const message = error?.message || "unknown";
+    console.warn(`[extract-content/ocr] failed error=${message}`);
+    return { text: "", error: message };
   } finally {
     if (uploadedFile?.id) {
       try {
@@ -567,6 +581,7 @@ app.post("/extract-content", upload.single("pdf"), async (req, res) => {
     let extractionId = "";
     let fullReady = true;
     let usedImageOcr = false;
+    let ocrError = null;
 
     if (req.file) {
       sourceType = "pdf";
@@ -591,10 +606,11 @@ app.post("/extract-content", upload.single("pdf"), async (req, res) => {
       }
       const parsedPdf = await pdfParse(req.file.buffer, { max: FAST_PDF_PARSE_MAX_PAGES });
       extractedText = cleanExtractedText(parsedPdf.text);
-      if (extractedText.length < 20) {
-        const ocrText = await extractPdfTextWithOcr(req.file.buffer);
-        if (ocrText.length > extractedText.length) {
-          extractedText = ocrText;
+      if (shouldTryPdfOcr(extractedText)) {
+        const ocrResult = await extractPdfTextWithOcr(req.file.buffer);
+        ocrError = ocrResult.error;
+        if (ocrResult.text.length > extractedText.length) {
+          extractedText = ocrResult.text;
           usedImageOcr = true;
         }
       }
@@ -625,8 +641,15 @@ app.post("/extract-content", upload.single("pdf"), async (req, res) => {
     }
 
     if (!extractedText || extractedText.length < 20) {
-      return res.status(400).json({
+      const responsePayload = {
         error: "Not enough extractable text. Provide richer content."
+      };
+      if (sourceType === "pdf") {
+        responsePayload.imageOcrAvailable = Boolean(openai);
+        responsePayload.ocrError = ocrError;
+      }
+      return res.status(400).json({
+        ...responsePayload
       });
     }
 
@@ -645,6 +668,7 @@ app.post("/extract-content", upload.single("pdf"), async (req, res) => {
       payload.maxParsedPages = FAST_PDF_PARSE_MAX_PAGES;
       payload.usedImageOcr = usedImageOcr;
       payload.imageOcrAvailable = Boolean(openai);
+      payload.ocrError = ocrError;
     }
     if (cacheKey) setCachedExtraction(cacheKey, payload);
     console.log(
@@ -681,7 +705,8 @@ app.get("/extract-content-status", (req, res) => {
     parsing: Boolean(job?.parsing),
     error: job?.error || null,
     usedImageOcr: Boolean(job?.usedImageOcr),
-    imageOcrAvailable: Boolean(openai)
+    imageOcrAvailable: Boolean(openai),
+    ocrError: job?.ocrError || null
   });
 });
 

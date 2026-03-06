@@ -772,7 +772,11 @@ async function extractSourceText() {
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || "Could not extract content");
   if (!data.text || data.text.trim().length === 0) throw new Error("Extraction returned empty content");
-  return data.text;
+  return {
+    text: data.text,
+    extractionId: data.extractionId || null,
+    fullReady: Boolean(data.fullReady)
+  };
 }
 
 async function buildContentPayload() {
@@ -785,9 +789,11 @@ async function buildContentPayload() {
     };
   }
 
-  const extractedText = await extractSourceText();
+  const extracted = await extractSourceText();
   return {
-    text: extractedText,
+    text: extracted.text,
+    extractionId: extracted.extractionId,
+    preferFull: false,
     sourceType: activeSource,
     sourceInput:
       activeSource === "pdf"
@@ -898,7 +904,10 @@ btn.onclick = async () => {
       sourceInput: contentPayload.sourceInput,
       settings
     };
-    lastQuizRequestBase = requestBase;
+    lastQuizRequestBase = {
+      ...requestBase,
+      preferFull: contentPayload.sourceType === "pdf"
+    };
 
     loader.classList.add("hidden");
     quiz.scrollIntoView({ behavior: "smooth" });

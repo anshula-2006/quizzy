@@ -18,15 +18,21 @@ app.use(cors());
 app.use(express.json());
 const MAX_PDF_UPLOAD_BYTES = 100 * 1024 * 1024;
 const FAST_PDF_PARSE_MAX_PAGES = 12;
+const FAST_EXTRACT_MAX_CHARS = 8000;
+const FULL_EXTRACT_MAX_CHARS = 20000;
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: MAX_PDF_UPLOAD_BYTES }
 });
 const EXTRACTION_CACHE_TTL_MS = 10 * 60 * 1000;
 const extractionCache = new Map();
+const pdfFullExtractionJobs = new Map();
 
 function hashText(value) {
-  return createHash("sha256").update(String(value || "")).digest("hex");
+  const hasher = createHash("sha256");
+  if (Buffer.isBuffer(value)) hasher.update(value);
+  else hasher.update(String(value || ""));
+  return hasher.digest("hex");
 }
 
 function getCachedExtraction(key) {
@@ -44,6 +50,52 @@ function setCachedExtraction(key, value) {
     value,
     expiresAt: Date.now() + EXTRACTION_CACHE_TTL_MS
   });
+}
+
+function getPdfJob(extractionId) {
+  const job = pdfFullExtractionJobs.get(extractionId);
+  if (!job) return null;
+  if (Date.now() > job.expiresAt) {
+    pdfFullExtractionJobs.delete(extractionId);
+    return null;
+  }
+  return job;
+}
+
+function upsertPdfJob(extractionId, patch) {
+  const prev = getPdfJob(extractionId) || {};
+  const next = {
+    extractionId,
+    fullReady: false,
+    fullText: "",
+    parsing: false,
+    error: null,
+    expiresAt: Date.now() + EXTRACTION_CACHE_TTL_MS,
+    ...prev,
+    ...patch
+  };
+  pdfFullExtractionJobs.set(extractionId, next);
+  return next;
+}
+
+function startFullPdfExtraction(extractionId, buffer) {
+  const existing = getPdfJob(extractionId);
+  if (existing?.parsing || existing?.fullReady) return;
+  upsertPdfJob(extractionId, { parsing: true, error: null });
+
+  (async () => {
+    const startedAt = Date.now();
+    try {
+      const parsed = await pdfParse(buffer);
+      const clean = cleanExtractedText(parsed.text);
+      const text = clean.length > FULL_EXTRACT_MAX_CHARS ? clean.slice(0, FULL_EXTRACT_MAX_CHARS) : clean;
+      upsertPdfJob(extractionId, { fullReady: true, fullText: text, parsing: false, error: null });
+      console.log(`[extract-content/full] ready extractionId=${extractionId} chars=${text.length} totalMs=${Date.now() - startedAt}`);
+    } catch (error) {
+      upsertPdfJob(extractionId, { fullReady: false, fullText: "", parsing: false, error: error.message || "Full extraction failed" });
+      console.log(`[extract-content/full] failed extractionId=${extractionId} totalMs=${Date.now() - startedAt} error=${error?.message || "unknown"}`);
+    }
+  })();
 }
 
 function isBlockedHostname(hostname) {
@@ -450,6 +502,8 @@ app.post("/extract-content", upload.single("pdf"), async (req, res) => {
     let sourceType = "";
     let extractedText = "";
     let cacheKey = "";
+    let extractionId = "";
+    let fullReady = true;
 
     if (req.file) {
       sourceType = "pdf";
@@ -458,30 +512,42 @@ app.post("/extract-content", upload.single("pdf"), async (req, res) => {
       if (!isPdfMime && !isPdfName) {
         return res.status(400).json({ error: "Only PDF files are allowed" });
       }
-      cacheKey = `pdf:${hashText(req.file.buffer)}`;
+      extractionId = `pdf:${hashText(req.file.buffer)}`;
+      cacheKey = extractionId;
+      const job = getPdfJob(extractionId);
+      fullReady = Boolean(job?.fullReady && job?.fullText);
       const cached = getCachedExtraction(cacheKey);
       if (cached) {
+        startFullPdfExtraction(extractionId, req.file.buffer);
         console.log(`[extract-content] source=pdf cache=hit chars=${cached.text.length} totalMs=${Date.now() - startedAt}`);
-        return res.json(cached);
+        return res.json({
+          ...cached,
+          extractionId,
+          fullReady
+        });
       }
       const parsedPdf = await pdfParse(req.file.buffer, { max: FAST_PDF_PARSE_MAX_PAGES });
       extractedText = cleanExtractedText(parsedPdf.text);
+      startFullPdfExtraction(extractionId, req.file.buffer);
+      fullReady = Boolean(getPdfJob(extractionId)?.fullReady);
     } else if (req.body?.url) {
       sourceType = "url";
       cacheKey = `url:${hashText(req.body.url)}`;
+      extractionId = cacheKey;
       const cached = getCachedExtraction(cacheKey);
       if (cached) {
         console.log(`[extract-content] source=url cache=hit chars=${cached.text.length} totalMs=${Date.now() - startedAt}`);
-        return res.json(cached);
+        return res.json({ ...cached, extractionId, fullReady: true });
       }
       extractedText = await extractFromUrl(req.body.url);
     } else if (req.body?.text) {
       sourceType = "text";
       cacheKey = `text:${hashText(req.body.text)}`;
+      extractionId = cacheKey;
       const cached = getCachedExtraction(cacheKey);
       if (cached) {
         console.log(`[extract-content] source=text cache=hit chars=${cached.text.length} totalMs=${Date.now() - startedAt}`);
-        return res.json(cached);
+        return res.json({ ...cached, extractionId, fullReady: true });
       }
       extractedText = cleanExtractedText(req.body.text);
     } else {
@@ -494,7 +560,7 @@ app.post("/extract-content", upload.single("pdf"), async (req, res) => {
       });
     }
 
-    const maxChars = 8000;
+    const maxChars = FAST_EXTRACT_MAX_CHARS;
     const truncated = extractedText.length > maxChars;
     const text = truncated ? extractedText.slice(0, maxChars) : extractedText;
 
@@ -512,7 +578,11 @@ app.post("/extract-content", upload.single("pdf"), async (req, res) => {
     console.log(
       `[extract-content] source=${sourceType} cache=miss chars=${text.length} truncated=${truncated} totalMs=${Date.now() - startedAt}`
     );
-    return res.json(payload);
+    return res.json({
+      ...payload,
+      extractionId: extractionId || cacheKey,
+      fullReady
+    });
   } catch (error) {
     const isTimeout = error?.name === "AbortError";
     console.log(`[extract-content] failed totalMs=${Date.now() - startedAt} error=${error?.message || "unknown"}`);
@@ -522,15 +592,42 @@ app.post("/extract-content", upload.single("pdf"), async (req, res) => {
   }
 });
 
+app.get("/extract-content-status", (req, res) => {
+  const extractionId = String(req.query?.extractionId || "").trim();
+  if (!extractionId) {
+    return res.status(400).json({ error: "extractionId is required" });
+  }
+
+  if (!extractionId.startsWith("pdf:")) {
+    return res.json({ extractionId, fullReady: true, parsing: false });
+  }
+
+  const job = getPdfJob(extractionId);
+  return res.json({
+    extractionId,
+    fullReady: Boolean(job?.fullReady && job?.fullText),
+    parsing: Boolean(job?.parsing),
+    error: job?.error || null
+  });
+});
+
 app.post("/generate-quiz", async (req, res) => {
   const startedAt = Date.now();
-  const { text, topic, difficulty = "moderate", learnerMode = "student", questionMode = "mcq" } = req.body;
+  const { text, topic, difficulty = "moderate", learnerMode = "student", questionMode = "mcq", extractionId = "", preferFull = false } = req.body;
   const requestedCount = Number(req.body?.questionCount);
   const questionCount = Number.isFinite(requestedCount)
     ? Math.max(1, Math.min(10, Math.floor(requestedCount)))
     : 5;
+  let effectiveText = text;
 
-  if (!text && !topic) {
+  if (preferFull && extractionId && extractionId.startsWith("pdf:")) {
+    const job = getPdfJob(extractionId);
+    if (job?.fullReady && job?.fullText) {
+      effectiveText = job.fullText;
+    }
+  }
+
+  if (!effectiveText && !topic) {
     return res.status(400).json({ error: "Text or topic is required" });
   }
   if (!groq) {
@@ -609,7 +706,7 @@ Variation ID: ${variation}
   - If no valid image exists, return null
 
 Topic: "${topic || "hard"}"
-Content: ${text || "Use general knowledge"}
+Content: ${effectiveText || "Use general knowledge"}
 `;
 
 

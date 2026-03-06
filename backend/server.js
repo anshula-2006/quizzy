@@ -17,7 +17,7 @@ app.use(cors());
 app.use(express.json());
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 50 * 1024 * 1024 }
+  limits: { fileSize: 20 * 1024 * 1024 }
 });
 
 function isBlockedHostname(hostname) {
@@ -555,7 +555,7 @@ Content: ${text || "Use general knowledge"}
 
   try {
     const completion = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",   //  change ONLY this if needed
+      model: "llama-3.1-8b-instant",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.9
     });
@@ -629,7 +629,7 @@ Content: ${text || "Use general knowledge"}
 
   try {
     const completion = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
+      model: "llama-3.1-8b-instant",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.7
     });

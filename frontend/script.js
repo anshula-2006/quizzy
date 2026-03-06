@@ -44,7 +44,7 @@ let timeLeft = 15;
 let answered = {};
 let choices = {};
 let activeSource = "text";
-const MAX_PDF_BYTES = 50 * 1024 * 1024;
+const MAX_PDF_BYTES = 20 * 1024 * 1024;
 const HISTORY_BASE = "quizzy-history-v2";
 const SAVED_BASE = "quizzy-saved-v1";
 const FLASH_BASE = "quizzy-flash-v1";
@@ -280,7 +280,7 @@ async function bootstrapAuth() {
 function getDefaultHint(source) {
   if (source === "text") return "Paste study text to generate a quiz.";
   if (source === "url") return "Paste a public article URL to extract content.";
-  return "Upload a PDF file (max 50MB).";
+  return "Upload a PDF file (max 20MB).";
 }
 
 function isValidHttpUrl(value) {
@@ -309,7 +309,7 @@ function validateActiveSourceInput(showError = false) {
     } else if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
       error = "Only PDF files are allowed.";
     } else if (file.size > MAX_PDF_BYTES) {
-      error = "PDF is too large. Maximum size is 50MB.";
+      error = "PDF is too large. Maximum size is 20MB.";
     }
   }
 
@@ -858,11 +858,9 @@ btn.onclick = async () => {
       settings
     };
 
-    setTimeout(() => {
-      loader.classList.add("hidden");
-      quiz.scrollIntoView({ behavior: "smooth" });
-      showQuestion();
-    }, 900);
+    loader.classList.add("hidden");
+    quiz.scrollIntoView({ behavior: "smooth" });
+    showQuestion();
   } catch (err) {
     loader.classList.add("hidden");
     quiz.innerHTML = `

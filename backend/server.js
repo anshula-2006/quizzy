@@ -8,6 +8,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import { createHash } from "crypto";
 
 dotenv.config({ path: new URL("./.env", import.meta.url) });
 
@@ -15,10 +16,35 @@ const app = express();
 const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
+const MAX_PDF_UPLOAD_BYTES = 100 * 1024 * 1024;
+const FAST_PDF_PARSE_MAX_PAGES = 12;
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 20 * 1024 * 1024 }
+  limits: { fileSize: MAX_PDF_UPLOAD_BYTES }
 });
+const EXTRACTION_CACHE_TTL_MS = 10 * 60 * 1000;
+const extractionCache = new Map();
+
+function hashText(value) {
+  return createHash("sha256").update(String(value || "")).digest("hex");
+}
+
+function getCachedExtraction(key) {
+  const cached = extractionCache.get(key);
+  if (!cached) return null;
+  if (Date.now() > cached.expiresAt) {
+    extractionCache.delete(key);
+    return null;
+  }
+  return cached.value;
+}
+
+function setCachedExtraction(key, value) {
+  extractionCache.set(key, {
+    value,
+    expiresAt: Date.now() + EXTRACTION_CACHE_TTL_MS
+  });
+}
 
 function isBlockedHostname(hostname) {
   const host = (hostname || "").toLowerCase();
@@ -419,9 +445,11 @@ app.post("/data/flash-decks", requireAuth, async (req, res) => {
 
 
 app.post("/extract-content", upload.single("pdf"), async (req, res) => {
+  const startedAt = Date.now();
   try {
     let sourceType = "";
     let extractedText = "";
+    let cacheKey = "";
 
     if (req.file) {
       sourceType = "pdf";
@@ -430,13 +458,31 @@ app.post("/extract-content", upload.single("pdf"), async (req, res) => {
       if (!isPdfMime && !isPdfName) {
         return res.status(400).json({ error: "Only PDF files are allowed" });
       }
-      const parsedPdf = await pdfParse(req.file.buffer);
+      cacheKey = `pdf:${hashText(req.file.buffer)}`;
+      const cached = getCachedExtraction(cacheKey);
+      if (cached) {
+        console.log(`[extract-content] source=pdf cache=hit chars=${cached.text.length} totalMs=${Date.now() - startedAt}`);
+        return res.json(cached);
+      }
+      const parsedPdf = await pdfParse(req.file.buffer, { max: FAST_PDF_PARSE_MAX_PAGES });
       extractedText = cleanExtractedText(parsedPdf.text);
     } else if (req.body?.url) {
       sourceType = "url";
+      cacheKey = `url:${hashText(req.body.url)}`;
+      const cached = getCachedExtraction(cacheKey);
+      if (cached) {
+        console.log(`[extract-content] source=url cache=hit chars=${cached.text.length} totalMs=${Date.now() - startedAt}`);
+        return res.json(cached);
+      }
       extractedText = await extractFromUrl(req.body.url);
     } else if (req.body?.text) {
       sourceType = "text";
+      cacheKey = `text:${hashText(req.body.text)}`;
+      const cached = getCachedExtraction(cacheKey);
+      if (cached) {
+        console.log(`[extract-content] source=text cache=hit chars=${cached.text.length} totalMs=${Date.now() - startedAt}`);
+        return res.json(cached);
+      }
       extractedText = cleanExtractedText(req.body.text);
     } else {
       return res.status(400).json({ error: "Provide pdf, url, or text" });
@@ -448,18 +494,28 @@ app.post("/extract-content", upload.single("pdf"), async (req, res) => {
       });
     }
 
-    const maxChars = 20000;
+    const maxChars = 8000;
     const truncated = extractedText.length > maxChars;
     const text = truncated ? extractedText.slice(0, maxChars) : extractedText;
 
-    return res.json({
+    const payload = {
       sourceType,
       chars: text.length,
       truncated,
       text
-    });
+    };
+    if (sourceType === "pdf") {
+      payload.fastMode = true;
+      payload.maxParsedPages = FAST_PDF_PARSE_MAX_PAGES;
+    }
+    if (cacheKey) setCachedExtraction(cacheKey, payload);
+    console.log(
+      `[extract-content] source=${sourceType} cache=miss chars=${text.length} truncated=${truncated} totalMs=${Date.now() - startedAt}`
+    );
+    return res.json(payload);
   } catch (error) {
     const isTimeout = error?.name === "AbortError";
+    console.log(`[extract-content] failed totalMs=${Date.now() - startedAt} error=${error?.message || "unknown"}`);
     return res.status(500).json({
       error: isTimeout ? "URL request timed out" : error.message || "Extraction failed"
     });
@@ -467,7 +523,12 @@ app.post("/extract-content", upload.single("pdf"), async (req, res) => {
 });
 
 app.post("/generate-quiz", async (req, res) => {
+  const startedAt = Date.now();
   const { text, topic, difficulty = "moderate", learnerMode = "student", questionMode = "mcq" } = req.body;
+  const requestedCount = Number(req.body?.questionCount);
+  const questionCount = Number.isFinite(requestedCount)
+    ? Math.max(1, Math.min(10, Math.floor(requestedCount)))
+    : 5;
 
   if (!text && !topic) {
     return res.status(400).json({ error: "Text or topic is required" });
@@ -489,7 +550,7 @@ app.post("/generate-quiz", async (req, res) => {
   let prompt = "";
 
 prompt = `
-Generate exactly 10 quiz questions in JSON format.
+Generate exactly ${questionCount} quiz questions in JSON format.
 
 Return ONLY valid JSON. No extra text.
 
@@ -533,9 +594,9 @@ Rules:
   - Apply this strict learner guide: ${roleGuide}
 
 - Question type mode: "${questionMode}".
-  - mcq: all 10 must be MCQ with 4 options
-  - short: all 10 must be short-answer with shortAnswer populated
-  - mixed: 6 MCQ + 4 short-answer
+  - mcq: all ${questionCount} must be MCQ with 4 options
+  - short: all ${questionCount} must be short-answer with shortAnswer populated
+  - mixed: keep approximately 60% MCQ and 40% short-answer
 
 - Generate a DIFFERENT set of questions every time.
 - Avoid repeating previously common questions.
@@ -554,11 +615,13 @@ Content: ${text || "Use general knowledge"}
 
 
   try {
+    const aiStartedAt = Date.now();
     const completion = await groq.chat.completions.create({
       model: "llama-3.1-8b-instant",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.9
     });
+    console.log(`[generate-quiz] aiMs=${Date.now() - aiStartedAt} questionCount=${questionCount}`);
 
 const rawOutput = completion?.choices?.[0]?.message?.content || "";
 
@@ -573,6 +636,8 @@ try {
   const jsonString = rawOutput.slice(firstBrace, lastBrace + 1);
   const parsedOutput = JSON.parse(jsonString);
 
+  const parsedCount = Array.isArray(parsedOutput?.questions) ? parsedOutput.questions.length : 0;
+  console.log(`[generate-quiz] success totalMs=${Date.now() - startedAt} requested=${questionCount} returned=${parsedCount}`);
   res.json(parsedOutput);
 } catch (err) {
   console.error("JSON Parse Error:", rawOutput);
@@ -583,6 +648,7 @@ try {
 
 
   } catch (error) {
+    console.log(`[generate-quiz] failed totalMs=${Date.now() - startedAt} error=${error?.message || "unknown"}`);
     res.status(500).json({ error: error.message });
   }
 });
@@ -652,6 +718,15 @@ Content: ${text || "Use general knowledge"}
 
 app.get("/", (req, res) => {
   res.send("Backend is running");
+});
+
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError && err.code === "LIMIT_FILE_SIZE") {
+    return res.status(413).json({
+      error: `PDF is too large. Maximum size is ${Math.floor(MAX_PDF_UPLOAD_BYTES / (1024 * 1024))}MB.`
+    });
+  }
+  return next(err);
 });
 
 app.listen(port, () => {

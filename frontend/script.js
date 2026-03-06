@@ -44,7 +44,8 @@ let timeLeft = 15;
 let answered = {};
 let choices = {};
 let activeSource = "text";
-const MAX_PDF_BYTES = 20 * 1024 * 1024;
+const MAX_PDF_BYTES = 100 * 1024 * 1024;
+const QUIZ_BATCH_SIZE = 5;
 const HISTORY_BASE = "quizzy-history-v2";
 const SAVED_BASE = "quizzy-saved-v1";
 const FLASH_BASE = "quizzy-flash-v1";
@@ -53,6 +54,8 @@ let attemptAnswers = [];
 let currentAttemptMeta = null;
 let activeFlashDeck = null;
 let activeFlashIndex = 0;
+let lastQuizRequestBase = null;
+let isLoadingMoreQuestions = false;
 
 const ROLE_PRESETS = {
   student: { difficulty: "moderate", questionMode: "mixed", timerBias: 0 },
@@ -280,7 +283,7 @@ async function bootstrapAuth() {
 function getDefaultHint(source) {
   if (source === "text") return "Paste study text to generate a quiz.";
   if (source === "url") return "Paste a public article URL to extract content.";
-  return "Upload a PDF file (max 20MB).";
+  return "Upload a PDF file (max 100MB, first pages are used for fast generation).";
 }
 
 function isValidHttpUrl(value) {
@@ -309,7 +312,7 @@ function validateActiveSourceInput(showError = false) {
     } else if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
       error = "Only PDF files are allowed.";
     } else if (file.size > MAX_PDF_BYTES) {
-      error = "PDF is too large. Maximum size is 20MB.";
+      error = "PDF is too large. Maximum size is 100MB.";
     }
   }
 
@@ -820,6 +823,57 @@ function normalizeQuestion(q) {
   };
 }
 
+async function requestQuizQuestions(requestPayload) {
+  const res = await fetch(`${API_BASE}/generate-quiz`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(requestPayload)
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to generate quiz");
+
+  const cleaned = (Array.isArray(data.questions) ? data.questions : [])
+    .map(normalizeQuestion)
+    .filter(Boolean);
+  if (cleaned.length === 0) throw new Error("No questions were returned");
+  return cleaned;
+}
+
+function appendMoreQuestions(newQuestions) {
+  questions = [...questions, ...newQuestions];
+  const missingSlots = questions.length - attemptAnswers.length;
+  if (missingSlots > 0) {
+    attemptAnswers.push(...Array.from({ length: missingSlots }, () => null));
+  }
+}
+
+async function loadMoreQuestions() {
+  if (isLoadingMoreQuestions || !lastQuizRequestBase) return;
+  isLoadingMoreQuestions = true;
+  const moreBtn = document.getElementById("moreQuestionsBtn");
+  if (moreBtn) {
+    moreBtn.disabled = true;
+    moreBtn.textContent = "Loading...";
+  }
+
+  try {
+    const morePayload = { ...lastQuizRequestBase, questionCount: QUIZ_BATCH_SIZE };
+    const extraQuestions = await requestQuizQuestions(morePayload);
+    appendMoreQuestions(extraQuestions);
+    showQuestion();
+  } catch (err) {
+    showToast(err.message || "Could not load more questions");
+  } finally {
+    isLoadingMoreQuestions = false;
+    const refreshedBtn = document.getElementById("moreQuestionsBtn");
+    if (refreshedBtn) {
+      refreshedBtn.disabled = false;
+      refreshedBtn.textContent = "More Questions";
+    }
+  }
+}
+
 btn.onclick = async () => {
   loader.classList.remove("hidden");
   btn.disabled = true;
@@ -828,22 +882,9 @@ btn.onclick = async () => {
   try {
     const settings = getSettings();
     const contentPayload = await buildContentPayload();
-    const requestPayload = { ...contentPayload, ...settings };
-
-    const res = await fetch(`${API_BASE}/generate-quiz`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(requestPayload)
-    });
-
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Failed to generate quiz");
-
-    const cleaned = (Array.isArray(data.questions) ? data.questions : [])
-      .map(normalizeQuestion)
-      .filter(Boolean);
-
-    if (cleaned.length === 0) throw new Error("No questions were returned");
+    const requestBase = { ...contentPayload, ...settings };
+    const requestPayload = { ...requestBase, questionCount: QUIZ_BATCH_SIZE };
+    const cleaned = await requestQuizQuestions(requestPayload);
 
     questions = cleaned;
     index = 0;
@@ -857,6 +898,7 @@ btn.onclick = async () => {
       sourceInput: contentPayload.sourceInput,
       settings
     };
+    lastQuizRequestBase = requestBase;
 
     loader.classList.add("hidden");
     quiz.scrollIntoView({ behavior: "smooth" });
@@ -1015,6 +1057,7 @@ function showQuestion() {
         : renderShortAnswerInput()}
       <div class="quiz-actions">
         <button id="prevBtn" class="ghost" ${index === 0 ? "disabled" : ""}>Previous</button>
+        <button id="moreQuestionsBtn" class="ghost" ${isLoadingMoreQuestions ? "disabled" : ""}>${isLoadingMoreQuestions ? "Loading..." : "More Questions"}</button>
         <button id="finishBtn" class="ghost">Finish</button>
         <button id="nextBtn">Next</button>
       </div>
@@ -1033,6 +1076,7 @@ function showQuestion() {
   }
 
   document.getElementById("prevBtn")?.addEventListener("click", prev);
+  document.getElementById("moreQuestionsBtn")?.addEventListener("click", loadMoreQuestions);
   document.getElementById("finishBtn")?.addEventListener("click", finish);
   document.getElementById("nextBtn")?.addEventListener("click", next);
 

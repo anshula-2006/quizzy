@@ -11,6 +11,11 @@ const refreshBoardBtn = document.getElementById("refreshBoardBtn");
 const clearBoardBtn = document.getElementById("clearBoardBtn");
 
 const HISTORY_BASE = "quizzy-history-v2";
+const FLASH_BASE = "quizzy-flash-v1";
+const BONUS_XP_BASE = "quizzy-bonus-xp-v1";
+const CHALLENGE_BASE = "quizzy-challenges-v1";
+const MINI_GAME_BASE = "quizzy-mini-games-v1";
+const SESSION_ACTIVITY_BASE = "quizzy-session-activity-v1";
 const MAX_HISTORY_ITEMS = 20;
 
 function getAttemptXp(entry) {
@@ -33,24 +38,78 @@ function getLevelProgress(totalXp) {
   return Math.round(((totalXp % 180) / 180) * 100);
 }
 
+function getBadgeImagePath(rarity, filename) {
+  return `assets/badges/${rarity}/${filename}`;
+}
+
+function hasComeback(entries) {
+  for (let i = 0; i < entries.length - 1; i++) {
+    const current = Number(entries[i]?.percentage || 0);
+    const previous = Number(entries[i + 1]?.percentage || 0);
+    if (current - previous >= 20) return true;
+  }
+  return false;
+}
+
+function getNightOwlCount(entries) {
+  return entries.filter((entry) => {
+    const dt = new Date(entry?.createdAt);
+    const hour = dt.getHours();
+    return !Number.isNaN(dt.getTime()) && (hour >= 21 || hour < 5);
+  }).length;
+}
+
+function getBadgeCatalog(entries) {
+  const list = Array.isArray(entries) ? entries : [];
+  const bonusXp = getBonusXp();
+  const gameStats = getMiniGameStats();
+  const totalXp = list.reduce((sum, entry) => sum + getAttemptXp(entry), 0) + bonusXp;
+  const streak = getStreak(list);
+  const best = list.length ? Math.max(...list.map((entry) => Number(entry.percentage || 0))) : 0;
+  const perfectCount = list.filter((entry) => Number(entry.percentage || 0) === 100).length;
+  const superCount = list.filter((entry) => entry?.settings?.difficulty === "super").length;
+  const completedChallenges = getChallengeProgress().completed.length;
+  const sessionActivity = getSessionActivity();
+
+  return [
+    { id: "starter", label: "First Spark", icon: getBadgeImagePath("bronze", "first_spark.png"), rarity: "bronze", unlocked: list.length >= 1, hint: "Finish your first quiz." },
+    { id: "streak", label: "Hot Streak", icon: getBadgeImagePath("silver", "hot_streak.png"), rarity: "silver", unlocked: streak >= 3, hint: "Win 3 quizzes in a row." },
+    { id: "scholar", label: "Quiz Boss", icon: getBadgeImagePath("gold", "quiz_boss.png"), rarity: "gold", unlocked: best >= 90, hint: "Reach 90% on a quiz." },
+    { id: "perfect-shot", label: "Perfect Shot", icon: getBadgeImagePath("gold", "perfect_shot.png"), rarity: "gold", unlocked: perfectCount >= 1, hint: "Score 100% on a quiz." },
+    { id: "grinder", label: "Consistency Champ", icon: getBadgeImagePath("silver", "consistency_champ.png"), rarity: "silver", unlocked: list.length >= 5, hint: "Complete 5 quizzes." },
+    { id: "legend", label: "Quiz Legend", icon: getBadgeImagePath("gold", "quiz_legend.png"), rarity: "gold", unlocked: totalXp >= 600, hint: "Earn 600 total XP." },
+    { id: "flash-fan", label: "Flash Fan", icon: getBadgeImagePath("bronze", "flash_fan.png"), rarity: "bronze", unlocked: getFlashDecks().length >= 1, hint: "Generate one flashcard deck." },
+    { id: "memory-master", label: "Memory Master", icon: getBadgeImagePath("gold", "memory_master.png"), rarity: "gold", unlocked: Number(gameStats.memoryWins || 0) >= 1, hint: "Win one Memory Match game." },
+    { id: "speedster", label: "Speedster", icon: getBadgeImagePath("silver", "speedster.png"), rarity: "silver", unlocked: Number(gameStats.speedBest || 0) >= 4, hint: "Get 4 right in Speed Round." },
+    { id: "xp-hunter", label: "XP Hunter", icon: getBadgeImagePath("silver", "xp_hunter.png"), rarity: "silver", unlocked: bonusXp >= 300, hint: "Earn 300 bonus XP from games and missions." },
+    { id: "challenge-crusher", label: "Challenge Crusher", icon: getBadgeImagePath("gold", "challenge_crusher.png"), rarity: "gold", unlocked: completedChallenges >= 3, hint: "Complete 3 XP missions." },
+    { id: "comeback-kid", label: "Comeback Kid", icon: getBadgeImagePath("silver", "comeback_kid.png"), rarity: "silver", unlocked: hasComeback(list), hint: "Improve by 20% from one quiz to the next." },
+    { id: "night-owl", label: "Night Owl", icon: getBadgeImagePath("bronze", "night_owl.png"), rarity: "bronze", unlocked: getNightOwlCount(list) >= 3, hint: "Complete 3 quizzes late at night." },
+    { id: "brain-blaster", label: "Brain Blaster", icon: getBadgeImagePath("gold", "brain_blaster.png"), rarity: "gold", unlocked: superCount >= 1, hint: "Finish a Super difficulty quiz." },
+    { id: "study-ninja", label: "Study Ninja", icon: getBadgeImagePath("special", "study_ninja.png"), rarity: "special", unlocked: sessionActivity.quizDone && sessionActivity.flashcardsDone && sessionActivity.miniGameDone, hint: "Do a quiz, flashcards, and a mini-game in one session." }
+  ];
+}
+
 function getGamification(entries) {
   const list = Array.isArray(entries) ? entries : [];
   const latest = list[0] || null;
-  const totalXp = list.reduce((sum, entry) => sum + getAttemptXp(entry), 0);
+  const bonusXp = getBonusXp();
+  const gameStats = getMiniGameStats();
+  const quizXp = list.reduce((sum, entry) => sum + getAttemptXp(entry), 0);
+  const totalXp = quizXp + bonusXp;
   const streak = getStreak(list);
   const best = list.length ? Math.max(...list.map((entry) => Number(entry.percentage || 0))) : 0;
-  const badges = [
-    { id: "starter", label: "Starter", icon: "Spark", unlocked: list.length >= 1 },
-    { id: "streak", label: "Hot Streak", icon: "Flame", unlocked: streak >= 3 },
-    { id: "scholar", label: "Scholar", icon: "Crown", unlocked: best >= 90 },
-    { id: "grinder", label: "Consistency", icon: "Orbit", unlocked: list.length >= 5 },
-    { id: "legend", label: "Quiz Legend", icon: "Nova", unlocked: totalXp >= 600 }
-  ].filter((badge) => badge.unlocked);
+  const badges = getBadgeCatalog(list).filter((badge) => badge.unlocked);
 
   return {
     totalXp,
+    quizXp,
+    bonusXp,
     level: getLevelFromXp(totalXp),
     progress: getLevelProgress(totalXp),
+    streak,
+    best,
+    gameStats,
     badges,
     latestXp: latest ? getAttemptXp(latest) : 0
   };
@@ -63,6 +122,26 @@ function getScopeId() {
 
 function historyKey() {
   return `${HISTORY_BASE}-${getScopeId()}`;
+}
+
+function flashKey() {
+  return `${FLASH_BASE}-${getScopeId()}`;
+}
+
+function bonusXpKey() {
+  return `${BONUS_XP_BASE}-${getScopeId()}`;
+}
+
+function challengeKey() {
+  return `${CHALLENGE_BASE}-${getScopeId()}`;
+}
+
+function miniGameKey() {
+  return `${MINI_GAME_BASE}-${getScopeId()}`;
+}
+
+function sessionActivityKey() {
+  return `${SESSION_ACTIVITY_BASE}-${getScopeId()}`;
 }
 
 function getAuthToken() {
@@ -91,6 +170,70 @@ function getHistory() {
 
 function saveHistory(entries) {
   localStorage.setItem(historyKey(), JSON.stringify(entries.slice(0, MAX_HISTORY_ITEMS)));
+}
+
+function getFlashDecks() {
+  try {
+    const raw = localStorage.getItem(flashKey());
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function getBonusXp() {
+  try {
+    const raw = localStorage.getItem(bonusXpKey());
+    const parsed = raw ? JSON.parse(raw) : null;
+    return Math.max(0, Number(parsed?.total || 0));
+  } catch {
+    return 0;
+  }
+}
+
+function getChallengeProgress() {
+  try {
+    const raw = localStorage.getItem(challengeKey());
+    const parsed = raw ? JSON.parse(raw) : null;
+    return {
+      completed: Array.isArray(parsed?.completed) ? parsed.completed : [],
+      rewards: Array.isArray(parsed?.rewards) ? parsed.rewards : []
+    };
+  } catch {
+    return { completed: [], rewards: [] };
+  }
+}
+
+function getMiniGameStats() {
+  try {
+    const raw = localStorage.getItem(miniGameKey());
+    const parsed = raw ? JSON.parse(raw) : null;
+    return {
+      speedBest: Math.max(0, Number(parsed?.speedBest || 0)),
+      speedRuns: Math.max(0, Number(parsed?.speedRuns || 0)),
+      memoryWins: Math.max(0, Number(parsed?.memoryWins || 0)),
+      scrambleWins: Math.max(0, Number(parsed?.scrambleWins || 0)),
+      trueFalseBest: Math.max(0, Number(parsed?.trueFalseBest || 0)),
+      oddOneOutWins: Math.max(0, Number(parsed?.oddOneOutWins || 0))
+    };
+  } catch {
+    return { speedBest: 0, speedRuns: 0, memoryWins: 0, scrambleWins: 0, trueFalseBest: 0, oddOneOutWins: 0 };
+  }
+}
+
+function getSessionActivity() {
+  try {
+    const raw = localStorage.getItem(sessionActivityKey());
+    const parsed = raw ? JSON.parse(raw) : null;
+    return {
+      quizDone: Boolean(parsed?.quizDone),
+      flashcardsDone: Boolean(parsed?.flashcardsDone),
+      miniGameDone: Boolean(parsed?.miniGameDone)
+    };
+  } catch {
+    return { quizDone: false, flashcardsDone: false, miniGameDone: false };
+  }
 }
 
 function formatShortDate(isoValue) {
@@ -180,6 +323,63 @@ function setThemeIcon() {
   toggle.textContent = document.body.classList.contains("dark") ? "Sun" : "Moon";
 }
 
+function renderProgressExtras(entries) {
+  const badges = getBadgeCatalog(entries);
+  const game = getGamification(entries);
+  const unlocked = badges.filter((badge) => badge.unlocked).length;
+
+  return `
+    <section class="card badge-cabinet">
+      <div class="evaluation-head">
+        <div>
+          <h3>Badge Cabinet</h3>
+          <p class="cabinet-note">Your full collection of quiz, mission, and mini-game rewards.</p>
+        </div>
+        <div class="cabinet-score">
+          <strong>${unlocked}/${badges.length}</strong>
+          <span>badges unlocked</span>
+        </div>
+      </div>
+      <div class="cabinet-meta">
+        <div class="meta-chip">Quiz XP ${game.quizXp}</div>
+        <div class="meta-chip">Bonus XP ${game.bonusXp}</div>
+        <div class="meta-chip">Level ${game.level}</div>
+        <div class="meta-chip">Challenges ${getChallengeProgress().completed.length}</div>
+      </div>
+      <div class="badge-grid">
+        ${badges.map((badge) => `
+          <article class="badge-card ${badge.unlocked ? "is-unlocked" : "is-locked"} ${badge.rarity}">
+            <span class="badge-icon"><img src="${badge.icon}" alt="${badge.label}" loading="lazy" /></span>
+            <strong>${badge.label}</strong>
+            <small>${badge.unlocked ? `${badge.rarity.toUpperCase()} reward unlocked` : badge.hint}</small>
+          </article>
+        `).join("")}
+      </div>
+    </section>
+    <section class="card mini-games-shell">
+      <div class="evaluation-head">
+        <div>
+          <h3>Mini-Game Stats</h3>
+          <p class="cabinet-note">A snapshot of the fun side of your study progress.</p>
+        </div>
+      </div>
+      <div class="evaluation-stats">
+        <div class="card"><p>Speed Best</p><h4>${game.gameStats.speedBest}</h4></div>
+        <div class="card"><p>Speed Runs</p><h4>${game.gameStats.speedRuns}</h4></div>
+        <div class="card"><p>Memory Wins</p><h4>${game.gameStats.memoryWins}</h4></div>
+        <div class="card"><p>Scramble Wins</p><h4>${game.gameStats.scrambleWins}</h4></div>
+        <div class="card"><p>True/False Best</p><h4>${game.gameStats.trueFalseBest}</h4></div>
+        <div class="card"><p>Odd One Out</p><h4>${game.gameStats.oddOneOutWins}</h4></div>
+      </div>
+      <div class="cabinet-meta">
+        <div class="meta-chip">Study Ninja ${getSessionActivity().quizDone && getSessionActivity().flashcardsDone && getSessionActivity().miniGameDone ? "Unlocked" : "In progress"}</div>
+        <div class="meta-chip">Flash Decks ${getFlashDecks().length}</div>
+        <div class="meta-chip">Bonus XP ${game.bonusXp}</div>
+      </div>
+    </section>
+  `;
+}
+
 function renderBoard() {
   const entries = getHistory();
   if (!entries.length) {
@@ -188,6 +388,7 @@ function renderBoard() {
         <h3>No Data Yet</h3>
         <p>Take at least one quiz from the home page to populate your scoreboard.</p>
       </div>
+      ${renderProgressExtras(entries)}
     `;
     return;
   }
@@ -233,7 +434,7 @@ function renderBoard() {
           <strong>Gamification</strong>
           <p>${game.totalXp} XP earned. Level ${game.level} with ${game.progress}% progress to the next level.</p>
           <div class="xp-progress"><span style="width:${game.progress}%"></span></div>
-          <p>${game.badges.length ? game.badges.map((badge) => `${badge.icon} ${badge.label}`).join(" | ") : "No badges unlocked yet."}</p>
+          <p>${game.badges.length ? game.badges.map((badge) => badge.label).join(" | ") : "No badges unlocked yet."}</p>
         </div>
       </div>
       <div class="card">
@@ -260,6 +461,7 @@ function renderBoard() {
         `).join("")}
       </div>
     </section>
+    ${renderProgressExtras(entries)}
   `;
 }
 

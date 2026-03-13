@@ -11,6 +11,8 @@ const flashcardsBtn = document.getElementById("flashcardsBtn");
 const quiz = document.getElementById("quiz");
 const evaluationBoard = document.getElementById("evaluationBoard");
 const flashcardsBoard = document.getElementById("flashcardsBoard");
+const badgeCabinet = document.getElementById("badgeCabinet");
+const gameHub = document.getElementById("gameHub");
 const toggle = document.getElementById("themeToggle");
 const authUser = document.getElementById("authUser");
 const loginLink = document.getElementById("loginLink");
@@ -46,6 +48,11 @@ const QUIZ_BATCH_SIZE = 5;
 const HISTORY_BASE = "quizzy-history-v2";
 const SAVED_BASE = "quizzy-saved-v1";
 const FLASH_BASE = "quizzy-flash-v1";
+const BONUS_XP_BASE = "quizzy-bonus-xp-v1";
+const CHALLENGE_BASE = "quizzy-challenges-v1";
+const MINI_GAME_BASE = "quizzy-mini-games-v1";
+const SESSION_ACTIVITY_BASE = "quizzy-session-activity-v1";
+const SEEN_BADGES_BASE = "quizzy-seen-badges-v1";
 const MAX_HISTORY_ITEMS = 20;
 let attemptAnswers = [];
 let currentAttemptMeta = null;
@@ -55,6 +62,77 @@ let activeFlashFlipped = false;
 let suppressFlashToggleClick = false;
 let lastQuizRequestBase = null;
 let isLoadingMoreQuestions = false;
+let activeChallengeSet = [];
+let speedRoundState = null;
+let memoryMatchState = null;
+let wordScrambleState = null;
+let trueFalseState = null;
+let oddOneOutState = null;
+let badgePopupQueue = [];
+let activeBadgePopup = null;
+
+const DEFAULT_SPEED_ROUND_POOL = [
+  {
+    question: "Which planet is known as the Red Planet?",
+    options: ["Earth", "Mars", "Venus", "Jupiter"],
+    correct: "B"
+  },
+  {
+    question: "What is H2O commonly called?",
+    options: ["Salt", "Water", "Oxygen", "Hydrogen"],
+    correct: "B"
+  },
+  {
+    question: "Which part of the plant makes food?",
+    options: ["Root", "Stem", "Leaf", "Flower"],
+    correct: "C"
+  },
+  {
+    question: "5 x 6 equals?",
+    options: ["11", "25", "30", "35"],
+    correct: "C"
+  },
+  {
+    question: "Which gas do humans need to breathe?",
+    options: ["Carbon dioxide", "Nitrogen", "Oxygen", "Helium"],
+    correct: "C"
+  },
+  {
+    question: "Who wrote the Indian national anthem?",
+    options: ["Rabindranath Tagore", "Mahatma Gandhi", "Subhas Chandra Bose", "Sarojini Naidu"],
+    correct: "A"
+  }
+];
+
+const DEFAULT_MEMORY_PAIRS = [
+  { prompt: "Photosynthesis", answer: "Plants making food using sunlight" },
+  { prompt: "CPU", answer: "The brain of a computer" },
+  { prompt: "Fraction", answer: "A part of a whole" },
+  { prompt: "Evaporation", answer: "Liquid changing into vapor" }
+];
+
+const DEFAULT_SCRAMBLE_WORDS = [
+  "algorithm",
+  "planet",
+  "fraction",
+  "computer",
+  "gravity",
+  "biology"
+];
+
+const DEFAULT_TRUE_FALSE_POOL = [
+  { statement: "The Sun is a star.", answer: true },
+  { statement: "Water boils at 50 degrees Celsius at sea level.", answer: false },
+  { statement: "A triangle has three sides.", answer: true },
+  { statement: "Plants absorb carbon dioxide from the air.", answer: true },
+  { statement: "The human heart has 6 chambers.", answer: false }
+];
+
+const DEFAULT_ODD_ONE_OUT_POOL = [
+  { prompt: "Pick the odd one out", options: ["Mercury", "Venus", "Mars", "Oxygen"], answer: 3 },
+  { prompt: "Pick the odd one out", options: ["CPU", "RAM", "Keyboard", "Monitor"], answer: 1 },
+  { prompt: "Pick the odd one out", options: ["Circle", "Square", "Triangle", "Banana"], answer: 3 }
+];
 
 const ROLE_PRESETS = {
   student: { difficulty: "moderate", questionMode: "mcq", timerBias: 0 },
@@ -133,6 +211,26 @@ function savedKey() {
 
 function flashKey() {
   return `${FLASH_BASE}-${getScopeId()}`;
+}
+
+function bonusXpKey() {
+  return `${BONUS_XP_BASE}-${getScopeId()}`;
+}
+
+function challengeKey() {
+  return `${CHALLENGE_BASE}-${getScopeId()}`;
+}
+
+function miniGameKey() {
+  return `${MINI_GAME_BASE}-${getScopeId()}`;
+}
+
+function sessionActivityKey() {
+  return `${SESSION_ACTIVITY_BASE}-${getScopeId()}`;
+}
+
+function seenBadgesKey() {
+  return `${SEEN_BADGES_BASE}-${getScopeId()}`;
 }
 
 function getAuthToken() {
@@ -297,8 +395,12 @@ async function bootstrapAuth() {
     mergeGuestDataToUser(auth.getSession?.());
     await loadCloudDataIntoLocal();
   }
+  syncChallengeRewards();
+  saveSeenBadgeIds(getUnlockedBadgeCatalog().map((badge) => badge.id));
   renderAuthNav();
   renderEvaluationBoard();
+  renderBadgeCabinet();
+  renderGameHub();
   renderSidebar();
 }
 
@@ -443,9 +545,11 @@ function saveFlashDecks(items) {
 }
 
 function addFlashDeck(deck) {
+  const previousBadgeIds = captureUnlockedBadgeIds();
   const decks = getFlashDecks();
   decks.unshift(deck);
   saveFlashDecks(decks);
+  markSessionActivity("flashcardsDone");
   if (isLoggedIn()) {
     cloudRequest("/data/flash-decks", {
       method: "POST",
@@ -453,6 +557,221 @@ function addFlashDeck(deck) {
       body: JSON.stringify(deck)
     });
   }
+  syncChallengeRewards();
+  renderBadgeCabinet();
+  renderGameHub();
+  revealNewBadges(previousBadgeIds);
+}
+
+function getBonusXp() {
+  try {
+    const raw = localStorage.getItem(bonusXpKey());
+    const parsed = raw ? JSON.parse(raw) : null;
+    return Math.max(0, Number(parsed?.total || 0));
+  } catch {
+    return 0;
+  }
+}
+
+function saveBonusXp(total) {
+  localStorage.setItem(bonusXpKey(), JSON.stringify({ total: Math.max(0, Math.round(Number(total) || 0)) }));
+}
+
+function getChallengeProgress() {
+  try {
+    const raw = localStorage.getItem(challengeKey());
+    const parsed = raw ? JSON.parse(raw) : null;
+    return {
+      completed: Array.isArray(parsed?.completed) ? parsed.completed : [],
+      rewards: Array.isArray(parsed?.rewards) ? parsed.rewards : []
+    };
+  } catch {
+    return { completed: [], rewards: [] };
+  }
+}
+
+function saveChallengeProgress(progress) {
+  localStorage.setItem(challengeKey(), JSON.stringify({
+    completed: Array.isArray(progress?.completed) ? progress.completed : [],
+    rewards: Array.isArray(progress?.rewards) ? progress.rewards : []
+  }));
+}
+
+function getMiniGameStats() {
+  try {
+    const raw = localStorage.getItem(miniGameKey());
+    const parsed = raw ? JSON.parse(raw) : null;
+    return {
+      speedBest: Math.max(0, Number(parsed?.speedBest || 0)),
+      speedRuns: Math.max(0, Number(parsed?.speedRuns || 0)),
+      memoryWins: Math.max(0, Number(parsed?.memoryWins || 0)),
+      scrambleWins: Math.max(0, Number(parsed?.scrambleWins || 0)),
+      trueFalseBest: Math.max(0, Number(parsed?.trueFalseBest || 0)),
+      oddOneOutWins: Math.max(0, Number(parsed?.oddOneOutWins || 0)),
+      rewards: Array.isArray(parsed?.rewards) ? parsed.rewards : []
+    };
+  } catch {
+    return { speedBest: 0, speedRuns: 0, memoryWins: 0, scrambleWins: 0, trueFalseBest: 0, oddOneOutWins: 0, rewards: [] };
+  }
+}
+
+function saveMiniGameStats(stats) {
+  localStorage.setItem(miniGameKey(), JSON.stringify({
+    speedBest: Math.max(0, Number(stats?.speedBest || 0)),
+    speedRuns: Math.max(0, Number(stats?.speedRuns || 0)),
+    memoryWins: Math.max(0, Number(stats?.memoryWins || 0)),
+    scrambleWins: Math.max(0, Number(stats?.scrambleWins || 0)),
+    trueFalseBest: Math.max(0, Number(stats?.trueFalseBest || 0)),
+    oddOneOutWins: Math.max(0, Number(stats?.oddOneOutWins || 0)),
+    rewards: Array.isArray(stats?.rewards) ? stats.rewards : []
+  }));
+}
+
+function getSessionActivity() {
+  try {
+    const raw = localStorage.getItem(sessionActivityKey());
+    const parsed = raw ? JSON.parse(raw) : null;
+    return {
+      quizDone: Boolean(parsed?.quizDone),
+      flashcardsDone: Boolean(parsed?.flashcardsDone),
+      miniGameDone: Boolean(parsed?.miniGameDone)
+    };
+  } catch {
+    return { quizDone: false, flashcardsDone: false, miniGameDone: false };
+  }
+}
+
+function saveSessionActivity(activity) {
+  localStorage.setItem(sessionActivityKey(), JSON.stringify({
+    quizDone: Boolean(activity?.quizDone),
+    flashcardsDone: Boolean(activity?.flashcardsDone),
+    miniGameDone: Boolean(activity?.miniGameDone)
+  }));
+}
+
+function markSessionActivity(key) {
+  const activity = getSessionActivity();
+  activity[key] = true;
+  saveSessionActivity(activity);
+}
+
+function getSeenBadgeIds() {
+  try {
+    const raw = localStorage.getItem(seenBadgesKey());
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveSeenBadgeIds(ids) {
+  localStorage.setItem(seenBadgesKey(), JSON.stringify(Array.isArray(ids) ? ids : []));
+}
+
+function showToast(message, variant = "default") {
+  const host = document.body;
+  if (!host) return;
+  const rack = document.getElementById("toastRack") || (() => {
+    const node = document.createElement("div");
+    node.id = "toastRack";
+    node.className = "toast-rack";
+    document.body.appendChild(node);
+    return node;
+  })();
+
+  const toast = document.createElement("div");
+  toast.className = `toast-item ${variant}`;
+  toast.textContent = message;
+  rack.appendChild(toast);
+  setTimeout(() => {
+    toast.classList.add("leaving");
+    setTimeout(() => toast.remove(), 260);
+  }, 2600);
+}
+
+function awardBonusXp(amount, reason, rewardId = "") {
+  const safeAmount = Math.max(0, Math.round(Number(amount) || 0));
+  if (!safeAmount) return;
+
+  if (rewardId) {
+    const progress = getChallengeProgress();
+    const rewards = new Set(progress.rewards);
+    if (rewards.has(rewardId)) return;
+    rewards.add(rewardId);
+    saveChallengeProgress({ ...progress, rewards: Array.from(rewards) });
+  }
+
+  const nextTotal = getBonusXp() + safeAmount;
+  saveBonusXp(nextTotal);
+  showToast(`+${safeAmount} XP: ${reason}`, "xp");
+}
+
+function getChallengeDeck(entries, gameStats) {
+  const latest = entries[0] || null;
+  return [
+    {
+      id: "quiz-80",
+      title: "Sharp Shooter",
+      xp: 60,
+      description: "Score 80% or more in your next quiz. Your XP will jump higher when you nail this mission.",
+      cta: "Start a quiz",
+      completed: entries.some((entry) => Number(entry.percentage || 0) >= 80)
+    },
+    {
+      id: "speed-runner",
+      title: "Lightning Sprint",
+      xp: 40,
+      description: "Play Speed Round and hit 4 correct answers. Bonus XP drops the second you do it.",
+      cta: "Play Speed Round",
+      completed: Number(gameStats.speedBest || 0) >= 4
+    },
+    {
+      id: "memory-hero",
+      title: "Match Master",
+      xp: 35,
+      description: "Beat Memory Match once to collect extra XP and unlock a fresh badge.",
+      cta: "Play Memory Match",
+      completed: Number(gameStats.memoryWins || 0) >= 1
+    },
+    {
+      id: "combo-keeper",
+      title: "Streak Builder",
+      xp: 45,
+      description: "Chain together 3 quiz wins above 70% to raise your level bar even faster.",
+      cta: "Keep the streak alive",
+      completed: getStreak(entries) >= 3
+    },
+    {
+      id: "flash-fan",
+      title: "Card Collector",
+      xp: 30,
+      description: "Generate a flashcard deck. Every smart study move should feel rewarding too.",
+      cta: "Make flashcards",
+      completed: getFlashDecks().length >= 1
+    }
+  ];
+}
+
+function syncChallengeRewards(entries = getHistory()) {
+  const gameStats = getMiniGameStats();
+  const progress = getChallengeProgress();
+  const completed = new Set(progress.completed);
+  const rewards = new Set(progress.rewards);
+  const deck = getChallengeDeck(entries, gameStats);
+
+  deck.forEach((challenge) => {
+    if (!challenge.completed) return;
+    completed.add(challenge.id);
+    const rewardId = `challenge:${challenge.id}`;
+    if (!rewards.has(rewardId)) {
+      rewards.add(rewardId);
+      saveBonusXp(getBonusXp() + challenge.xp);
+      showToast(`Challenge cleared: ${challenge.title} (+${challenge.xp} XP)`, "xp");
+    }
+  });
+
+  saveChallengeProgress({ completed: Array.from(completed), rewards: Array.from(rewards) });
 }
 
 function formatShortDate(isoValue) {
@@ -557,6 +876,18 @@ function renderSidebar() {
 
 }
 
+async function clearDashboardHistory() {
+  localStorage.removeItem(historyKey());
+  if (isLoggedIn()) {
+    await cloudRequest("/data/attempts", { method: "DELETE" });
+  }
+  syncChallengeRewards();
+  renderEvaluationBoard();
+  renderBadgeCabinet();
+  renderGameHub();
+  renderSidebar();
+}
+
 function renderEvaluationBoard() {
   if (!evaluationBoard) return;
   const entries = getHistory();
@@ -567,10 +898,16 @@ function renderEvaluationBoard() {
   if (entries.length === 0) {
     evaluationBoard.innerHTML = `
       <div class="card evaluation-empty">
-        <h3>${labels.dashboard}</h3>
+        <div class="evaluation-head">
+          <h3>${labels.dashboard}</h3>
+          <div class="evaluation-head-actions">
+            <button id="clearHistoryBtn" class="ghost" type="button">Clear Dashboard</button>
+          </div>
+        </div>
         <p>Attempt quizzes to unlock your progress board, trends, and review deck.</p>
       </div>
     `;
+    document.getElementById("clearHistoryBtn")?.addEventListener("click", clearDashboardHistory);
     return;
   }
 
@@ -589,7 +926,7 @@ function renderEvaluationBoard() {
       <div class="evaluation-head">
         <h3>${labels.dashboard}</h3>
         <div class="evaluation-head-actions">
-          <button id="clearHistoryBtn" class="ghost">Clear</button>
+          <button id="clearHistoryBtn" class="ghost" type="button">Clear Dashboard</button>
         </div>
       </div>
       <div class="evaluation-stats">
@@ -632,14 +969,7 @@ function renderEvaluationBoard() {
     </div>
   `;
 
-  document.getElementById("clearHistoryBtn")?.addEventListener("click", async () => {
-    localStorage.removeItem(historyKey());
-    if (isLoggedIn()) {
-      await cloudRequest("/data/attempts", { method: "DELETE" });
-    }
-    renderEvaluationBoard();
-    renderSidebar();
-  });
+  document.getElementById("clearHistoryBtn")?.addEventListener("click", clearDashboardHistory);
 
   const detailNode = document.getElementById("reviewDetail");
   const renderReviewDetail = (idx) => {
@@ -663,6 +993,702 @@ function renderEvaluationBoard() {
     });
   });
   if (latestAnswers.length) renderReviewDetail(0);
+}
+
+function getSpeedRoundPool() {
+  const saved = getSavedQuestions()
+    .filter((item) => item?.question && item?.correct)
+    .slice(0, 8)
+    .map((item, index, arr) => {
+      const wrongOptions = arr
+        .filter((other) => other.question !== item.question && other.correct)
+        .map((other) => other.correct)
+        .filter((value, idx, list) => value && list.indexOf(value) === idx)
+        .slice(0, 3);
+      const options = [item.correct, ...wrongOptions];
+      while (options.length < 4) {
+        options.push(DEFAULT_SPEED_ROUND_POOL[(index + options.length) % DEFAULT_SPEED_ROUND_POOL.length].options[0]);
+      }
+      const shuffled = options
+        .slice(0, 4)
+        .sort(() => Math.random() - 0.5);
+      return {
+        question: item.question,
+        options: shuffled,
+        correct: String.fromCharCode(65 + shuffled.indexOf(item.correct))
+      };
+    });
+
+  return (saved.length ? saved : DEFAULT_SPEED_ROUND_POOL)
+    .slice(0, 6)
+    .sort(() => Math.random() - 0.5);
+}
+
+function getMemoryPairs() {
+  const decks = getFlashDecks();
+  const deckCards = decks
+    .flatMap((deck) => Array.isArray(deck.flashcards) ? deck.flashcards : [])
+    .filter((card) => card?.front && card?.back)
+    .slice(0, 4)
+    .map((card) => ({ prompt: card.front, answer: card.back }));
+
+  return (deckCards.length ? deckCards : DEFAULT_MEMORY_PAIRS).slice(0, 4);
+}
+
+function getScramblePool() {
+  const flashWords = getFlashDecks()
+    .flatMap((deck) => Array.isArray(deck.flashcards) ? deck.flashcards : [])
+    .map((card) => String(card?.front || "").trim().split(/\s+/)[0] || "")
+    .filter((word) => /^[a-zA-Z]{5,}$/.test(word))
+    .slice(0, 8);
+  return (flashWords.length ? flashWords : DEFAULT_SCRAMBLE_WORDS).slice(0, 6);
+}
+
+function scrambleWord(word) {
+  const chars = String(word || "").split("");
+  for (let i = chars.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [chars[i], chars[j]] = [chars[j], chars[i]];
+  }
+  const scrambled = chars.join("");
+  return scrambled.toLowerCase() === String(word || "").toLowerCase() ? chars.reverse().join("") : scrambled;
+}
+
+function getTrueFalsePool() {
+  const saved = getSavedQuestions()
+    .filter((item) => item?.question && item?.correct)
+    .slice(0, 5)
+    .flatMap((item, index) => ([
+      { statement: `${item.question} Answer: ${item.correct}`, answer: true },
+      { statement: `${item.question} Answer: ${(getSavedQuestions()[index + 1]?.correct || "Unknown")}`, answer: false }
+    ]));
+  return (saved.length ? saved : DEFAULT_TRUE_FALSE_POOL).slice(0, 6);
+}
+
+function getOddOneOutPool() {
+  const defaults = DEFAULT_ODD_ONE_OUT_POOL.slice();
+  const flash = getFlashDecks()[0];
+  if (flash?.flashcards?.length >= 3) {
+    defaults.unshift({
+      prompt: "Pick the odd one out",
+      options: [
+        flash.flashcards[0]?.front || "Biology",
+        flash.flashcards[1]?.front || "Physics",
+        flash.flashcards[2]?.front || "Chemistry",
+        "Banana"
+      ],
+      answer: 3
+    });
+  }
+  return defaults.slice(0, 4);
+}
+
+function renderBadgeCabinet() {
+  if (!badgeCabinet) return;
+  const entries = getHistory();
+  const game = getGamification(entries);
+  const badgeList = getBadgeCatalog(entries);
+  const unlockedCount = badgeList.filter((badge) => badge.unlocked).length;
+
+  badgeCabinet.innerHTML = `
+    <div class="evaluation-wrap">
+      <div class="card badge-cabinet">
+        <div class="evaluation-head">
+          <div>
+            <h3>Badge Cabinet</h3>
+            <p class="cabinet-note">Collect badges, complete fun tasks, and raise your XP faster with mini-games.</p>
+          </div>
+          <div class="cabinet-score">
+            <strong>${unlockedCount}/${badgeList.length}</strong>
+            <span>badges unlocked</span>
+          </div>
+        </div>
+        <div class="cabinet-meta">
+          <div class="meta-chip">Quiz XP ${game.quizXp}</div>
+          <div class="meta-chip">Bonus XP ${game.bonusXp}</div>
+          <div class="meta-chip">Level ${game.level}</div>
+          <div class="meta-chip">Speed Best ${game.gameStats.speedBest}</div>
+        </div>
+        <div class="badge-grid">
+          ${badgeList.map((badge) => `
+            <article class="badge-card ${badge.unlocked ? "is-unlocked" : "is-locked"} ${badge.rarity}">
+              <span class="badge-icon"><img src="${badge.icon}" alt="${badge.label}" loading="lazy" /></span>
+              <strong>${badge.label}</strong>
+              <small>${badge.unlocked ? `${badge.rarity.toUpperCase()} reward unlocked` : badge.hint}</small>
+            </article>
+          `).join("")}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderGameHub() {
+  if (!gameHub) return;
+  const entries = getHistory();
+  const gameStats = getMiniGameStats();
+  const progress = getChallengeProgress();
+  const completed = new Set(progress.completed);
+  activeChallengeSet = getChallengeDeck(entries, gameStats);
+
+  const challengeCards = activeChallengeSet.map((challenge) => `
+    <article class="challenge-card ${challenge.completed ? "done" : ""}">
+      <div class="challenge-top">
+        <span class="meta-chip">${challenge.xp} XP</span>
+        <span class="challenge-state">${challenge.completed ? "Completed" : "Active"}</span>
+      </div>
+      <h4>${challenge.title}</h4>
+      <p>${challenge.description}</p>
+      <button
+        type="button"
+        class="ghost challenge-cta"
+        data-challenge-action="${challenge.id}"
+      >${challenge.completed || completed.has(challenge.id) ? "Claimed" : challenge.cta}</button>
+    </article>
+  `).join("");
+
+  const speedPrompt = speedRoundState
+    ? `
+      <div class="mini-game-panel">
+        <div class="mini-game-head">
+          <div>
+            <h4>Speed Round</h4>
+            <p>Your XP will get higher if you finish strong here. Chain correct answers before the timer runs out.</p>
+          </div>
+          <div class="speed-stats">
+            <span>${speedRoundState.timeLeft}s</span>
+            <span>${speedRoundState.score} score</span>
+            <span>${speedRoundState.streak} streak</span>
+          </div>
+        </div>
+        <div class="card speed-question-card">
+          <strong>${speedRoundState.current.question}</strong>
+          <div class="speed-options">
+            ${speedRoundState.current.options.map((option, index) => `
+              <button type="button" class="speed-option" data-speed-answer="${String.fromCharCode(65 + index)}">
+                ${String.fromCharCode(65 + index)}. ${option}
+              </button>
+            `).join("")}
+          </div>
+        </div>
+      </div>
+    `
+    : `
+      <div class="mini-game-panel">
+        <div class="mini-game-head">
+          <div>
+            <h4>Speed Round</h4>
+            <p>Beat 4 correct answers in 45 seconds. XP jumps higher when you keep a streak alive.</p>
+          </div>
+          <button type="button" id="startSpeedRoundBtn">Play for +40 XP</button>
+        </div>
+        <p class="mini-game-note">Fast, fun, and perfect for kids who like game pressure more than long revision sessions.</p>
+      </div>
+    `;
+
+  const memoryPrompt = memoryMatchState
+    ? `
+      <div class="mini-game-panel">
+        <div class="mini-game-head">
+          <div>
+            <h4>Memory Match</h4>
+            <p>Match study prompts with their answers. Clear the board for a fun XP boost.</p>
+          </div>
+          <div class="speed-stats">
+            <span>${memoryMatchState.matches} matches</span>
+            <span>${memoryMatchState.moves} moves</span>
+          </div>
+        </div>
+        <div class="memory-grid">
+          ${memoryMatchState.cards.map((card) => `
+            <button
+              type="button"
+              class="memory-card ${card.matched ? "matched" : ""} ${card.revealed ? "revealed" : ""}"
+              data-memory-card="${card.id}"
+              ${card.matched ? "disabled" : ""}
+            >
+              <span>${card.revealed || card.matched ? card.label : "?"}</span>
+            </button>
+          `).join("")}
+        </div>
+      </div>
+    `
+    : `
+      <div class="mini-game-panel">
+        <div class="mini-game-head">
+          <div>
+            <h4>Memory Match</h4>
+            <p>Flip and match terms with answers. A quick win here also levels you up faster.</p>
+          </div>
+          <button type="button" id="startMemoryMatchBtn">Play for +35 XP</button>
+        </div>
+        <p class="mini-game-note">This one works especially well for younger students and revision breaks.</p>
+      </div>
+    `;
+
+  const scramblePrompt = wordScrambleState
+    ? `
+      <div class="mini-game-panel">
+        <div class="mini-game-head">
+          <div>
+            <h4>Word Scramble</h4>
+            <p>Unscramble the study word. Solve it and your XP gets a nice little boost.</p>
+          </div>
+          <div class="speed-stats">
+            <span>${wordScrambleState.round} / ${wordScrambleState.totalRounds}</span>
+            <span>${wordScrambleState.score} score</span>
+          </div>
+        </div>
+        <div class="card speed-question-card">
+          <strong>${wordScrambleState.scrambled}</strong>
+          <input id="scrambleInput" class="source-input mini-input" type="text" placeholder="Type the correct word" />
+          <div class="mini-actions">
+            <button type="button" id="submitScrambleBtn">Submit</button>
+          </div>
+        </div>
+      </div>
+    `
+    : `
+      <div class="mini-game-panel">
+        <div class="mini-game-head">
+          <div>
+            <h4>Word Scramble</h4>
+            <p>Quick spelling and memory game built from your study words or flashcards.</p>
+          </div>
+          <button type="button" id="startScrambleBtn">Play for +25 XP</button>
+        </div>
+        <p class="mini-game-note">A nice low-pressure game for younger learners.</p>
+      </div>
+    `;
+
+  const trueFalsePrompt = trueFalseState
+    ? `
+      <div class="mini-game-panel">
+        <div class="mini-game-head">
+          <div>
+            <h4>True or False Toss</h4>
+            <p>Pick fast. Your XP gets higher if you clear the whole round.</p>
+          </div>
+          <div class="speed-stats">
+            <span>${trueFalseState.index + 1} / ${trueFalseState.pool.length}</span>
+            <span>${trueFalseState.correct} correct</span>
+          </div>
+        </div>
+        <div class="card speed-question-card">
+          <strong>${trueFalseState.current.statement}</strong>
+          <div class="speed-options">
+            <button type="button" class="speed-option" data-tf-answer="true">True</button>
+            <button type="button" class="speed-option" data-tf-answer="false">False</button>
+          </div>
+        </div>
+      </div>
+    `
+    : `
+      <div class="mini-game-panel">
+        <div class="mini-game-head">
+          <div>
+            <h4>True or False Toss</h4>
+            <p>Short fact-check game using quiz facts and simple knowledge prompts.</p>
+          </div>
+          <button type="button" id="startTrueFalseBtn">Play for +30 XP</button>
+        </div>
+        <p class="mini-game-note">Great for quick energy and confidence boosts.</p>
+      </div>
+    `;
+
+  const oddOneOutPrompt = oddOneOutState
+    ? `
+      <div class="mini-game-panel">
+        <div class="mini-game-head">
+          <div>
+            <h4>Odd One Out</h4>
+            <p>Spot the item that does not belong. Easy to play, sneaky good for revision.</p>
+          </div>
+          <div class="speed-stats">
+            <span>${oddOneOutState.index + 1} / ${oddOneOutState.pool.length}</span>
+            <span>${oddOneOutState.correct} correct</span>
+          </div>
+        </div>
+        <div class="card speed-question-card">
+          <strong>${oddOneOutState.current.prompt}</strong>
+          <div class="speed-options">
+            ${oddOneOutState.current.options.map((option, index) => `
+              <button type="button" class="speed-option" data-odd-answer="${index}">
+                ${option}
+              </button>
+            `).join("")}
+          </div>
+        </div>
+      </div>
+    `
+    : `
+      <div class="mini-game-panel">
+        <div class="mini-game-head">
+          <div>
+            <h4>Odd One Out</h4>
+            <p>Find the outsider in each set. Good for school kids and fast brain warmups.</p>
+          </div>
+          <button type="button" id="startOddOneOutBtn">Play for +30 XP</button>
+        </div>
+        <p class="mini-game-note">Pattern spotting makes revision feel more like a puzzle app.</p>
+      </div>
+    `;
+
+  gameHub.innerHTML = `
+    <div class="evaluation-wrap">
+      <div class="game-hub">
+        <div class="card challenge-board">
+          <div class="evaluation-head">
+            <div>
+              <h3>XP Missions</h3>
+              <p class="cabinet-note">Tell learners exactly what gets them more XP so the study loop feels playful.</p>
+            </div>
+            <div class="meta-chip">Bonus XP ${getBonusXp()}</div>
+          </div>
+          <div class="challenge-grid">${challengeCards}</div>
+        </div>
+        <div class="card mini-games-shell">
+          <div class="evaluation-head">
+            <div>
+              <h3>Mini Games</h3>
+              <p class="cabinet-note">Short playful tasks that make the quiz app feel more like a game room.</p>
+            </div>
+          </div>
+          <div class="mini-games-grid">
+            ${speedPrompt}
+            ${memoryPrompt}
+            ${scramblePrompt}
+            ${trueFalsePrompt}
+            ${oddOneOutPrompt}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("startSpeedRoundBtn")?.addEventListener("click", startSpeedRound);
+  document.getElementById("startMemoryMatchBtn")?.addEventListener("click", startMemoryMatch);
+  document.getElementById("startScrambleBtn")?.addEventListener("click", startWordScramble);
+  document.getElementById("startTrueFalseBtn")?.addEventListener("click", startTrueFalseToss);
+  document.getElementById("startOddOneOutBtn")?.addEventListener("click", startOddOneOut);
+  document.getElementById("submitScrambleBtn")?.addEventListener("click", submitScrambleGuess);
+  document.querySelectorAll("[data-speed-answer]").forEach((node) => {
+    node.addEventListener("click", () => answerSpeedRound(node.dataset.speedAnswer || ""));
+  });
+  document.querySelectorAll("[data-tf-answer]").forEach((node) => {
+    node.addEventListener("click", () => answerTrueFalse(node.dataset.tfAnswer === "true"));
+  });
+  document.querySelectorAll("[data-odd-answer]").forEach((node) => {
+    node.addEventListener("click", () => answerOddOneOut(Number(node.dataset.oddAnswer)));
+  });
+  document.querySelectorAll("[data-memory-card]").forEach((node) => {
+    node.addEventListener("click", () => selectMemoryCard(node.dataset.memoryCard || ""));
+  });
+  document.querySelectorAll("[data-challenge-action]").forEach((node) => {
+    node.addEventListener("click", () => {
+      const action = node.dataset.challengeAction || "";
+      if (action === "speed-runner") startSpeedRound();
+      else if (action === "memory-hero") startMemoryMatch();
+      else if (action === "flash-fan") flashcardsBtn?.click();
+      else if (action === "quiz-80" || action === "combo-keeper") btn?.scrollIntoView({ behavior: "smooth" });
+    });
+  });
+}
+
+function startSpeedRound() {
+  const pool = getSpeedRoundPool();
+  let pointer = 0;
+  const nextQuestion = () => pool[pointer % pool.length];
+  speedRoundState = {
+    pool,
+    pointer,
+    score: 0,
+    streak: 0,
+    correctCount: 0,
+    timeLeft: 45,
+    current: nextQuestion(),
+    timerId: null
+  };
+
+  speedRoundState.timerId = setInterval(() => {
+    if (!speedRoundState) return;
+    speedRoundState.timeLeft -= 1;
+    if (speedRoundState.timeLeft <= 0) {
+      finishSpeedRound();
+      return;
+    }
+    renderGameHub();
+  }, 1000);
+
+  renderGameHub();
+}
+
+function answerSpeedRound(letter) {
+  if (!speedRoundState) return;
+  const isCorrect = letter === speedRoundState.current.correct;
+  if (isCorrect) {
+    speedRoundState.correctCount += 1;
+    speedRoundState.streak += 1;
+    speedRoundState.score += 10 + (speedRoundState.streak * 2);
+  } else {
+    speedRoundState.streak = 0;
+  }
+  speedRoundState.pointer += 1;
+  speedRoundState.current = speedRoundState.pool[speedRoundState.pointer % speedRoundState.pool.length];
+  renderGameHub();
+}
+
+function finishSpeedRound() {
+  if (!speedRoundState) return;
+  const previousBadgeIds = captureUnlockedBadgeIds();
+  clearInterval(speedRoundState.timerId);
+  const result = speedRoundState;
+  const stats = getMiniGameStats();
+  stats.speedRuns += 1;
+  stats.speedBest = Math.max(stats.speedBest, result.correctCount);
+  saveMiniGameStats(stats);
+
+  const earnedXp = Math.max(12, Math.min(70, result.correctCount * 8 + result.streak * 2));
+  if (result.correctCount > 0) {
+    awardBonusXp(earnedXp, `Speed Round cleared with ${result.correctCount} right answers`);
+  }
+  markSessionActivity("miniGameDone");
+  speedRoundState = null;
+  syncChallengeRewards();
+  renderBadgeCabinet();
+  renderEvaluationBoard();
+  renderSidebar();
+  renderGameHub();
+  revealNewBadges(previousBadgeIds);
+  showToast(`Speed Round finished: ${result.correctCount} correct, ${result.score} score`, "success");
+}
+
+function startMemoryMatch() {
+  const pairs = getMemoryPairs();
+  const cards = pairs
+    .flatMap((pair, index) => ([
+      { id: `p-${index}`, pairId: `pair-${index}`, label: pair.prompt, matched: false, revealed: false },
+      { id: `a-${index}`, pairId: `pair-${index}`, label: pair.answer, matched: false, revealed: false }
+    ]))
+    .sort(() => Math.random() - 0.5);
+
+  memoryMatchState = {
+    cards,
+    firstPick: null,
+    lock: false,
+    matches: 0,
+    moves: 0
+  };
+  renderGameHub();
+}
+
+function selectMemoryCard(cardId) {
+  if (!memoryMatchState || memoryMatchState.lock) return;
+  const card = memoryMatchState.cards.find((item) => item.id === cardId);
+  if (!card || card.matched || card.revealed) return;
+  card.revealed = true;
+
+  if (!memoryMatchState.firstPick) {
+    memoryMatchState.firstPick = cardId;
+    renderGameHub();
+    return;
+  }
+
+  memoryMatchState.moves += 1;
+  const firstCard = memoryMatchState.cards.find((item) => item.id === memoryMatchState.firstPick);
+  if (!firstCard) {
+    memoryMatchState.firstPick = null;
+    renderGameHub();
+    return;
+  }
+
+  if (firstCard.pairId === card.pairId && firstCard.id !== card.id) {
+    firstCard.matched = true;
+    card.matched = true;
+    memoryMatchState.matches += 1;
+    memoryMatchState.firstPick = null;
+    if (memoryMatchState.matches === memoryMatchState.cards.length / 2) {
+      finishMemoryMatch();
+      return;
+    }
+    renderGameHub();
+    return;
+  }
+
+  memoryMatchState.lock = true;
+  const oldPick = memoryMatchState.firstPick;
+  memoryMatchState.firstPick = null;
+  renderGameHub();
+  setTimeout(() => {
+    if (!memoryMatchState) return;
+    const a = memoryMatchState.cards.find((item) => item.id === oldPick);
+    const b = memoryMatchState.cards.find((item) => item.id === cardId);
+    if (a && !a.matched) a.revealed = false;
+    if (b && !b.matched) b.revealed = false;
+    memoryMatchState.lock = false;
+    renderGameHub();
+  }, 650);
+}
+
+function finishMemoryMatch() {
+  if (!memoryMatchState) return;
+  const previousBadgeIds = captureUnlockedBadgeIds();
+  const result = memoryMatchState;
+  const stats = getMiniGameStats();
+  stats.memoryWins += 1;
+  saveMiniGameStats(stats);
+
+  const cleanPlayBonus = result.moves <= 6 ? 15 : 0;
+  awardBonusXp(35 + cleanPlayBonus, `Memory Match won in ${result.moves} moves`);
+  markSessionActivity("miniGameDone");
+  memoryMatchState = null;
+  syncChallengeRewards();
+  renderBadgeCabinet();
+  renderEvaluationBoard();
+  renderSidebar();
+  renderGameHub();
+  revealNewBadges(previousBadgeIds);
+  showToast("Memory Match cleared. Nice one.", "success");
+}
+
+function startWordScramble() {
+  const pool = getScramblePool();
+  const currentWord = pool[0];
+  wordScrambleState = {
+    pool,
+    index: 0,
+    round: 1,
+    totalRounds: Math.min(4, pool.length),
+    score: 0,
+    word: currentWord,
+    scrambled: scrambleWord(currentWord)
+  };
+  renderGameHub();
+}
+
+function submitScrambleGuess() {
+  if (!wordScrambleState) return;
+  const value = (document.getElementById("scrambleInput")?.value || "").trim().toLowerCase();
+  const answer = String(wordScrambleState.word || "").trim().toLowerCase();
+  if (value === answer) {
+    wordScrambleState.score += 1;
+  }
+  wordScrambleState.index += 1;
+  if (wordScrambleState.index >= wordScrambleState.totalRounds) {
+    finishWordScramble();
+    return;
+  }
+  wordScrambleState.round += 1;
+  wordScrambleState.word = wordScrambleState.pool[wordScrambleState.index];
+  wordScrambleState.scrambled = scrambleWord(wordScrambleState.word);
+  renderGameHub();
+}
+
+function finishWordScramble() {
+  if (!wordScrambleState) return;
+  const previousBadgeIds = captureUnlockedBadgeIds();
+  const result = wordScrambleState;
+  const stats = getMiniGameStats();
+  if (result.score >= 2) stats.scrambleWins += 1;
+  saveMiniGameStats(stats);
+  if (result.score > 0) awardBonusXp(10 + (result.score * 5), `Word Scramble solved ${result.score} word(s)`);
+  markSessionActivity("miniGameDone");
+  wordScrambleState = null;
+  syncChallengeRewards();
+  renderBadgeCabinet();
+  renderEvaluationBoard();
+  renderSidebar();
+  renderGameHub();
+  revealNewBadges(previousBadgeIds);
+  showToast(`Word Scramble complete: ${result.score}/${result.totalRounds}`, "success");
+}
+
+function startTrueFalseToss() {
+  const pool = getTrueFalsePool();
+  trueFalseState = {
+    pool,
+    index: 0,
+    correct: 0,
+    current: pool[0]
+  };
+  renderGameHub();
+}
+
+function answerTrueFalse(choice) {
+  if (!trueFalseState) return;
+  if (choice === Boolean(trueFalseState.current.answer)) {
+    trueFalseState.correct += 1;
+  }
+  trueFalseState.index += 1;
+  if (trueFalseState.index >= trueFalseState.pool.length) {
+    finishTrueFalseToss();
+    return;
+  }
+  trueFalseState.current = trueFalseState.pool[trueFalseState.index];
+  renderGameHub();
+}
+
+function finishTrueFalseToss() {
+  if (!trueFalseState) return;
+  const previousBadgeIds = captureUnlockedBadgeIds();
+  const result = trueFalseState;
+  const stats = getMiniGameStats();
+  stats.trueFalseBest = Math.max(stats.trueFalseBest, result.correct);
+  saveMiniGameStats(stats);
+  if (result.correct > 0) awardBonusXp(12 + (result.correct * 4), `True or False Toss got ${result.correct} right`);
+  markSessionActivity("miniGameDone");
+  trueFalseState = null;
+  syncChallengeRewards();
+  renderBadgeCabinet();
+  renderEvaluationBoard();
+  renderSidebar();
+  renderGameHub();
+  revealNewBadges(previousBadgeIds);
+  showToast(`True or False Toss: ${result.correct}/${result.pool.length}`, "success");
+}
+
+function startOddOneOut() {
+  const pool = getOddOneOutPool();
+  oddOneOutState = {
+    pool,
+    index: 0,
+    correct: 0,
+    current: pool[0]
+  };
+  renderGameHub();
+}
+
+function answerOddOneOut(choice) {
+  if (!oddOneOutState) return;
+  if (choice === Number(oddOneOutState.current.answer)) {
+    oddOneOutState.correct += 1;
+  }
+  oddOneOutState.index += 1;
+  if (oddOneOutState.index >= oddOneOutState.pool.length) {
+    finishOddOneOut();
+    return;
+  }
+  oddOneOutState.current = oddOneOutState.pool[oddOneOutState.index];
+  renderGameHub();
+}
+
+function finishOddOneOut() {
+  if (!oddOneOutState) return;
+  const previousBadgeIds = captureUnlockedBadgeIds();
+  const result = oddOneOutState;
+  const stats = getMiniGameStats();
+  if (result.correct >= 2) stats.oddOneOutWins += 1;
+  saveMiniGameStats(stats);
+  if (result.correct > 0) awardBonusXp(12 + (result.correct * 5), `Odd One Out solved ${result.correct} puzzle(s)`);
+  markSessionActivity("miniGameDone");
+  oddOneOutState = null;
+  syncChallengeRewards();
+  renderBadgeCabinet();
+  renderEvaluationBoard();
+  renderSidebar();
+  renderGameHub();
+  revealNewBadges(previousBadgeIds);
+  showToast(`Odd One Out: ${result.correct}/${result.pool.length}`, "success");
 }
 
 function normalizeShortAnswer(value) {
@@ -693,26 +1719,136 @@ function getLevelProgress(totalXp) {
   return Math.round(((totalXp % 180) / 180) * 100);
 }
 
+function getBadgeImagePath(rarity, filename) {
+  return `assets/badges/${rarity}/${filename}`;
+}
+
+function hasComeback(entries) {
+  for (let i = 0; i < entries.length - 1; i++) {
+    const current = Number(entries[i]?.percentage || 0);
+    const previous = Number(entries[i + 1]?.percentage || 0);
+    if (current - previous >= 20) return true;
+  }
+  return false;
+}
+
+function getNightOwlCount(entries) {
+  return entries.filter((entry) => {
+    const dt = new Date(entry?.createdAt);
+    const hour = dt.getHours();
+    return !Number.isNaN(dt.getTime()) && (hour >= 21 || hour < 5);
+  }).length;
+}
+
+function getBadgeCatalog(entries) {
+  const list = Array.isArray(entries) ? entries : [];
+  const bonusXp = getBonusXp();
+  const gameStats = getMiniGameStats();
+  const totalXp = list.reduce((sum, entry) => sum + getAttemptXp(entry), 0) + bonusXp;
+  const streak = getStreak(list);
+  const best = list.length ? Math.max(...list.map((entry) => Number(entry.percentage || 0))) : 0;
+  const perfectCount = list.filter((entry) => Number(entry.percentage || 0) === 100).length;
+  const superCount = list.filter((entry) => entry?.settings?.difficulty === "super").length;
+  const completedChallenges = getChallengeProgress().completed.length;
+  const sessionActivity = getSessionActivity();
+
+  return [
+    { id: "starter", label: "First Spark", icon: getBadgeImagePath("bronze", "first_spark.png"), rarity: "bronze", unlocked: list.length >= 1, hint: "Finish your first quiz." },
+    { id: "streak", label: "Hot Streak", icon: getBadgeImagePath("silver", "hot_streak.png"), rarity: "silver", unlocked: streak >= 3, hint: "Win 3 quizzes in a row." },
+    { id: "scholar", label: "Quiz Boss", icon: getBadgeImagePath("gold", "quiz_boss.png"), rarity: "gold", unlocked: best >= 90, hint: "Reach 90% on a quiz." },
+    { id: "perfect-shot", label: "Perfect Shot", icon: getBadgeImagePath("gold", "perfect_shot.png"), rarity: "gold", unlocked: perfectCount >= 1, hint: "Score 100% on a quiz." },
+    { id: "grinder", label: "Consistency Champ", icon: getBadgeImagePath("silver", "consistency_champ.png"), rarity: "silver", unlocked: list.length >= 5, hint: "Complete 5 quizzes." },
+    { id: "legend", label: "Quiz Legend", icon: getBadgeImagePath("gold", "quiz_legend.png"), rarity: "gold", unlocked: totalXp >= 600, hint: "Earn 600 total XP." },
+    { id: "flash-fan", label: "Flash Fan", icon: getBadgeImagePath("bronze", "flash_fan.png"), rarity: "bronze", unlocked: getFlashDecks().length >= 1, hint: "Generate one flashcard deck." },
+    { id: "memory-master", label: "Memory Master", icon: getBadgeImagePath("gold", "memory_master.png"), rarity: "gold", unlocked: Number(gameStats.memoryWins || 0) >= 1, hint: "Win one Memory Match game." },
+    { id: "speedster", label: "Speedster", icon: getBadgeImagePath("silver", "speedster.png"), rarity: "silver", unlocked: Number(gameStats.speedBest || 0) >= 4, hint: "Get 4 right in Speed Round." },
+    { id: "xp-hunter", label: "XP Hunter", icon: getBadgeImagePath("silver", "xp_hunter.png"), rarity: "silver", unlocked: bonusXp >= 300, hint: "Earn 300 bonus XP from games and missions." },
+    { id: "challenge-crusher", label: "Challenge Crusher", icon: getBadgeImagePath("gold", "challenge_crusher.png"), rarity: "gold", unlocked: completedChallenges >= 3, hint: "Complete 3 XP missions." },
+    { id: "comeback-kid", label: "Comeback Kid", icon: getBadgeImagePath("silver", "comeback_kid.png"), rarity: "silver", unlocked: hasComeback(list), hint: "Improve by 20% from one quiz to the next." },
+    { id: "night-owl", label: "Night Owl", icon: getBadgeImagePath("bronze", "night_owl.png"), rarity: "bronze", unlocked: getNightOwlCount(list) >= 3, hint: "Complete 3 quizzes late at night." },
+    { id: "brain-blaster", label: "Brain Blaster", icon: getBadgeImagePath("gold", "brain_blaster.png"), rarity: "gold", unlocked: superCount >= 1, hint: "Finish a Super difficulty quiz." },
+    { id: "study-ninja", label: "Study Ninja", icon: getBadgeImagePath("special", "study_ninja.png"), rarity: "special", unlocked: sessionActivity.quizDone && sessionActivity.flashcardsDone && sessionActivity.miniGameDone, hint: "Do a quiz, flashcards, and a mini-game in one session." }
+  ];
+}
+
+function getUnlockedBadgeCatalog(entries = getHistory()) {
+  return getBadgeCatalog(entries).filter((badge) => badge.unlocked);
+}
+
+function captureUnlockedBadgeIds(entries = getHistory()) {
+  return new Set(getUnlockedBadgeCatalog(entries).map((badge) => badge.id));
+}
+
+function enqueueBadgePopups(badges) {
+  if (!Array.isArray(badges) || !badges.length) return;
+  badgePopupQueue.push(...badges);
+  if (!activeBadgePopup) showNextBadgePopup();
+}
+
+function showNextBadgePopup() {
+  if (activeBadgePopup || !badgePopupQueue.length) return;
+  const badge = badgePopupQueue.shift();
+  activeBadgePopup = badge;
+  const existing = document.getElementById("badgeUnlockModal");
+  existing?.remove();
+
+  const modal = document.createElement("div");
+  modal.id = "badgeUnlockModal";
+  modal.className = "badge-popup-backdrop";
+  modal.innerHTML = `
+    <div class="badge-popup-card">
+      <span class="badge-popup-label">Badge Unlocked</span>
+      <div class="badge-popup-image-wrap">
+        <img src="${badge.icon}" alt="${badge.label}" class="badge-popup-image" />
+      </div>
+      <h3>${badge.label}</h3>
+      <p>${badge.hint}</p>
+      <button id="badgePopupCloseBtn" type="button">Awesome</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  const close = () => {
+    modal.remove();
+    activeBadgePopup = null;
+    if (badgePopupQueue.length) showNextBadgePopup();
+  };
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal) close();
+  });
+  document.getElementById("badgePopupCloseBtn")?.addEventListener("click", close);
+}
+
+function revealNewBadges(previousBadgeIds = new Set(), entries = getHistory()) {
+  const unlocked = getUnlockedBadgeCatalog(entries);
+  const currentIds = new Set(unlocked.map((badge) => badge.id));
+  const seenIds = new Set(getSeenBadgeIds());
+  const newBadges = unlocked.filter((badge) => currentIds.has(badge.id) && !previousBadgeIds.has(badge.id) && !seenIds.has(badge.id));
+  if (!newBadges.length) return;
+  newBadges.forEach((badge) => seenIds.add(badge.id));
+  saveSeenBadgeIds(Array.from(seenIds));
+  enqueueBadgePopups(newBadges);
+}
+
 function getGamification(entries) {
   const list = Array.isArray(entries) ? entries : [];
   const latest = list[0] || null;
-  const totalXp = list.reduce((sum, entry) => sum + getAttemptXp(entry), 0);
+  const bonusXp = getBonusXp();
+  const gameStats = getMiniGameStats();
+  const quizXp = list.reduce((sum, entry) => sum + getAttemptXp(entry), 0);
+  const totalXp = quizXp + bonusXp;
   const streak = getStreak(list);
   const best = list.length ? Math.max(...list.map((entry) => Number(entry.percentage || 0))) : 0;
-  const badges = [
-    { id: "starter", label: "Starter", icon: "Spark", unlocked: list.length >= 1 },
-    { id: "streak", label: "Hot Streak", icon: "Flame", unlocked: streak >= 3 },
-    { id: "scholar", label: "Scholar", icon: "Crown", unlocked: best >= 90 },
-    { id: "grinder", label: "Consistency", icon: "Orbit", unlocked: list.length >= 5 },
-    { id: "legend", label: "Quiz Legend", icon: "Nova", unlocked: totalXp >= 600 }
-  ].filter((badge) => badge.unlocked);
+  const badges = getBadgeCatalog(list).filter((badge) => badge.unlocked);
 
   return {
     totalXp,
+    quizXp,
+    bonusXp,
     level: getLevelFromXp(totalXp),
     progress: getLevelProgress(totalXp),
     streak,
     best,
+    gameStats,
     badges,
     latestXp: latest ? getAttemptXp(latest) : 0
   };
@@ -972,13 +2108,17 @@ function renderFlashcardsBoard(deck) {
             <div class="flash-card-3d">
               <div class="flash-face flash-face-front">
                 <span class="flash-face-badge">Question</span>
-                <strong>${card.front}</strong>
-                <span class="flash-face-meta">Tap or click to reveal the answer</span>
+                <div class="flash-face-copy">
+                  <strong>${card.front}</strong>
+                  <span class="flash-face-meta">Tap or click to reveal the answer</span>
+                </div>
               </div>
               <div class="flash-face flash-face-back">
                 <span class="flash-face-badge">Answer</span>
-                <strong>${card.back}</strong>
-                <span class="flash-answer-hint"><span>Hint</span>${card.hint || "-"}</span>
+                <div class="flash-face-copy">
+                  <strong>${card.back}</strong>
+                  <span class="flash-answer-hint"><span>Hint</span>${card.hint || "-"}</span>
+                </div>
                 ${imageBlock}
               </div>
             </div>
@@ -1325,17 +2465,23 @@ function autoSaveQuestionsFromEntry(entry) {
 function finish() {
   confetti();
   clearInterval(timer);
+  const previousBadgeIds = captureUnlockedBadgeIds();
   const previousEntries = getHistory();
   const entry = buildHistoryEntry();
+  markSessionActivity("quizDone");
   addHistoryEntry(entry);
   autoSaveQuestionsFromEntry(entry);
+  syncChallengeRewards([entry, ...previousEntries]);
   renderEvaluationBoard();
+  renderBadgeCabinet();
+  renderGameHub();
   renderSidebar();
 
   const assessment = getAssessmentLabel(entry.percentage);
   const allEntries = [entry, ...previousEntries];
   const game = getGamification(allEntries);
-  const newBadges = getNewBadges(allEntries, previousEntries);
+  const newBadges = getUnlockedBadgeCatalog(allEntries).filter((badge) => !previousBadgeIds.has(badge.id));
+  revealNewBadges(previousBadgeIds, allEntries);
 
   quiz.innerHTML = `
     <div class="card quiz-card">
@@ -1389,7 +2535,10 @@ wireModeControls();
 setRole("student");
 applyRolePreset("student");
 setActiveSource(activeSource);
+syncChallengeRewards();
 renderEvaluationBoard();
+renderBadgeCabinet();
+renderGameHub();
 renderSidebar();
 renderFlashcardsBoard(getFlashDecks()[0] || null);
 bootstrapAuth();

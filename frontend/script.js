@@ -51,6 +51,8 @@ let attemptAnswers = [];
 let currentAttemptMeta = null;
 let activeFlashDeck = null;
 let activeFlashIndex = 0;
+let activeFlashFlipped = false;
+let suppressFlashToggleClick = false;
 let lastQuizRequestBase = null;
 let isLoadingMoreQuestions = false;
 
@@ -929,6 +931,7 @@ function renderFlashcardsBoard(deck) {
     flashcardsBoard.innerHTML = "";
     activeFlashDeck = null;
     activeFlashIndex = 0;
+    activeFlashFlipped = false;
     return;
   }
   activeFlashDeck = deck;
@@ -940,9 +943,16 @@ function renderFlashcardsBoard(deck) {
 
   flashcardsBoard.innerHTML = `
     <div class="evaluation-wrap">
-      <div class="card">
-        <h3>Flashcards</h3>
-        <p>${deck.title}</p>
+      <div class="card flashcards-shell">
+        <div class="flash-shell-head">
+          <div>
+            <h3>Flashcards</h3>
+            <p>${deck.title}</p>
+          </div>
+          <button id="flashFlipBtn" class="ghost flash-flip-btn" type="button">
+            ${activeFlashFlipped ? "Show Question" : "Flip Card"}
+          </button>
+        </div>
         <div class="flash-viewer">
           <div class="flash-head">
             <span>Card ${activeFlashIndex + 1} / ${deck.flashcards.length}</span>
@@ -951,28 +961,84 @@ function renderFlashcardsBoard(deck) {
               <button id="flashNextBtn" class="ghost" type="button" ${activeFlashIndex === deck.flashcards.length - 1 ? "disabled" : ""}>Next</button>
             </div>
           </div>
-          <div class="flash-front"><strong>${card.front}</strong></div>
-          <details class="flash-card compact" open>
-            <summary>Reveal answer</summary>
-            <p><strong>Answer:</strong> ${card.back}</p>
-            <p><strong>Hint:</strong> ${card.hint || "-"}</p>
-            ${imageBlock}
-          </details>
+          <p class="flash-gesture-hint">Tap to flip. Swipe left or right to move between cards.</p>
+          <button
+            id="flashCardToggle"
+            class="flash-scene ${activeFlashFlipped ? "is-flipped" : ""}"
+            type="button"
+            aria-label="Flip flashcard"
+            aria-pressed="${activeFlashFlipped ? "true" : "false"}"
+          >
+            <div class="flash-card-3d">
+              <div class="flash-face flash-face-front">
+                <span class="flash-face-badge">Question</span>
+                <strong>${card.front}</strong>
+                <span class="flash-face-meta">Tap or click to reveal the answer</span>
+              </div>
+              <div class="flash-face flash-face-back">
+                <span class="flash-face-badge">Answer</span>
+                <strong>${card.back}</strong>
+                <span class="flash-answer-hint"><span>Hint</span>${card.hint || "-"}</span>
+                ${imageBlock}
+              </div>
+            </div>
+          </button>
         </div>
       </div>
     </div>
   `;
 
-  document.getElementById("flashPrevBtn")?.addEventListener("click", () => {
+  const goToPreviousFlashcard = () => {
     if (!activeFlashDeck || activeFlashIndex <= 0) return;
     activeFlashIndex -= 1;
+    activeFlashFlipped = false;
     renderFlashcardsBoard(activeFlashDeck);
-  });
-  document.getElementById("flashNextBtn")?.addEventListener("click", () => {
+  };
+
+  const goToNextFlashcard = () => {
     if (!activeFlashDeck || activeFlashIndex >= activeFlashDeck.flashcards.length - 1) return;
     activeFlashIndex += 1;
+    activeFlashFlipped = false;
+    renderFlashcardsBoard(activeFlashDeck);
+  };
+
+  const flashCardToggle = document.getElementById("flashCardToggle");
+  flashCardToggle?.addEventListener("click", () => {
+    if (suppressFlashToggleClick) {
+      suppressFlashToggleClick = false;
+      return;
+    }
+    activeFlashFlipped = !activeFlashFlipped;
     renderFlashcardsBoard(activeFlashDeck);
   });
+
+  let touchStartX = 0;
+  let touchStartY = 0;
+  flashCardToggle?.addEventListener("touchstart", (event) => {
+    const touch = event.changedTouches?.[0];
+    if (!touch) return;
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+  }, { passive: true });
+
+  flashCardToggle?.addEventListener("touchend", (event) => {
+    const touch = event.changedTouches?.[0];
+    if (!touch) return;
+    const deltaX = touch.clientX - touchStartX;
+    const deltaY = touch.clientY - touchStartY;
+    if (Math.abs(deltaX) < 60 || Math.abs(deltaX) < Math.abs(deltaY)) return;
+    suppressFlashToggleClick = true;
+    if (deltaX < 0) goToNextFlashcard();
+    else goToPreviousFlashcard();
+  }, { passive: true });
+
+  document.getElementById("flashFlipBtn")?.addEventListener("click", () => {
+    activeFlashFlipped = !activeFlashFlipped;
+    renderFlashcardsBoard(activeFlashDeck);
+  });
+
+  document.getElementById("flashPrevBtn")?.addEventListener("click", goToPreviousFlashcard);
+  document.getElementById("flashNextBtn")?.addEventListener("click", goToNextFlashcard);
 }
 
 flashcardsBtn?.addEventListener("click", async () => {

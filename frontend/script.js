@@ -20,6 +20,7 @@ const loader = document.getElementById("loader");
 const difficultyMode = document.getElementById("difficultyMode");
 const learnerMode = document.getElementById("learnerMode");
 const questionMode = document.getElementById("questionMode");
+const languageMode = document.getElementById("languageMode");
 const roleFlavor = document.getElementById("roleFlavor");
 const sidebarTitle = document.getElementById("sidebarTitle");
 const timelineTitle = document.getElementById("timelineTitle");
@@ -90,6 +91,29 @@ const ROLE_LABELS = {
     score: "Growth Scoreboard",
     dashboard: "Learning Dashboard"
   }
+};
+
+const LANGUAGE_LABELS = {
+  English: "English",
+  Hindi: "Hindi",
+  Bengali: "Bengali",
+  Tamil: "Tamil",
+  Telugu: "Telugu",
+  Marathi: "Marathi",
+  Gujarati: "Gujarati",
+  Kannada: "Kannada",
+  Malayalam: "Malayalam",
+  Punjabi: "Punjabi",
+  Urdu: "Urdu",
+  Spanish: "Spanish",
+  French: "French",
+  German: "German",
+  Portuguese: "Portuguese",
+  Italian: "Italian",
+  Arabic: "Arabic",
+  Chinese: "Chinese",
+  Korean: "Korean",
+  Japanese: "Japanese"
 };
 
 function getScopeId() {
@@ -168,6 +192,7 @@ function getSettings() {
     difficulty: difficultyMode?.value || "moderate",
     learnerMode: learner,
     questionMode: questionMode?.value || "mcq",
+    outputLanguage: languageMode?.value || "English",
     roleProfile: {
       timerBias: preset.timerBias,
       flavor: ROLE_FLAVORS[learner] || ROLE_FLAVORS.student
@@ -485,6 +510,7 @@ function renderSidebar() {
   const entries = getHistory();
   const saved = getSavedQuestions();
   const decks = getFlashDecks();
+  const game = getGamification(entries);
 
   if (attemptList) {
     attemptList.innerHTML = entries.length
@@ -492,10 +518,16 @@ function renderSidebar() {
           <div class="mini-item">
             <strong>${e.percentage}%</strong>
             <span>${e.score}/${e.total} | ${formatShortDate(e.createdAt)}</span>
-            <small>${(e.settings?.difficulty || "moderate").toUpperCase()} | ${(e.settings?.questionMode || "mcq").toUpperCase()}</small>
+            <small>${(e.settings?.difficulty || "moderate").toUpperCase()} | ${(e.settings?.questionMode || "mcq").toUpperCase()} | ${(e.settings?.outputLanguage || "English").toUpperCase()}</small>
           </div>
         `).join("")
       : `<p class="mini-empty">No attempts yet.</p>`;
+    if (entries.length) {
+      attemptList.insertAdjacentHTML(
+        "afterbegin",
+        `<div class="mini-item mini-item-accent"><strong>Lvl ${game.level}</strong><span>${game.totalXp} XP</span><small>${game.badges.length} badge(s) unlocked</small><div class="mini-progress"><span style="width:${game.progress}%"></span></div></div>`
+      );
+    }
   }
 
   if (savedList) {
@@ -547,6 +579,8 @@ function renderEvaluationBoard() {
   const streak = getStreak(entries);
   const recent = entries.slice(0, 5);
   const wrongCount = latestAnswers.filter((a) => !a.isCorrect).length;
+  const game = getGamification(entries);
+  const unlockedBadges = game.badges.map((badge) => `<span class="meta-chip">${badge.icon} ${badge.label}</span>`).join("");
 
   evaluationBoard.innerHTML = `
     <div class="evaluation-wrap">
@@ -557,6 +591,9 @@ function renderEvaluationBoard() {
         </div>
       </div>
       <div class="evaluation-stats">
+        <div class="card"><p>Level</p><h4>${game.level}</h4></div>
+        <div class="card"><p>Total XP</p><h4>${game.totalXp}</h4></div>
+        <div class="card"><p>Next Level</p><h4>${game.progress}%</h4></div>
         <div class="card"><p>Total Quizzes</p><h4>${entries.length}</h4></div>
         <div class="card"><p>Best Score</p><h4>${best}%</h4></div>
         <div class="card"><p>Average</p><h4>${avg}%</h4></div>
@@ -566,7 +603,10 @@ function renderEvaluationBoard() {
         <div class="card latest-attempt">
           <h4>Latest Attempt</h4>
           <p>${latest.score}/${latest.total} (${latest.percentage}%) | ${(latest.sourceType || "text").toUpperCase()} | ${formatShortDate(latest.createdAt)}</p>
+          <p>Language: <strong>${latest.settings?.outputLanguage || "English"}</strong> | XP gained: <strong>${game.latestXp}</strong></p>
           <p>Assessment: <strong>${getAssessmentLabel(latest.percentage)}</strong>. ${wrongCount} question(s) need revision.</p>
+          <div class="xp-progress"><span style="width:${game.progress}%"></span></div>
+          <div class="meta-chip-row">${unlockedBadges || `<span class="meta-chip muted">No badges yet</span>`}</div>
           <div class="review-rail">
             ${latestAnswers.map((a, i) => `
               <button class="review-q-btn ${a.isCorrect ? "good" : "bad"}" data-review-index="${i}">
@@ -625,10 +665,61 @@ function renderEvaluationBoard() {
 
 function normalizeShortAnswer(value) {
   return String(value || "")
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, "")
+    .toLocaleLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, "")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function getAttemptXp(entry) {
+  if (!entry) return 0;
+  const difficultyBonusMap = { easy: 8, moderate: 14, tough: 22, super: 32 };
+  const modeBonusMap = { mcq: 8, mixed: 14, short: 18 };
+  const base = 20;
+  const accuracyBonus = Math.round(Number(entry.percentage || 0));
+  const difficultyBonus = difficultyBonusMap[entry.settings?.difficulty] || 10;
+  const modeBonus = modeBonusMap[entry.settings?.questionMode] || 8;
+  const perfectBonus = Number(entry.percentage || 0) === 100 ? 30 : 0;
+  return base + accuracyBonus + difficultyBonus + modeBonus + perfectBonus;
+}
+
+function getLevelFromXp(totalXp) {
+  return Math.max(1, Math.floor(totalXp / 180) + 1);
+}
+
+function getLevelProgress(totalXp) {
+  return Math.round(((totalXp % 180) / 180) * 100);
+}
+
+function getGamification(entries) {
+  const list = Array.isArray(entries) ? entries : [];
+  const latest = list[0] || null;
+  const totalXp = list.reduce((sum, entry) => sum + getAttemptXp(entry), 0);
+  const streak = getStreak(list);
+  const best = list.length ? Math.max(...list.map((entry) => Number(entry.percentage || 0))) : 0;
+  const badges = [
+    { id: "starter", label: "Starter", icon: "Spark", unlocked: list.length >= 1 },
+    { id: "streak", label: "Hot Streak", icon: "Flame", unlocked: streak >= 3 },
+    { id: "scholar", label: "Scholar", icon: "Crown", unlocked: best >= 90 },
+    { id: "grinder", label: "Consistency", icon: "Orbit", unlocked: list.length >= 5 },
+    { id: "legend", label: "Quiz Legend", icon: "Nova", unlocked: totalXp >= 600 }
+  ].filter((badge) => badge.unlocked);
+
+  return {
+    totalXp,
+    level: getLevelFromXp(totalXp),
+    progress: getLevelProgress(totalXp),
+    streak,
+    best,
+    badges,
+    latestXp: latest ? getAttemptXp(latest) : 0
+  };
+}
+
+function getNewBadges(currentEntries, previousEntries = []) {
+  const currentBadges = new Set(getGamification(currentEntries).badges.map((badge) => badge.id));
+  const previousBadges = new Set(getGamification(previousEntries).badges.map((badge) => badge.id));
+  return getGamification(currentEntries).badges.filter((badge) => !previousBadges.has(badge.id) && currentBadges.has(badge.id));
 }
 
 function gradeShortAnswer(userValue, q) {
@@ -1135,7 +1226,7 @@ function buildHistoryEntry() {
   const total = questions.length || 0;
   const percentage = total ? Math.round((score / total) * 100) : 0;
 
-  return {
+  const entry = {
     id: Date.now(),
     createdAt: currentAttemptMeta?.createdAt || new Date().toISOString(),
     sourceType: currentAttemptMeta?.sourceType || "text",
@@ -1146,6 +1237,10 @@ function buildHistoryEntry() {
     percentage,
     answers
   };
+  entry.gamification = {
+    xp: getAttemptXp(entry)
+  };
+  return entry;
 }
 
 function autoSaveQuestionsFromEntry(entry) {
@@ -1164,6 +1259,7 @@ function autoSaveQuestionsFromEntry(entry) {
 function finish() {
   confetti();
   clearInterval(timer);
+  const previousEntries = getHistory();
   const entry = buildHistoryEntry();
   addHistoryEntry(entry);
   autoSaveQuestionsFromEntry(entry);
@@ -1171,6 +1267,9 @@ function finish() {
   renderSidebar();
 
   const assessment = getAssessmentLabel(entry.percentage);
+  const allEntries = [entry, ...previousEntries];
+  const game = getGamification(allEntries);
+  const newBadges = getNewBadges(allEntries, previousEntries);
 
   quiz.innerHTML = `
     <div class="card quiz-card">
@@ -1179,6 +1278,10 @@ function finish() {
       <p>Accuracy: ${entry.percentage}%</p>
       <p>Assessment: <strong>${assessment}</strong></p>
       <p>Mode: ${(entry.settings?.difficulty || "moderate").toUpperCase()} | ${(entry.settings?.questionMode || "mcq").toUpperCase()} | ${(entry.settings?.learnerMode || "student").toUpperCase()}</p>
+      <p>Language: <strong>${entry.settings?.outputLanguage || "English"}</strong></p>
+      <p>XP earned: <strong>${entry.gamification?.xp || getAttemptXp(entry)}</strong> | Level: <strong>${game.level}</strong> | Total XP: <strong>${game.totalXp}</strong></p>
+      <div class="xp-progress"><span style="width:${game.progress}%"></span></div>
+      <p>${newBadges.length ? `New badges unlocked: ${newBadges.map((badge) => `${badge.icon} ${badge.label}`).join(", ")}` : `Badges unlocked: ${game.badges.map((badge) => `${badge.icon} ${badge.label}`).join(", ") || "None yet"}`}</p>
       <p>Generate flashcards from your source using the Flashcards button.</p>
     </div>
   `;

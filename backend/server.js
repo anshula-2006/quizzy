@@ -820,7 +820,7 @@ app.get("/extract-content-status", (req, res) => {
 
 app.post("/generate-quiz", async (req, res) => {
   const startedAt = Date.now();
-  const { text, topic, difficulty = "moderate", learnerMode = "student", questionMode = "mcq", extractionId = "", preferFull = false } = req.body;
+  const { text, topic, difficulty = "moderate", learnerMode = "student", questionMode = "mcq", outputLanguage = "English", extractionId = "", preferFull = false } = req.body;
   const requestedCount = Number(req.body?.questionCount);
   const questionCount = Number.isFinite(requestedCount)
     ? Math.max(1, Math.min(10, Math.floor(requestedCount)))
@@ -909,6 +909,10 @@ Rules:
   - mixed: keep approximately 60% MCQ and 40% short-answer
   - ${strictModeNote}
 
+- Output language: "${outputLanguage}".
+  - Write the question, options, explanations, and short answers in this language.
+  - Keep the JSON keys in English exactly as specified.
+
 - Generate a DIFFERENT set of questions every time.
 - Avoid repeating previously common questions.
 - Be creative and vary phrasing.
@@ -975,7 +979,7 @@ Regenerate from scratch and follow the mode exactly.
 });
 
 app.post("/generate-flashcards", async (req, res) => {
-  const { text, topic, difficulty = "moderate", learnerMode = "student" } = req.body;
+  const { text, topic, difficulty = "moderate", learnerMode = "student", outputLanguage = "English" } = req.body;
 
   if (!text && !topic) {
     return res.status(400).json({ error: "Text or topic is required" });
@@ -1005,7 +1009,9 @@ Format:
 Rules:
 - learnerMode: "${learnerMode}"
 - difficulty: "${difficulty}"
+- outputLanguage: "${outputLanguage}"
 - Keep answers factually accurate and concise.
+- Write the flashcard front, back, and hint in "${outputLanguage}".
 - Use topic/text content as primary source.
 - Include a hint for each card.
 - If image is not confidently relevant, use null.

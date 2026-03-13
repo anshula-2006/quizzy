@@ -13,6 +13,49 @@ const clearBoardBtn = document.getElementById("clearBoardBtn");
 const HISTORY_BASE = "quizzy-history-v2";
 const MAX_HISTORY_ITEMS = 20;
 
+function getAttemptXp(entry) {
+  if (!entry) return 0;
+  const difficultyBonusMap = { easy: 8, moderate: 14, tough: 22, super: 32 };
+  const modeBonusMap = { mcq: 8, mixed: 14, short: 18 };
+  const base = 20;
+  const accuracyBonus = Math.round(Number(entry.percentage || 0));
+  const difficultyBonus = difficultyBonusMap[entry.settings?.difficulty] || 10;
+  const modeBonus = modeBonusMap[entry.settings?.questionMode] || 8;
+  const perfectBonus = Number(entry.percentage || 0) === 100 ? 30 : 0;
+  return base + accuracyBonus + difficultyBonus + modeBonus + perfectBonus;
+}
+
+function getLevelFromXp(totalXp) {
+  return Math.max(1, Math.floor(totalXp / 180) + 1);
+}
+
+function getLevelProgress(totalXp) {
+  return Math.round(((totalXp % 180) / 180) * 100);
+}
+
+function getGamification(entries) {
+  const list = Array.isArray(entries) ? entries : [];
+  const latest = list[0] || null;
+  const totalXp = list.reduce((sum, entry) => sum + getAttemptXp(entry), 0);
+  const streak = getStreak(list);
+  const best = list.length ? Math.max(...list.map((entry) => Number(entry.percentage || 0))) : 0;
+  const badges = [
+    { id: "starter", label: "Starter", icon: "Spark", unlocked: list.length >= 1 },
+    { id: "streak", label: "Hot Streak", icon: "Flame", unlocked: streak >= 3 },
+    { id: "scholar", label: "Scholar", icon: "Crown", unlocked: best >= 90 },
+    { id: "grinder", label: "Consistency", icon: "Orbit", unlocked: list.length >= 5 },
+    { id: "legend", label: "Quiz Legend", icon: "Nova", unlocked: totalXp >= 600 }
+  ].filter((badge) => badge.unlocked);
+
+  return {
+    totalXp,
+    level: getLevelFromXp(totalXp),
+    progress: getLevelProgress(totalXp),
+    badges,
+    latestXp: latest ? getAttemptXp(latest) : 0
+  };
+}
+
 function getScopeId() {
   const session = auth?.getSession?.();
   return session?.email || "guest";
@@ -156,6 +199,7 @@ function renderBoard() {
   const streak = getStreak(entries);
   const chartData = entries.slice(0, 10).reverse();
   const recent = entries.slice(0, 12);
+  const game = getGamification(entries);
 
   scoreboardContent.innerHTML = `
     <section class="scoreboard-grid">
@@ -169,6 +213,7 @@ function renderBoard() {
             <div class="meta-chip">${getBandLabel(latest)}</div>
             <div class="meta-chip muted">Avg ${avg}%</div>
             <div class="meta-chip muted">Best ${best}%</div>
+            <div class="meta-chip muted">Lvl ${game.level}</div>
             <div class="meta-chip ${trend.delta > 0 ? "up" : trend.delta < 0 ? "down" : "flat"}">${trend.label}</div>
           </div>
         </div>
@@ -184,10 +229,18 @@ function renderBoard() {
           <strong>Feedback</strong>
           <p>${getFeedback(entries)}</p>
         </div>
+        <div class="analysis-card">
+          <strong>Gamification</strong>
+          <p>${game.totalXp} XP earned. Level ${game.level} with ${game.progress}% progress to the next level.</p>
+          <div class="xp-progress"><span style="width:${game.progress}%"></span></div>
+          <p>${game.badges.length ? game.badges.map((badge) => `${badge.icon} ${badge.label}`).join(" | ") : "No badges unlocked yet."}</p>
+        </div>
       </div>
       <div class="card">
         <h3>Quick Stats</h3>
         <div class="evaluation-stats">
+          <div class="card"><p>Total XP</p><h4>${game.totalXp}</h4></div>
+          <div class="card"><p>Level</p><h4>${game.level}</h4></div>
           <div class="card"><p>Total Quizzes</p><h4>${entries.length}</h4></div>
           <div class="card"><p>Current Streak</p><h4>${streak}</h4></div>
           <div class="card"><p>Best Score</p><h4>${best}%</h4></div>
@@ -202,7 +255,7 @@ function renderBoard() {
           <div class="attempt-row">
             <span>${formatShortDate(e.createdAt)}</span>
             <span>${e.score}/${e.total} (${e.percentage}%)</span>
-            <span>${(e.settings?.difficulty || "moderate").toUpperCase()} | ${(e.settings?.questionMode || "mcq").toUpperCase()}</span>
+            <span>${(e.settings?.difficulty || "moderate").toUpperCase()} | ${(e.settings?.questionMode || "mcq").toUpperCase()} | ${(e.settings?.outputLanguage || "English").toUpperCase()} | +${getAttemptXp(e)} XP</span>
           </div>
         `).join("")}
       </div>

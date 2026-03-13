@@ -14,7 +14,7 @@ def clean_text(text):
 
 
 def extract_with_pymupdf(pdf_bytes, max_pages=None):
-    import fitz
+    import fitz # pyright: ignore[reportMissingImports]
 
     pages = []
     with fitz.open(stream=pdf_bytes, filetype="pdf") as document:
@@ -27,7 +27,7 @@ def extract_with_pymupdf(pdf_bytes, max_pages=None):
 
 def extract_with_pypdf(pdf_bytes, max_pages=None):
     from io import BytesIO
-    from pypdf import PdfReader
+    from pypdf import PdfReader # type: ignore
 
     reader = PdfReader(BytesIO(pdf_bytes))
     page_limit = len(reader.pages) if not max_pages else min(len(reader.pages), max_pages)

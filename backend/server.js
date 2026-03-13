@@ -312,6 +312,25 @@ function hasStrictModeMismatch(questions, questionMode, questionCount) {
   return false;
 }
 
+function extractJsonBlock(rawOutput) {
+  const text = String(rawOutput || "").replace(/```json|```/gi, "").trim();
+  const firstBrace = text.indexOf("{");
+  const lastBrace = text.lastIndexOf("}");
+  if (firstBrace === -1 || lastBrace === -1 || lastBrace <= firstBrace) {
+    throw new Error("AI returned invalid JSON");
+  }
+  return text.slice(firstBrace, lastBrace + 1);
+}
+
+function normalizeJsonCandidate(jsonText) {
+  return String(jsonText || "")
+    .replace(/[“”]/g, "\"")
+    .replace(/[‘’]/g, "'")
+    .replace(/,\s*([}\]])/g, "$1")
+    .replace(/}\s*{/g, "},{")
+    .trim();
+}
+
 function extractTextFromHtml(html) {
   const $ = cheerio.load(html || "");
   $("script, style, noscript, nav, footer, header, form, aside, iframe, svg").remove();
@@ -940,15 +959,34 @@ Content: ${effectiveText || "Use general knowledge"}
       console.log(`[generate-quiz] aiMs=${Date.now() - aiStartedAt} questionCount=${questionCount} temperature=${temperature}`);
 
       const rawOutput = completion?.choices?.[0]?.message?.content || "";
-      const firstBrace = rawOutput.indexOf("{");
-      const lastBrace = rawOutput.lastIndexOf("}");
-      if (firstBrace === -1 || lastBrace === -1) {
-        throw new Error("AI returned invalid JSON");
-      }
+      const jsonString = extractJsonBlock(rawOutput);
 
-      const jsonString = rawOutput.slice(firstBrace, lastBrace + 1);
-      const parsedOutput = JSON.parse(jsonString);
-      return sanitizeGeneratedQuestions(parsedOutput?.questions, questionMode, questionCount);
+      try {
+        const parsedOutput = JSON.parse(jsonString);
+        return sanitizeGeneratedQuestions(parsedOutput?.questions, questionMode, questionCount);
+      } catch (error) {
+        const repaired = normalizeJsonCandidate(jsonString);
+        try {
+          const parsedOutput = JSON.parse(repaired);
+          return sanitizeGeneratedQuestions(parsedOutput?.questions, questionMode, questionCount);
+        } catch {
+          const repairPrompt = `
+Repair the following malformed JSON and return ONLY valid JSON.
+Do not add commentary. Preserve the same schema and content as much as possible.
+
+${jsonString}
+`;
+          const repairedCompletion = await groq.chat.completions.create({
+            model: "llama-3.1-8b-instant",
+            messages: [{ role: "user", content: repairPrompt }],
+            temperature: 0
+          });
+          const repairedOutput = repairedCompletion?.choices?.[0]?.message?.content || "";
+          const repairedJson = normalizeJsonCandidate(extractJsonBlock(repairedOutput));
+          const parsedOutput = JSON.parse(repairedJson);
+          return sanitizeGeneratedQuestions(parsedOutput?.questions, questionMode, questionCount);
+        }
+      }
     };
 
     let sanitizedQuestions = await generateQuestions(prompt, 0.9);
@@ -1028,15 +1066,13 @@ Content: ${text || "Use general knowledge"}
     });
 
     const rawOutput = completion?.choices?.[0]?.message?.content || "";
-    const firstBrace = rawOutput.indexOf("{");
-    const lastBrace = rawOutput.lastIndexOf("}");
-
-    if (firstBrace === -1 || lastBrace === -1) {
-      return res.status(500).json({ error: "AI returned invalid JSON" });
+    const jsonString = extractJsonBlock(rawOutput);
+    let parsedOutput;
+    try {
+      parsedOutput = JSON.parse(jsonString);
+    } catch {
+      parsedOutput = JSON.parse(normalizeJsonCandidate(jsonString));
     }
-
-    const jsonString = rawOutput.slice(firstBrace, lastBrace + 1);
-    const parsedOutput = JSON.parse(jsonString);
     return res.json(parsedOutput);
   } catch (error) {
     return res.status(500).json({ error: error.message || "Flashcard generation failed" });

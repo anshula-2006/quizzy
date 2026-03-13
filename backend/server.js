@@ -726,7 +726,10 @@ app.post("/extract-content", upload.single("pdf"), async (req, res) => {
           fullReady
         });
       }
-      const parsedPdf = await extractPdfText(req.file.buffer, { maxPages: FAST_PDF_PARSE_MAX_PAGES, allowFallback: true });
+      const parsedPdf = await extractPdfText(req.file.buffer, {
+        maxPages: FAST_PDF_PARSE_MAX_PAGES,
+        allowFallback: true
+      });
       extractedText = cleanExtractedText(parsedPdf.text);
       scheduleFullPdfExtraction(extractionId, req.file.buffer);
       fullReady = Boolean(getPdfJob(extractionId)?.fullReady);

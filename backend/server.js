@@ -9,10 +9,13 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { createHash } from "crypto";
+import { spawn } from "child_process";
+import { fileURLToPath } from "url";
 
 dotenv.config({ path: new URL("./.env", import.meta.url) });
 
 const app = express();
+const backendDir = fileURLToPath(new URL(".", import.meta.url));
 const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
@@ -20,6 +23,8 @@ const MAX_PDF_UPLOAD_BYTES = 100 * 1024 * 1024;
 const FAST_PDF_PARSE_MAX_PAGES = 12;
 const FAST_EXTRACT_MAX_CHARS = 8000;
 const FULL_EXTRACT_MAX_CHARS = 20000;
+const PDF_PYTHON_BIN = process.env.PDF_PYTHON_BIN || "python";
+const PDF_PYTHON_TIMEOUT_MS = Number(process.env.PDF_PYTHON_TIMEOUT_MS || 12000);
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: MAX_PDF_UPLOAD_BYTES }
@@ -27,6 +32,7 @@ const upload = multer({
 const EXTRACTION_CACHE_TTL_MS = 10 * 60 * 1000;
 const extractionCache = new Map();
 const pdfFullExtractionJobs = new Map();
+const FULL_PDF_EXTRACTION_DELAY_MS = 2000;
 
 function hashText(value) {
   const hasher = createHash("sha256");
@@ -78,19 +84,30 @@ function upsertPdfJob(extractionId, patch) {
   return next;
 }
 
+function scheduleFullPdfExtraction(extractionId, buffer) {
+  const existing = getPdfJob(extractionId);
+  if (existing?.parsing || existing?.fullReady || existing?.scheduled) return;
+  upsertPdfJob(extractionId, { scheduled: true, parsing: false, error: null });
+  setTimeout(() => {
+    startFullPdfExtraction(extractionId, buffer);
+  }, FULL_PDF_EXTRACTION_DELAY_MS);
+}
+
 function startFullPdfExtraction(extractionId, buffer) {
   const existing = getPdfJob(extractionId);
   if (existing?.parsing || existing?.fullReady) return;
-  upsertPdfJob(extractionId, { parsing: true, error: null });
+  upsertPdfJob(extractionId, { scheduled: false, parsing: true, error: null });
 
   (async () => {
     const startedAt = Date.now();
     try {
-      const parsed = await pdfParse(buffer);
+      const parsed = await extractPdfText(buffer, { allowFallback: true });
       const clean = cleanExtractedText(parsed.text);
       const text = clean.length > FULL_EXTRACT_MAX_CHARS ? clean.slice(0, FULL_EXTRACT_MAX_CHARS) : clean;
       upsertPdfJob(extractionId, { fullReady: true, fullText: text, parsing: false, error: null });
-      console.log(`[extract-content/full] ready extractionId=${extractionId} chars=${text.length} totalMs=${Date.now() - startedAt}`);
+      console.log(
+        `[extract-content/full] ready extractionId=${extractionId} chars=${text.length} engine=${parsed.engine} totalMs=${Date.now() - startedAt}`
+      );
     } catch (error) {
       upsertPdfJob(extractionId, { fullReady: false, fullText: "", parsing: false, error: error.message || "Full extraction failed" });
       console.log(`[extract-content/full] failed extractionId=${extractionId} totalMs=${Date.now() - startedAt} error=${error?.message || "unknown"}`);
@@ -110,6 +127,189 @@ function isBlockedHostname(hostname) {
 
 function cleanExtractedText(text) {
   return (text || "").replace(/\s+/g, " ").trim();
+}
+
+async function extractPdfTextWithPython(buffer, { maxPages } = {}) {
+  return await new Promise((resolve, reject) => {
+    const args = ["pdf_service.py"];
+    if (Number.isFinite(maxPages) && maxPages > 0) {
+      args.push(String(Math.floor(maxPages)));
+    }
+
+    const child = spawn(PDF_PYTHON_BIN, args, {
+      cwd: backendDir,
+      stdio: ["pipe", "pipe", "pipe"]
+    });
+
+    let stdout = "";
+    let stderr = "";
+    let settled = false;
+    const finish = (fn, value) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      fn(value);
+    };
+
+    const timeout = setTimeout(() => {
+      child.kill();
+      finish(reject, new Error(`Python PDF extraction timed out after ${PDF_PYTHON_TIMEOUT_MS}ms`));
+    }, PDF_PYTHON_TIMEOUT_MS);
+
+    child.stdout.on("data", (chunk) => {
+      stdout += chunk.toString();
+    });
+
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk.toString();
+    });
+
+    child.on("error", (error) => {
+      finish(reject, error);
+    });
+
+    child.on("close", (code) => {
+      if (code !== 0) {
+        finish(reject, new Error(stderr.trim() || `Python PDF extraction exited with code ${code}`));
+        return;
+      }
+
+      try {
+        const parsed = JSON.parse(stdout || "{}");
+        finish(resolve, {
+          text: cleanExtractedText(parsed.text),
+          engine: parsed.engine || "python"
+        });
+      } catch (error) {
+        finish(reject, new Error(`Invalid Python PDF response: ${error.message}`));
+      }
+    });
+
+    child.stdin.write(buffer);
+    child.stdin.end();
+  });
+}
+
+async function extractPdfText(buffer, { maxPages, allowFallback = true } = {}) {
+  try {
+    const result = await extractPdfTextWithPython(buffer, { maxPages });
+    return {
+      text: result.text,
+      engine: result.engine
+    };
+  } catch (error) {
+    if (!allowFallback) throw error;
+    const parsed = Number.isFinite(maxPages) && maxPages > 0
+      ? await pdfParse(buffer, { max: Math.floor(maxPages) })
+      : await pdfParse(buffer);
+    return {
+      text: cleanExtractedText(parsed.text),
+      engine: "pdf-parse"
+    };
+  }
+}
+
+function normalizeQuestionType(type) {
+  return String(type || "").trim().toLowerCase() === "short" ? "short" : "mcq";
+}
+
+function normalizeMcqCorrect(correct, options) {
+  const fallback = "A";
+  const normalizedOptions = Array.isArray(options) ? options.slice(0, 4).map((opt) => String(opt || "").trim()).filter(Boolean) : [];
+  const raw = String(correct || "").trim();
+  const letter = raw.charAt(0).toUpperCase();
+  if (["A", "B", "C", "D"].includes(letter)) return letter;
+  const optionIndex = normalizedOptions.findIndex((opt) => opt.toLowerCase() === raw.toLowerCase());
+  if (optionIndex >= 0) return ["A", "B", "C", "D"][optionIndex];
+  return fallback;
+}
+
+function sanitizeGeneratedQuestions(rawQuestions, questionMode, questionCount) {
+  const mode = ["mcq", "short", "mixed"].includes(questionMode) ? questionMode : "mcq";
+  const questions = Array.isArray(rawQuestions) ? rawQuestions : [];
+
+  const sanitized = questions
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const question = String(item.question || "").trim();
+      if (!question) return null;
+      const base = {
+        question,
+        explanation: String(item.explanation || "").trim(),
+        wrongExplanation: item.wrongExplanation ? String(item.wrongExplanation).trim() : null,
+        image: item.image || null
+      };
+      const rawType = normalizeQuestionType(item.type);
+
+      if (mode === "short") {
+        const shortAnswer = String(item.shortAnswer || item.correct || "").trim();
+        if (!shortAnswer) return null;
+        return {
+          ...base,
+          type: "short",
+          correct: shortAnswer,
+          shortAnswer,
+          acceptableAnswers: Array.isArray(item.acceptableAnswers)
+            ? item.acceptableAnswers.map((answer) => String(answer || "").trim()).filter(Boolean)
+            : []
+        };
+      }
+
+      if (mode === "mcq" && rawType !== "mcq") return null;
+
+      const options = Array.isArray(item.options)
+        ? item.options.map((opt) => String(opt || "").trim()).filter(Boolean).slice(0, 4)
+        : [];
+      if (options.length < 2) {
+        if (mode === "mixed" && rawType === "short") {
+          const shortAnswer = String(item.shortAnswer || item.correct || "").trim();
+          if (!shortAnswer) return null;
+          return {
+            ...base,
+            type: "short",
+            correct: shortAnswer,
+            shortAnswer,
+            acceptableAnswers: Array.isArray(item.acceptableAnswers)
+              ? item.acceptableAnswers.map((answer) => String(answer || "").trim()).filter(Boolean)
+              : []
+          };
+        }
+        return null;
+      }
+
+      return {
+        ...base,
+        type: "mcq",
+        options,
+        correct: normalizeMcqCorrect(item.correct, options),
+        shortAnswer: null,
+        acceptableAnswers: []
+      };
+    })
+    .filter(Boolean);
+
+  if (mode !== "mixed") {
+    return sanitized.slice(0, questionCount);
+  }
+
+  const mcqs = sanitized.filter((item) => item.type === "mcq");
+  const shorts = sanitized.filter((item) => item.type === "short");
+  const targetMcqCount = Math.max(1, Math.round(questionCount * 0.6));
+  const targetShortCount = Math.max(1, questionCount - targetMcqCount);
+  const result = [
+    ...mcqs.slice(0, targetMcqCount),
+    ...shorts.slice(0, targetShortCount),
+    ...mcqs.slice(targetMcqCount),
+    ...shorts.slice(targetShortCount)
+  ];
+  return result.slice(0, questionCount);
+}
+
+function hasStrictModeMismatch(questions, questionMode, questionCount) {
+  if (!Array.isArray(questions) || questions.length < questionCount) return true;
+  if (questionMode === "mcq") return questions.some((item) => item.type !== "mcq");
+  if (questionMode === "short") return questions.some((item) => item.type !== "short");
+  return false;
 }
 
 function extractTextFromHtml(html) {
@@ -518,7 +718,7 @@ app.post("/extract-content", upload.single("pdf"), async (req, res) => {
       fullReady = Boolean(job?.fullReady && job?.fullText);
       const cached = getCachedExtraction(cacheKey);
       if (cached) {
-        startFullPdfExtraction(extractionId, req.file.buffer);
+        scheduleFullPdfExtraction(extractionId, req.file.buffer);
         console.log(`[extract-content] source=pdf cache=hit chars=${cached.text.length} totalMs=${Date.now() - startedAt}`);
         return res.json({
           ...cached,
@@ -526,10 +726,13 @@ app.post("/extract-content", upload.single("pdf"), async (req, res) => {
           fullReady
         });
       }
-      const parsedPdf = await pdfParse(req.file.buffer, { max: FAST_PDF_PARSE_MAX_PAGES });
+      const parsedPdf = await extractPdfText(req.file.buffer, { maxPages: FAST_PDF_PARSE_MAX_PAGES, allowFallback: true });
       extractedText = cleanExtractedText(parsedPdf.text);
-      startFullPdfExtraction(extractionId, req.file.buffer);
+      scheduleFullPdfExtraction(extractionId, req.file.buffer);
       fullReady = Boolean(getPdfJob(extractionId)?.fullReady);
+      console.log(
+        `[extract-content/pdf-fast] extractionId=${extractionId} chars=${extractedText.length} engine=${parsedPdf.engine} totalMs=${Date.now() - startedAt}`
+      );
     } else if (req.body?.url) {
       sourceType = "url";
       cacheKey = `url:${hashText(req.body.url)}`;
@@ -607,6 +810,7 @@ app.get("/extract-content-status", (req, res) => {
     extractionId,
     fullReady: Boolean(job?.fullReady && job?.fullText),
     parsing: Boolean(job?.parsing),
+    scheduled: Boolean(job?.scheduled),
     error: job?.error || null
   });
 });
@@ -645,6 +849,12 @@ app.post("/generate-quiz", async (req, res) => {
         : "Student mode: prioritize exam readiness, timed-practice realism, and conceptual traps commonly seen in tests.";
 
   let prompt = "";
+  const strictModeNote =
+    questionMode === "mcq"
+      ? `Hard requirement: every question.type MUST be "mcq". Return exactly ${questionCount} MCQ questions and zero short-answer questions.`
+      : questionMode === "short"
+        ? `Hard requirement: every question.type MUST be "short". Return exactly ${questionCount} short-answer questions and zero MCQ questions.`
+        : `Hard requirement: return exactly ${questionCount} questions with a real mix of MCQ and short-answer questions.`;
 
 prompt = `
 Generate exactly ${questionCount} quiz questions in JSON format.
@@ -694,6 +904,7 @@ Rules:
   - mcq: all ${questionCount} must be MCQ with 4 options
   - short: all ${questionCount} must be short-answer with shortAnswer populated
   - mixed: keep approximately 60% MCQ and 40% short-answer
+  - ${strictModeNote}
 
 - Generate a DIFFERENT set of questions every time.
 - Avoid repeating previously common questions.
@@ -712,38 +923,48 @@ Content: ${effectiveText || "Use general knowledge"}
 
 
   try {
-    const aiStartedAt = Date.now();
-    const completion = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.9
-    });
-    console.log(`[generate-quiz] aiMs=${Date.now() - aiStartedAt} questionCount=${questionCount}`);
+    const generateQuestions = async (userPrompt, temperature) => {
+      const aiStartedAt = Date.now();
+      const completion = await groq.chat.completions.create({
+        model: "llama-3.1-8b-instant",
+        messages: [{ role: "user", content: userPrompt }],
+        temperature
+      });
+      console.log(`[generate-quiz] aiMs=${Date.now() - aiStartedAt} questionCount=${questionCount} temperature=${temperature}`);
 
-const rawOutput = completion?.choices?.[0]?.message?.content || "";
+      const rawOutput = completion?.choices?.[0]?.message?.content || "";
+      const firstBrace = rawOutput.indexOf("{");
+      const lastBrace = rawOutput.lastIndexOf("}");
+      if (firstBrace === -1 || lastBrace === -1) {
+        throw new Error("AI returned invalid JSON");
+      }
 
-try {
-  const firstBrace = rawOutput.indexOf("{");
-  const lastBrace = rawOutput.lastIndexOf("}");
+      const jsonString = rawOutput.slice(firstBrace, lastBrace + 1);
+      const parsedOutput = JSON.parse(jsonString);
+      return sanitizeGeneratedQuestions(parsedOutput?.questions, questionMode, questionCount);
+    };
 
-  if (firstBrace === -1 || lastBrace === -1) {
-    throw new Error("No JSON found");
-  }
+    let sanitizedQuestions = await generateQuestions(prompt, 0.9);
 
-  const jsonString = rawOutput.slice(firstBrace, lastBrace + 1);
-  const parsedOutput = JSON.parse(jsonString);
+    if (hasStrictModeMismatch(sanitizedQuestions, questionMode, questionCount)) {
+      const retryPrompt = `${prompt}
 
-  const parsedCount = Array.isArray(parsedOutput?.questions) ? parsedOutput.questions.length : 0;
-  console.log(`[generate-quiz] success totalMs=${Date.now() - startedAt} requested=${questionCount} returned=${parsedCount}`);
-  res.json(parsedOutput);
-} catch (err) {
-  console.error("JSON Parse Error:", rawOutput);
-  res.status(500).json({
-    error: "AI returned invalid JSON"
-  });
-}
+Previous output did not satisfy the requested question type rules.
+Regenerate from scratch and follow the mode exactly.
+`;
+      sanitizedQuestions = await generateQuestions(retryPrompt, 0.4);
+    }
 
+    if (hasStrictModeMismatch(sanitizedQuestions, questionMode, questionCount)) {
+      return res.status(502).json({
+        error: `Could not generate ${questionCount} valid ${questionMode} questions. Try again.`
+      });
+    }
 
+    console.log(
+      `[generate-quiz] success totalMs=${Date.now() - startedAt} requested=${questionCount} returned=${sanitizedQuestions.length} mode=${questionMode}`
+    );
+    return res.json({ questions: sanitizedQuestions });
   } catch (error) {
     console.log(`[generate-quiz] failed totalMs=${Date.now() - startedAt} error=${error?.message || "unknown"}`);
     res.status(500).json({ error: error.message });

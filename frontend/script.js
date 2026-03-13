@@ -54,7 +54,7 @@ let lastQuizRequestBase = null;
 let isLoadingMoreQuestions = false;
 
 const ROLE_PRESETS = {
-  student: { difficulty: "moderate", questionMode: "mixed", timerBias: 0 },
+  student: { difficulty: "moderate", questionMode: "mcq", timerBias: 0 },
   teacher: { difficulty: "tough", questionMode: "short", timerBias: -2 },
   "self-study": { difficulty: "easy", questionMode: "mcq", timerBias: 4 }
 };

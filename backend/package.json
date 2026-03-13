@@ -19,6 +19,7 @@
     "pdf-parse": "^1.1.1"
   },
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "pdf-service": "python pdf_service.py --serve"
   }
 }

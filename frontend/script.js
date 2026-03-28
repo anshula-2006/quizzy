@@ -2274,6 +2274,7 @@ flashcardsBtn?.addEventListener("click", async () => {
 function renderShortAnswerInput() {
   return `
     <div class="short-wrap">
+      <label class="answer-label" for="shortAnswerInput">Your answer</label>
       <textarea id="shortAnswerInput" class="short-answer" placeholder="Type your answer here..."></textarea>
       <button id="submitShortBtn" type="button">Submit Answer</button>
     </div>
@@ -2290,17 +2291,22 @@ function showQuestion() {
   quiz.innerHTML = `
     <div class="card quiz-card">
       <div class="quiz-top">
-        <span>Q ${index + 1}/${questions.length} | ${q.type.toUpperCase()}</span>
-        <span>${isShort ? "No time limit" : `${timeLeft}s`}</span>
+        <span class="quiz-chip">Question ${index + 1} of ${questions.length}</span>
+        <span class="quiz-chip quiz-chip-soft">${q.type.toUpperCase()}</span>
+        <span class="quiz-chip quiz-chip-timer">${isShort ? "No time limit" : `${timeLeft}s`}</span>
       </div>
       <div class="progress">
         <div class="progress-fill" style="width:${progress}%"></div>
       </div>
-      <h2>${q.question}</h2>
+      <div class="quiz-question-block">
+        <p class="quiz-kicker">Focus and answer carefully</p>
+        <h2>${q.question}</h2>
+      </div>
       ${q.type === "mcq"
         ? q.options.map((o, i) => `
           <div class="option" data-o="${String.fromCharCode(65 + i)}">
-            ${String.fromCharCode(65 + i)}. ${o}
+            <span class="option-key">${String.fromCharCode(65 + i)}</span>
+            <span class="option-text">${o}</span>
           </div>`).join("")
         : renderShortAnswerInput()}
       <div class="quiz-actions">
@@ -2435,7 +2441,16 @@ function reveal(q, choice, isReview) {
 
     quiz.querySelector(".quiz-card").insertAdjacentHTML(
       "beforeend",
-      `<div class="explanation"><p><strong>${answerText}</strong></p><p>${q.explanation || ""}</p>${wrongBlock}${imageBlock}<button id="saveQuestionBtn" class="ghost" type="button">Save Question</button></div>`
+      `<div class="explanation">
+        <div class="explanation-head">
+          <span class="quiz-chip ${isCorrect ? "quiz-chip-success" : "quiz-chip-danger"}">${isCorrect ? "Correct" : "Needs review"}</span>
+          <strong>${answerText}</strong>
+        </div>
+        <p>${q.explanation || ""}</p>
+        ${wrongBlock}
+        ${imageBlock}
+        <button id="saveQuestionBtn" class="ghost explanation-save" type="button">Save Question</button>
+      </div>`
     );
     document.getElementById("saveQuestionBtn")?.addEventListener("click", () => {
       addSavedQuestion({
@@ -2600,21 +2615,58 @@ async function finish() {
   revealNewBadges(previousBadgeIds, allEntries);
 
   quiz.innerHTML = `
-    <div class="card quiz-card">
-      <h2>Quiz Completed</h2>
-      <h1>${score} / ${questions.length}</h1>
-      <p>Accuracy: ${entry.percentage}%</p>
-      ${entry.confidence ? `<p>Evaluation confidence: <strong>${entry.confidence}%</strong></p>` : ""}
-      <p>Assessment: <strong>${assessment}</strong></p>
-      <p>Mode: ${(entry.settings?.difficulty || "moderate").toUpperCase()} | ${(entry.settings?.questionMode || "mcq").toUpperCase()} | ${(entry.settings?.learnerMode || "student").toUpperCase()}</p>
-      <p>Language: <strong>${entry.settings?.outputLanguage || "English"}</strong></p>
-      <p>XP earned: <strong>${entry.gamification?.xp || getAttemptXp(entry)}</strong> | Level: <strong>${game.level}</strong> | Total XP: <strong>${game.totalXp}</strong></p>
-      ${entry.gamification?.points ? `<p>Points earned: <strong>${entry.gamification.points}</strong> | Streak: <strong>${entry.gamification.streak || 0}</strong></p>` : ""}
+    <div class="card quiz-card result-card">
+      <div class="result-head">
+        <span class="quiz-chip quiz-chip-success">Quiz Completed</span>
+        <h2>${assessment}</h2>
+        <p>Your quiz has been evaluated and added to your progress history.</p>
+      </div>
+      <div class="result-score-ring" style="--score:${entry.percentage}">
+        <strong>${entry.percentage}%</strong>
+        <span>${score} / ${questions.length} correct</span>
+      </div>
+      <div class="result-stats-grid">
+        <div class="result-stat">
+          <span>Correct</span>
+          <strong>${score}</strong>
+        </div>
+        <div class="result-stat">
+          <span>Wrong</span>
+          <strong>${Math.max(0, questions.length - score)}</strong>
+        </div>
+        <div class="result-stat">
+          <span>XP Earned</span>
+          <strong>${entry.gamification?.xp || getAttemptXp(entry)}</strong>
+        </div>
+        <div class="result-stat">
+          <span>Streak</span>
+          <strong>${entry.gamification?.streak || game.streak || 0}</strong>
+        </div>
+      </div>
+      <div class="result-meta">
+        <span class="meta-chip">Mode ${(entry.settings?.difficulty || "moderate").toUpperCase()}</span>
+        <span class="meta-chip">Type ${(entry.settings?.questionMode || "mcq").toUpperCase()}</span>
+        <span class="meta-chip">Learner ${(entry.settings?.learnerMode || "student").toUpperCase()}</span>
+        <span class="meta-chip">Language ${entry.settings?.outputLanguage || "English"}</span>
+        ${entry.confidence ? `<span class="meta-chip">Confidence ${entry.confidence}%</span>` : ""}
+      </div>
       <div class="xp-progress"><span style="width:${game.progress}%"></span></div>
-      <p>${newBadges.length ? `New badges unlocked: ${newBadges.map((badge) => `${badge.icon} ${badge.label}`).join(", ")}` : `Badges unlocked: ${game.badges.map((badge) => `${badge.icon} ${badge.label}`).join(", ") || "None yet"}`}</p>
-      <p>Generate flashcards from your source using the Flashcards button.</p>
+      <p class="result-badges">${newBadges.length ? `New badges unlocked: ${newBadges.map((badge) => `${badge.icon} ${badge.label}`).join(", ")}` : `Badges unlocked: ${game.badges.map((badge) => `${badge.icon} ${badge.label}`).join(", ") || "None yet"}`}</p>
+      <div class="quiz-actions result-actions">
+        <button id="retryQuizBtn" type="button">Retry Quiz</button>
+        <button id="goDashboardBtn" class="ghost" type="button">Go to Dashboard</button>
+      </div>
     </div>
   `;
+
+  document.getElementById("retryQuizBtn")?.addEventListener("click", () => {
+    document.getElementById("generateSection")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    btn?.click();
+  });
+
+  document.getElementById("goDashboardBtn")?.addEventListener("click", () => {
+    document.getElementById("dashboardSection")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
 }
 
 function confetti() {

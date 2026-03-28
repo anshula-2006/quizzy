@@ -17,6 +17,8 @@ const CHALLENGE_BASE = "quizzy-challenges-v1";
 const MINI_GAME_BASE = "quizzy-mini-games-v1";
 const SESSION_ACTIVITY_BASE = "quizzy-session-activity-v1";
 const MAX_HISTORY_ITEMS = 20;
+let cloudProfile = null;
+let cloudLeaderboard = [];
 
 function getAttemptXp(entry) {
   if (!entry) return 0;
@@ -300,6 +302,8 @@ async function syncFromCloud() {
   const result = await cloudRequest("/data/bootstrap");
   if (!result.ok) return;
   const attempts = Array.isArray(result.data?.attempts) ? result.data.attempts : [];
+  cloudProfile = result.data?.profile || null;
+  cloudLeaderboard = Array.isArray(result.data?.leaderboard) ? result.data.leaderboard : [];
   saveHistory(attempts);
 }
 
@@ -382,12 +386,31 @@ function renderProgressExtras(entries) {
 
 function renderBoard() {
   const entries = getHistory();
+  const leaderboardMarkup = cloudLeaderboard.length
+    ? `
+      <section class="card scoreboard-table-wrap">
+        <h3>Leaderboard</h3>
+        <div class="scoreboard-table">
+          ${cloudLeaderboard.map((player) => `
+            <div class="attempt-row">
+              <span>#${player.rank} ${player.name}</span>
+              <span>${player.leaderboardScore} pts</span>
+              <span>${player.totalXp} XP | Streak ${player.currentStreak}</span>
+            </div>
+          `).join("")}
+        </div>
+      </section>
+    `
+    : "";
+
   if (!entries.length) {
     scoreboardContent.innerHTML = `
       <div class="card evaluation-empty">
         <h3>No Data Yet</h3>
         <p>Take at least one quiz from the home page to populate your scoreboard.</p>
       </div>
+      ${cloudProfile ? `<div class="card"><h3>Cloud Profile</h3><p>Total Points: ${cloudProfile.totalPoints || 0} | Total XP: ${cloudProfile.totalXp || 0} | Best Streak: ${cloudProfile.bestStreak || 0}</p></div>` : ""}
+      ${leaderboardMarkup}
       ${renderProgressExtras(entries)}
     `;
     return;
@@ -440,10 +463,11 @@ function renderBoard() {
       <div class="card">
         <h3>Quick Stats</h3>
         <div class="evaluation-stats">
-          <div class="card"><p>Total XP</p><h4>${game.totalXp}</h4></div>
+          <div class="card"><p>Total XP</p><h4>${cloudProfile?.totalXp ?? game.totalXp}</h4></div>
+          <div class="card"><p>Total Points</p><h4>${cloudProfile?.totalPoints ?? 0}</h4></div>
           <div class="card"><p>Level</p><h4>${game.level}</h4></div>
           <div class="card"><p>Total Quizzes</p><h4>${entries.length}</h4></div>
-          <div class="card"><p>Current Streak</p><h4>${streak}</h4></div>
+          <div class="card"><p>Current Streak</p><h4>${cloudProfile?.currentStreak ?? streak}</h4></div>
           <div class="card"><p>Best Score</p><h4>${best}%</h4></div>
           <div class="card"><p>Average</p><h4>${avg}%</h4></div>
         </div>
@@ -461,6 +485,7 @@ function renderBoard() {
         `).join("")}
       </div>
     </section>
+    ${leaderboardMarkup}
     ${renderProgressExtras(entries)}
   `;
 }

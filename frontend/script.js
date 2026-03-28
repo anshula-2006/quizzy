@@ -38,6 +38,7 @@ const wrongSound = new Audio("assets/wrong.mp3");
 let questions = [];
 let index = 0;
 let score = 0;
+let activeQuizId = null;
 let timer;
 let timeLeft = 15;
 let answered = {};
@@ -70,6 +71,8 @@ let trueFalseState = null;
 let oddOneOutState = null;
 let badgePopupQueue = [];
 let activeBadgePopup = null;
+let cloudProfile = null;
+let cloudLeaderboard = [];
 
 const DEFAULT_SPEED_ROUND_POOL = [
   {
@@ -382,6 +385,8 @@ async function loadCloudDataIntoLocal() {
   const attempts = Array.isArray(result.data?.attempts) ? result.data.attempts : [];
   const savedQuestions = Array.isArray(result.data?.savedQuestions) ? result.data.savedQuestions : [];
   const flashDecks = Array.isArray(result.data?.flashDecks) ? result.data.flashDecks : [];
+  cloudProfile = result.data?.profile || null;
+  cloudLeaderboard = Array.isArray(result.data?.leaderboard) ? result.data.leaderboard : [];
   saveHistory(attempts);
   saveSavedQuestions(savedQuestions);
   saveFlashDecks(flashDecks);
@@ -491,13 +496,6 @@ function addHistoryEntry(entry) {
   const entries = getHistory();
   entries.unshift(entry);
   saveHistory(entries);
-  if (isLoggedIn()) {
-    cloudRequest("/data/attempts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(entry)
-    });
-  }
 }
 
 function getSavedQuestions() {
@@ -1967,7 +1965,10 @@ async function requestQuizQuestions(requestPayload) {
     .map(normalizeQuestion)
     .filter(Boolean);
   if (cleaned.length === 0) throw new Error("No questions were returned");
-  return cleaned;
+  return {
+    quizId: data.quizId || null,
+    questions: cleaned
+  };
 }
 
 function appendMoreQuestions(newQuestions) {
@@ -1989,8 +1990,9 @@ async function loadMoreQuestions() {
 
   try {
     const morePayload = { ...lastQuizRequestBase, questionCount: QUIZ_BATCH_SIZE };
-    const extraQuestions = await requestQuizQuestions(morePayload);
-    appendMoreQuestions(extraQuestions);
+    const extra = await requestQuizQuestions(morePayload);
+    appendMoreQuestions(extra.questions);
+    activeQuizId = null;
     showQuestion();
   } catch (err) {
     showToast(err.message || "Could not load more questions");
@@ -2014,9 +2016,11 @@ btn.onclick = async () => {
     const contentPayload = await buildContentPayload();
     const requestBase = { ...contentPayload, ...settings };
     const requestPayload = { ...requestBase, questionCount: QUIZ_BATCH_SIZE };
-    const cleaned = await requestQuizQuestions(requestPayload);
+    const quizPayload = await requestQuizQuestions(requestPayload);
+    const cleaned = quizPayload.questions;
 
     questions = cleaned;
+    activeQuizId = quizPayload.quizId;
     index = 0;
     score = 0;
     answered = {};
@@ -2449,6 +2453,38 @@ function buildHistoryEntry() {
   return entry;
 }
 
+function buildSubmissionAnswers() {
+  return questions.map((q, i) => {
+    const answer = attemptAnswers[i];
+    return {
+      question: q.question,
+      selected: answer?.selected ?? ""
+    };
+  });
+}
+
+async function submitQuizAttempt() {
+  if (!isLoggedIn() || !activeQuizId) return null;
+
+  const response = await cloudRequest("/submit-quiz", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      quizId: activeQuizId,
+      answers: buildSubmissionAnswers(),
+      sourceType: currentAttemptMeta?.sourceType || "text",
+      sourceInput: currentAttemptMeta?.sourceInput || "",
+      settings: currentAttemptMeta?.settings || getSettings()
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(response.error || "Failed to submit quiz");
+  }
+
+  return response.data;
+}
+
 function autoSaveQuestionsFromEntry(entry) {
   const answers = Array.isArray(entry?.answers) ? entry.answers : [];
   answers.forEach((a) => {
@@ -2462,12 +2498,49 @@ function autoSaveQuestionsFromEntry(entry) {
   });
 }
 
-function finish() {
+async function finish() {
   confetti();
   clearInterval(timer);
   const previousBadgeIds = captureUnlockedBadgeIds();
   const previousEntries = getHistory();
-  const entry = buildHistoryEntry();
+  let entry = buildHistoryEntry();
+
+  if (isLoggedIn() && activeQuizId) {
+    try {
+      const serverResult = await submitQuizAttempt();
+      if (serverResult?.evaluation) {
+        score = Number(serverResult.evaluation.score || 0);
+        entry = {
+          ...entry,
+          ...serverResult.attempt,
+          score: Number(serverResult.evaluation.score || 0),
+          total: Number(serverResult.evaluation.total || entry.total || 0),
+          percentage: Number(serverResult.evaluation.percentage || 0),
+          confidence: Number(serverResult.evaluation.confidence || 0),
+          answers: Array.isArray(serverResult.evaluation.answers) ? serverResult.evaluation.answers : entry.answers,
+          gamification: {
+            xp: Number(serverResult.gamification?.xpEarned || 0),
+            points: Number(serverResult.gamification?.pointsEarned || 0),
+            totalXp: Number(serverResult.gamification?.totalXp || 0),
+            totalPoints: Number(serverResult.gamification?.totalPoints || 0),
+            streak: Number(serverResult.gamification?.currentStreak || 0),
+            achievements: Array.isArray(serverResult.gamification?.achievements) ? serverResult.gamification.achievements : []
+          }
+        };
+        cloudProfile = {
+          ...(cloudProfile || {}),
+          totalXp: entry.gamification.totalXp,
+          totalPoints: entry.gamification.totalPoints,
+          currentStreak: entry.gamification.streak,
+          achievements: entry.gamification.achievements
+        };
+        await loadCloudDataIntoLocal();
+      }
+    } catch (error) {
+      showToast(error.message || "Falling back to local evaluation");
+    }
+  }
+
   markSessionActivity("quizDone");
   addHistoryEntry(entry);
   autoSaveQuestionsFromEntry(entry);
@@ -2488,10 +2561,12 @@ function finish() {
       <h2>Quiz Completed</h2>
       <h1>${score} / ${questions.length}</h1>
       <p>Accuracy: ${entry.percentage}%</p>
+      ${entry.confidence ? `<p>Evaluation confidence: <strong>${entry.confidence}%</strong></p>` : ""}
       <p>Assessment: <strong>${assessment}</strong></p>
       <p>Mode: ${(entry.settings?.difficulty || "moderate").toUpperCase()} | ${(entry.settings?.questionMode || "mcq").toUpperCase()} | ${(entry.settings?.learnerMode || "student").toUpperCase()}</p>
       <p>Language: <strong>${entry.settings?.outputLanguage || "English"}</strong></p>
       <p>XP earned: <strong>${entry.gamification?.xp || getAttemptXp(entry)}</strong> | Level: <strong>${game.level}</strong> | Total XP: <strong>${game.totalXp}</strong></p>
+      ${entry.gamification?.points ? `<p>Points earned: <strong>${entry.gamification.points}</strong> | Streak: <strong>${entry.gamification.streak || 0}</strong></p>` : ""}
       <div class="xp-progress"><span style="width:${game.progress}%"></span></div>
       <p>${newBadges.length ? `New badges unlocked: ${newBadges.map((badge) => `${badge.icon} ${badge.label}`).join(", ")}` : `Badges unlocked: ${game.badges.map((badge) => `${badge.icon} ${badge.label}`).join(", ") || "None yet"}`}</p>
       <p>Generate flashcards from your source using the Flashcards button.</p>

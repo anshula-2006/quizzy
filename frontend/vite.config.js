@@ -3,6 +3,7 @@ import { fileURLToPath } from "url";
 import { resolve } from "path";
 
 const rootDir = fileURLToPath(new URL(".", import.meta.url));
+const proxyTarget = process.env.VITE_API_PROXY_TARGET || "https://quizzy-3lt0.onrender.com";
 
 export default defineConfig({
   build: {
@@ -18,23 +19,27 @@ export default defineConfig({
   server: {
     proxy: {
       "/auth": {
-        target: "https://quizzy-3lt0.onrender.com",
+        target: proxyTarget,
         changeOrigin: true
       },
       "/extract-content": {
-        target: "https://quizzy-3lt0.onrender.com",
+        target: proxyTarget,
         changeOrigin: true
       },
       "/data": {
-        target: "https://quizzy-3lt0.onrender.com",
+        target: proxyTarget,
         changeOrigin: true
       },
       "/generate-quiz": {
-        target: "https://quizzy-3lt0.onrender.com",
+        target: proxyTarget,
         changeOrigin: true
       },
       "/generate-flashcards": {
-        target: "https://quizzy-3lt0.onrender.com",
+        target: proxyTarget,
+        changeOrigin: true
+      },
+      "/submit-quiz": {
+        target: proxyTarget,
         changeOrigin: true
       }
     }

@@ -3,21 +3,23 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: "Manrope", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 :root {
-  --bg-1: #f5fbf6;
-  --bg-2: #edf6ef;
-  --bg-3: #e7f2ea;
-  --ink: #123226;
-  --muted: #3f5d50;
-  --accent-1: #cfe7d7;
-  --accent-2: #7ea890;
-  --accent-3: #e6f2e9;
-  --card: rgba(255,255,255,0.9);
-  --border: rgba(18,50,38,0.1);
-  --shadow: 0 18px 40px rgba(18,50,38,0.1);
+  --bg-1: #f5f7ff;
+  --bg-2: #eef2ff;
+  --bg-3: #e0e7ff;
+  --ink: #101828;
+  --muted: #5f6c8f;
+  --accent-1: #e7ecff;
+  --accent-2: #5b6cff;
+  --accent-3: #f3f0ff;
+  --card: rgba(255,255,255,0.88);
+  --border: rgba(91,108,255,0.12);
+  --shadow: 0 20px 50px rgba(76, 91, 181, 0.14);
+  --success: #16a34a;
+  --danger: #dc2626;
 }
 
 body {
@@ -28,20 +30,20 @@ body {
 }
 
 body.dark {
-  --bg-1: #0d1420;
-  --bg-2: #101b2a;
-  --bg-3: #162438;
-  --ink: #edf4ff;
-  --muted: #a6b6cc;
-  --accent-1: #d8e7ff;
-  --accent-2: #7bb4ff;
-  --accent-3: #1b2d43;
-  --card: rgba(16, 27, 42, 0.82);
-  --border: rgba(170, 196, 231, 0.16);
-  --shadow: 0 18px 40px rgba(2, 8, 20, 0.34);
+  --bg-1: #09111d;
+  --bg-2: #0f172a;
+  --bg-3: #17213c;
+  --ink: #eef2ff;
+  --muted: #9eb0d3;
+  --accent-1: rgba(91,108,255,0.18);
+  --accent-2: #92a0ff;
+  --accent-3: rgba(168,85,247,0.18);
+  --card: rgba(12, 20, 38, 0.82);
+  --border: rgba(146, 160, 255, 0.18);
+  --shadow: 0 24px 60px rgba(2, 6, 23, 0.45);
   background:
-    radial-gradient(circle at top left, rgba(85, 139, 255, 0.18), transparent 28%),
-    radial-gradient(circle at bottom right, rgba(76, 211, 194, 0.14), transparent 24%),
+    radial-gradient(circle at top left, rgba(91, 108, 255, 0.26), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(168, 85, 247, 0.18), transparent 26%),
     var(--bg-1);
   color: var(--ink);
 }
@@ -51,7 +53,10 @@ body.dark {
   position: fixed;
   inset: 0;
   z-index: -2;
-  background: var(--bg-2);
+  background:
+    radial-gradient(circle at top right, rgba(91, 108, 255, 0.12), transparent 28%),
+    radial-gradient(circle at 0% 40%, rgba(168, 85, 247, 0.08), transparent 22%),
+    linear-gradient(180deg, var(--bg-1), var(--bg-2));
   pointer-events: none;
 }
 
@@ -1892,6 +1897,294 @@ body.dark .loader {
   display: none;
 }
 
+/* ================= SAAS SHELL ================= */
+.app-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 290px minmax(0, 1fr);
+}
+
+.app-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  padding: 28px 20px;
+  border-right: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(18px);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+body.dark .app-sidebar {
+  background: rgba(9, 17, 29, 0.62);
+}
+
+.sidebar-brand {
+  display: grid;
+  gap: 10px;
+}
+
+.logo-compact {
+  font-family: "Poppins", sans-serif;
+  font-size: 2rem;
+}
+
+.sidebar-brand p,
+.sidebar-promo p,
+.profile-card p {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.sidebar-nav {
+  display: grid;
+  gap: 8px;
+}
+
+.sidebar-link {
+  text-decoration: none;
+  color: var(--ink);
+  padding: 12px 14px;
+  border-radius: 16px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  transition: 0.2s ease;
+}
+
+.sidebar-link:hover,
+.sidebar-link.active {
+  background: linear-gradient(135deg, rgba(91, 108, 255, 0.12), rgba(168, 85, 247, 0.12));
+  border-color: var(--border);
+  transform: translateX(2px);
+}
+
+.sidebar-promo {
+  margin-top: auto;
+  background: linear-gradient(145deg, rgba(91, 108, 255, 0.12), rgba(168, 85, 247, 0.08));
+}
+
+.pill,
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pill {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(91, 108, 255, 0.1);
+  color: var(--accent-2);
+}
+
+.eyebrow {
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.app-main {
+  min-width: 0;
+  padding: 24px 28px 36px;
+}
+
+.app-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.app-topbar h1 {
+  font-family: "Poppins", sans-serif;
+  font-size: 2rem;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.user-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid var(--border);
+}
+
+body.dark .user-pill {
+  background: rgba(15, 23, 42, 0.72);
+}
+
+.user-avatar,
+.profile-avatar-large {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #5b6cff, #9b5cff);
+  box-shadow: 0 10px 20px rgba(91, 108, 255, 0.24);
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+}
+
+.profile-avatar-large {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  flex-shrink: 0;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 22px;
+}
+
+.content-column,
+.right-rail {
+  display: grid;
+  gap: 22px;
+  align-content: start;
+}
+
+.section-panel {
+  padding: 24px;
+  overflow: hidden;
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.section-head.compact {
+  margin-bottom: 12px;
+}
+
+.section-head h2,
+.section-head h3 {
+  font-family: "Poppins", sans-serif;
+}
+
+.hero-panel {
+  background:
+    linear-gradient(140deg, rgba(91, 108, 255, 0.1), rgba(168, 85, 247, 0.08)),
+    var(--card);
+}
+
+.hero-copy-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
+  gap: 18px;
+  margin-bottom: 8px;
+}
+
+.hero-copy {
+  display: grid;
+  gap: 14px;
+}
+
+.hero-copy h3 {
+  font-family: "Poppins", sans-serif;
+  font-size: 1.7rem;
+  line-height: 1.2;
+}
+
+.hero-copy p {
+  color: var(--muted);
+  max-width: 62ch;
+}
+
+.hero-actions,
+.generate-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.hero-metrics {
+  display: grid;
+  gap: 12px;
+}
+
+.mini-stat-card {
+  border-radius: 20px;
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--border);
+  display: grid;
+  gap: 6px;
+}
+
+body.dark .mini-stat-card {
+  background: rgba(16, 24, 42, 0.72);
+}
+
+.mini-stat-card span,
+.mini-stat-card small {
+  color: var(--muted);
+}
+
+.mini-stat-card strong {
+  font-size: 1.05rem;
+}
+
+.dashboard-generate-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap: 18px;
+}
+
+.builder-column {
+  display: grid;
+  gap: 16px;
+}
+
+.profile-card-body {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.sidebar-link-button {
+  display: inline-flex;
+  width: 100%;
+  justify-content: center;
+}
+
+.shell-scoreboard {
+  padding: 0;
+}
+
+.scoreboard-head h2 {
+  font-family: "Poppins", sans-serif;
+  margin-bottom: 8px;
+}
+
+.scoreboard-head p {
+  color: var(--muted);
+}
+
 /* ================= CONFETTI ================= */
 .confetti {
   position: fixed;
@@ -1916,6 +2209,31 @@ footer {
 }
 
 @media (max-width: 980px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .app-sidebar {
+    position: relative;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .app-main {
+    padding: 20px;
+  }
+
+  .app-topbar,
+  .section-head,
+  .hero-copy-grid,
+  .content-grid,
+  .dashboard-generate-grid {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   .nav,
   .hero,
   .features,
@@ -1964,8 +2282,8 @@ footer {
   }
 
   .scoreboard-shell {
-    padding-left: 28px;
-    padding-right: 28px;
+    padding-left: 0;
+    padding-right: 0;
   }
 
   .scoreboard-head {

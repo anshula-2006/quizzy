@@ -31,6 +31,14 @@ const flashTitle = document.getElementById("flashTitle");
 const attemptList = document.getElementById("attemptList");
 const savedList = document.getElementById("savedList");
 const flashList = document.getElementById("flashList");
+const userAvatar = document.getElementById("userAvatar");
+const profileAvatar = document.getElementById("profileAvatar");
+const profileName = document.getElementById("profileName");
+const profileSummary = document.getElementById("profileSummary");
+const welcomeHeadline = document.getElementById("welcomeHeadline");
+const welcomeSubline = document.getElementById("welcomeSubline");
+const quickGenerateBtn = document.getElementById("quickGenerateBtn");
+const resumeQuizBtn = document.getElementById("resumeQuizBtn");
 
 const correctSound = new Audio("assets/correct.mp3");
 const wrongSound = new Audio("assets/wrong.mp3");
@@ -368,6 +376,7 @@ function renderAuthNav() {
     logoutBtn?.classList.add("hidden");
     loginLink?.classList.remove("hidden");
     registerLink?.classList.remove("hidden");
+    if (userAvatar) userAvatar.textContent = "Q";
     return;
   }
 
@@ -376,6 +385,38 @@ function renderAuthNav() {
   logoutBtn?.classList.remove("hidden");
   loginLink?.classList.add("hidden");
   registerLink?.classList.add("hidden");
+  const initial = String(session.name || "Q").trim().charAt(0).toUpperCase() || "Q";
+  if (userAvatar) userAvatar.textContent = initial;
+  if (profileAvatar) profileAvatar.textContent = initial;
+}
+
+function renderSaasMeta() {
+  const session = auth?.getSession?.();
+  const entries = getHistory();
+  const average = entries.length
+    ? Math.round(entries.reduce((sum, entry) => sum + Number(entry.percentage || 0), 0) / entries.length)
+    : 0;
+  const streak = cloudProfile?.currentStreak ?? getStreak(entries);
+  const points = cloudProfile?.totalPoints ?? 0;
+
+  if (welcomeHeadline) {
+    welcomeHeadline.textContent = session?.name
+      ? `Welcome back, ${session.name}`
+      : "Welcome to Quizzy";
+  }
+  if (welcomeSubline) {
+    welcomeSubline.textContent = session?.name
+      ? `You have completed ${entries.length} quizzes with an average score of ${average}%. Keep your ${streak}-quiz streak alive and climb the leaderboard.`
+      : "Generate quizzes from a topic, PDF, or URL, then turn your progress into points, streaks, and badges.";
+  }
+  if (profileName) {
+    profileName.textContent = session?.name || "Quizzy Explorer";
+  }
+  if (profileSummary) {
+    profileSummary.textContent = session?.name
+      ? `Average score ${average}% | Current streak ${streak} | Points ${points}`
+      : "Sign in to sync attempts, streak, leaderboard rank, and saved study progress.";
+  }
 }
 
 async function loadCloudDataIntoLocal() {
@@ -403,6 +444,7 @@ async function bootstrapAuth() {
   syncChallengeRewards();
   saveSeenBadgeIds(getUnlockedBadgeCatalog().map((badge) => badge.id));
   renderAuthNav();
+  renderSaasMeta();
   renderEvaluationBoard();
   renderBadgeCabinet();
   renderGameHub();
@@ -888,6 +930,7 @@ async function clearDashboardHistory() {
 
 function renderEvaluationBoard() {
   if (!evaluationBoard) return;
+  renderSaasMeta();
   const entries = getHistory();
 
   const role = learnerMode?.value || "student";
@@ -2617,3 +2660,12 @@ renderGameHub();
 renderSidebar();
 renderFlashcardsBoard(getFlashDecks()[0] || null);
 bootstrapAuth();
+
+quickGenerateBtn?.addEventListener("click", () => {
+  document.getElementById("generateSection")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  input?.focus();
+});
+
+resumeQuizBtn?.addEventListener("click", () => {
+  document.getElementById("quizSection")?.scrollIntoView({ behavior: "smooth", block: "start" });
+});

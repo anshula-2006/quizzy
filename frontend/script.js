@@ -410,7 +410,7 @@ function renderSaasMeta() {
       : "Generate quizzes from a topic, PDF, or URL, then turn your progress into points, streaks, and badges.";
   }
   if (profileName) {
-    profileName.textContent = session?.name || "Quizzy Explorer";
+    profileName.textContent = session?.name || "Quizzy User";
   }
   if (profileSummary) {
     profileSummary.textContent = session?.name

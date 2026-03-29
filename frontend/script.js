@@ -517,7 +517,8 @@ function setActiveSource(source) {
 }
 
 function setThemeIcon() {
-  toggle.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
+  if (!toggle) return;
+  toggle.textContent = document.body.classList.contains("dark") ? "Sun" : "Moon";
 }
 
 function getHistory() {
@@ -917,15 +918,39 @@ function renderSidebar() {
 }
 
 async function clearDashboardHistory() {
-  localStorage.removeItem(historyKey());
-  if (isLoggedIn()) {
-    await cloudRequest("/data/attempts", { method: "DELETE" });
+  saveHistory([]);
+
+  if (!isLoggedIn()) {
+    syncChallengeRewards([]);
+    renderSaasMeta();
+    renderEvaluationBoard();
+    renderBadgeCabinet();
+    renderGameHub();
+    renderSidebar();
+    showToast("Dashboard history cleared.", "success");
+    return;
   }
-  syncChallengeRewards();
+
+  const result = await cloudRequest("/data/attempts", { method: "DELETE" });
+  if (!result.ok) {
+    await loadCloudDataIntoLocal();
+    renderSaasMeta();
+    renderEvaluationBoard();
+    renderBadgeCabinet();
+    renderGameHub();
+    renderSidebar();
+    showToast(result.error || "Could not clear dashboard history.", "error");
+    return;
+  }
+
+  await loadCloudDataIntoLocal();
+  syncChallengeRewards(getHistory());
+  renderSaasMeta();
   renderEvaluationBoard();
   renderBadgeCabinet();
   renderGameHub();
   renderSidebar();
+  showToast("Dashboard history cleared.", "success");
 }
 
 function renderEvaluationBoard() {

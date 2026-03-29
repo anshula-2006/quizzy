@@ -491,9 +491,10 @@ function renderBoard() {
 }
 
 async function clearHistory() {
-  localStorage.removeItem(historyKey());
+  saveHistory([]);
   if (isLoggedIn()) {
     await cloudRequest("/data/attempts", { method: "DELETE" });
+    await syncFromCloud();
   }
   renderBoard();
 }

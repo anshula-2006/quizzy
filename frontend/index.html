@@ -4,264 +4,388 @@
   <meta charset="UTF-8" />
   <title>Quizzy</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    tailwind = {
+      config: {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              brand: "#7C3AED",
+              accent: "#06B6D4"
+            },
+            boxShadow: {
+              glow: "0 24px 80px rgba(124, 58, 237, 0.35)"
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: "Inter", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(124, 58, 237, 0.35), transparent 25%),
+        radial-gradient(circle at top right, rgba(6, 182, 212, 0.25), transparent 20%),
+        linear-gradient(180deg, #0f1021 0%, #131735 48%, #0d1224 100%);
+    }
+
+    body.dark {
+      background:
+        radial-gradient(circle at top left, rgba(124, 58, 237, 0.42), transparent 25%),
+        radial-gradient(circle at top right, rgba(6, 182, 212, 0.28), transparent 20%),
+        linear-gradient(180deg, #050816 0%, #0a1025 48%, #04070f 100%);
+    }
+
+    .glass-panel {
+      background: rgba(13, 18, 36, 0.56);
+      backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .float-orb {
+      animation: floaty 6s ease-in-out infinite;
+    }
+
+    .float-orb.delay-1 {
+      animation-delay: 1s;
+    }
+
+    .float-orb.delay-2 {
+      animation-delay: 2s;
+    }
+
+    .fade-in-up {
+      animation: fadeUp 0.45s ease;
+    }
+
+    .quiz-option {
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .quiz-option:hover {
+      transform: translateY(-2px) scale(1.01);
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+    }
+
+    .quiz-option.correct {
+      border-color: rgba(34, 197, 94, 0.8) !important;
+      background: rgba(34, 197, 94, 0.18) !important;
+    }
+
+    .quiz-option.wrong {
+      border-color: rgba(248, 113, 113, 0.84) !important;
+      background: rgba(239, 68, 68, 0.16) !important;
+    }
+
+    .quiz-option.disabled {
+      cursor: default;
+    }
+
+    .pulse-dot {
+      animation: pulseDot 1.6s ease-in-out infinite;
+    }
+
+    @keyframes floaty {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes pulseDot {
+      0%, 100% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.28); opacity: 1; }
+    }
+  </style>
 </head>
-<body>
-  <div class="bg"></div>
+<body class="text-slate-50">
+  <div class="relative min-h-screen overflow-x-hidden">
+    <div class="pointer-events-none absolute inset-0 overflow-hidden">
+      <div class="float-orb absolute left-[8%] top-24 h-28 w-28 rounded-full bg-fuchsia-400/20 blur-3xl"></div>
+      <div class="float-orb delay-1 absolute right-[10%] top-40 h-36 w-36 rounded-full bg-cyan-400/20 blur-3xl"></div>
+      <div class="float-orb delay-2 absolute bottom-20 left-1/2 h-40 w-40 -translate-x-1/2 rounded-full bg-violet-500/20 blur-3xl"></div>
+    </div>
 
-  <div class="app-shell">
-    <aside class="app-sidebar">
-      <div class="sidebar-brand">
-        <div class="logo logo-compact">
-          <span class="logo-icon" aria-hidden="true">
-            <svg viewBox="0 0 64 64" role="img" focusable="false">
-              <path d="M20 30c-5 0-9 4-9 9s4 9 9 9h12c7 0 12-5 12-12 0-6-4-10-9-11" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M38 16l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="currentColor"/>
-            </svg>
-          </span>
-          Quiz<span>zy</span>
-        </div>
-        <p>Generate quizzes, track progress, and review results.</p>
-      </div>
-
-      <nav class="sidebar-nav">
-        <a class="sidebar-link active" href="#dashboardSection">Dashboard</a>
-        <a class="sidebar-link" href="#generateSection">Generate Quiz</a>
-        <a class="sidebar-link" href="#historySection">My Quizzes / History</a>
-        <a class="sidebar-link" href="./scoreboard.html">Leaderboard</a>
-        <a class="sidebar-link" href="#profileSection">Profile</a>
-      </nav>
-
-      <div class="sidebar-promo card">
-        <span class="pill">Quiz Tools</span>
-        <h3>Generate from topic, PDF, or URL</h3>
-        <p>Track streaks, points, and badges in one place.</p>
-      </div>
-    </aside>
-
-    <div class="app-main">
-      <header class="app-topbar">
-        <div>
-          <p class="eyebrow">Quizzy</p>
-          <h1>Quiz Dashboard</h1>
-        </div>
-        <div class="topbar-actions">
-          <a class="nav-link" href="./scoreboard.html">Leaderboard</a>
-          <a id="loginLink" class="nav-link" href="./login.html">Login</a>
-          <a id="registerLink" class="nav-link" href="./register.html">Register</a>
-          <button id="logoutBtn" class="ghost hidden" type="button">Logout</button>
-          <div class="user-pill">
-            <span id="userAvatar" class="user-avatar">Q</span>
-            <span id="authUser" class="auth-user hidden"></span>
+    <div class="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 pb-20 pt-4 sm:px-6 lg:px-8">
+      <header class="glass-panel sticky top-4 z-30 mb-8 rounded-[28px] px-4 py-4 shadow-glow sm:px-6">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div class="flex items-center gap-3">
+            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-cyan-400 text-xl font-black shadow-lg">Q</div>
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[0.35em] text-violet-200">Quizzy</p>
+              <h1 class="text-lg font-black sm:text-xl">AI Quiz Generator</h1>
+            </div>
           </div>
-          <button id="themeToggle" aria-label="Toggle theme"></button>
+
+          <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+            <a class="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-white/80 transition hover:border-cyan-300/50 hover:text-white" href="./scoreboard.html">Leaderboard</a>
+            <a id="loginLink" class="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-white/80 transition hover:border-cyan-300/50 hover:text-white" href="./login.html">Login</a>
+            <a id="registerLink" class="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:scale-[1.02]" href="./register.html">Register</a>
+            <button id="logoutBtn" class="ghost hidden rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-white/80 transition hover:border-rose-300/50 hover:text-white" type="button">Logout</button>
+            <div class="glass-panel flex items-center gap-3 rounded-full px-3 py-2">
+              <span id="userAvatar" class="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-cyan-400 text-sm font-bold">Q</span>
+              <div class="min-w-0">
+                <p id="authUser" class="auth-user hidden truncate text-sm font-semibold text-white"></p>
+                <p id="profileSummary" class="truncate text-xs text-white/60">Ready for a quick quiz?</p>
+              </div>
+            </div>
+            <button id="themeToggle" class="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-white/80 transition hover:border-violet-300/50 hover:text-white" aria-label="Toggle theme"></button>
+          </div>
         </div>
       </header>
 
-      <div class="content-grid">
-        <main class="content-column">
-          <section id="dashboardSection" class="card section-panel hero-panel">
-            <div class="section-head">
-              <div>
-                <p class="eyebrow">Dashboard</p>
-                <h2 id="welcomeHeadline">Welcome back to Quizzy</h2>
-              </div>
-              <span class="pill">Overview</span>
-            </div>
+      <main class="flex flex-1 flex-col gap-8">
+        <section id="dashboardSection" class="relative overflow-hidden rounded-[36px] border border-white/15 bg-gradient-to-br from-violet-600/35 via-fuchsia-500/15 to-cyan-400/20 px-6 py-8 shadow-glow sm:px-8 lg:px-10">
+          <div class="absolute right-6 top-6 hidden h-28 w-28 rounded-full border border-white/10 bg-white/5 blur-sm lg:block"></div>
+          <div class="absolute bottom-6 right-24 hidden h-16 w-16 rounded-full bg-cyan-300/20 blur-2xl lg:block"></div>
 
-            <div class="hero-copy-grid">
-              <div class="hero-copy">
-                <h3>Create and attempt AI-generated quizzes</h3>
-                <p id="welcomeSubline">Generate quizzes from a topic, a PDF, or a public URL, then track your performance, streaks, and points.</p>
-                <div class="hero-actions">
-                  <button id="quickGenerateBtn" type="button">Generate Quiz</button>
-                  <button id="resumeQuizBtn" class="ghost" type="button">Resume Quiz</button>
+          <div class="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
+            <div class="max-w-3xl">
+              <p class="mb-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-violet-100">
+                <span class="pulse-dot h-2 w-2 rounded-full bg-cyan-300"></span>
+                Fast quiz mode
+              </p>
+              <h2 id="welcomeHeadline" class="max-w-2xl text-4xl font-black leading-tight sm:text-5xl lg:text-6xl">
+                Ready to test your brain? 🧠⚡
+              </h2>
+              <p id="welcomeSubline" class="mt-4 max-w-2xl text-base leading-7 text-white/75 sm:text-lg">
+                Pick a topic, PDF, or URL and jump straight into a playful AI quiz in seconds.
+              </p>
+
+              <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+                <button id="quickGenerateBtn" type="button" class="rounded-full bg-white px-7 py-4 text-base font-black text-slate-900 transition hover:-translate-y-0.5 hover:scale-[1.02]">
+                  Start Quiz
+                </button>
+                <button id="resumeQuizBtn" type="button" class="rounded-full border border-white/20 bg-white/10 px-7 py-4 text-base font-bold text-white transition hover:-translate-y-0.5 hover:bg-white/15">
+                  Create from PDF / Topic
+                </button>
+              </div>
+
+              <div class="mt-8 grid gap-3 text-sm text-white/80 sm:grid-cols-3">
+                <div class="glass-panel rounded-3xl px-4 py-4">
+                  <p class="font-bold text-white">1. Pick your source</p>
+                  <p class="mt-1 text-white/65">Topic, PDF, or URL.</p>
+                </div>
+                <div class="glass-panel rounded-3xl px-4 py-4">
+                  <p class="font-bold text-white">2. Generate instantly</p>
+                  <p class="mt-1 text-white/65">No long setup forms.</p>
+                </div>
+                <div class="glass-panel rounded-3xl px-4 py-4">
+                  <p class="font-bold text-white">3. Play the quiz</p>
+                  <p class="mt-1 text-white/65">One question at a time.</p>
                 </div>
               </div>
-              <div class="hero-metrics">
-                <article class="mini-stat-card">
-                  <span>Total quizzes</span>
-                  <strong>Progress</strong>
-                  <small>Synced from your attempt history</small>
-                </article>
-                <article class="mini-stat-card">
-                  <span>Streak + points</span>
-                  <strong>Streaks and points</strong>
-                  <small>XP, badges, and leaderboard rank</small>
-                </article>
-              </div>
             </div>
 
-            <section id="evaluationBoard" class="evaluation-board"></section>
-          </section>
+            <div class="grid gap-4">
+              <div class="glass-panel rounded-[32px] p-5">
+                <p class="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-200">Quick vibe</p>
+                <div class="mt-4 grid gap-3">
+                  <div class="flex items-center justify-between rounded-2xl bg-white/8 px-4 py-3">
+                    <span class="text-white/70">Mood</span>
+                    <span class="font-bold text-white">Playful + focused</span>
+                  </div>
+                  <div class="flex items-center justify-between rounded-2xl bg-white/8 px-4 py-3">
+                    <span class="text-white/70">Best for</span>
+                    <span class="font-bold text-white">Students</span>
+                  </div>
+                  <div class="flex items-center justify-between rounded-2xl bg-white/8 px-4 py-3">
+                    <span class="text-white/70">Quiz speed</span>
+                    <span class="font-bold text-white">Under 5 seconds to start</span>
+                  </div>
+                </div>
+              </div>
 
-          <section id="generateSection" class="card section-panel">
-            <div class="section-head">
+              <div class="glass-panel rounded-[32px] p-5">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-sm font-semibold text-white/65">Player</p>
+                    <p id="profileName" class="text-xl font-black text-white">Quizzy User</p>
+                  </div>
+                  <div id="profileAvatar" class="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-cyan-400 text-lg font-black text-white">Q</div>
+                </div>
+                <p class="mt-4 text-sm leading-6 text-white/65">Sign in to sync your attempts, unlock badges, and keep your streak alive across devices.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="generateSection" class="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+          <div class="glass-panel rounded-[32px] p-6 sm:p-8">
+            <div class="mb-6 flex items-start justify-between gap-4">
               <div>
-                <p class="eyebrow">Generate Quiz</p>
-                <h2>Create a quiz</h2>
+                <p class="text-xs font-semibold uppercase tracking-[0.3em] text-violet-200">Start fast</p>
+                <h3 class="mt-2 text-2xl font-black text-white sm:text-3xl">Create your next quiz</h3>
+                <p class="mt-2 text-sm leading-6 text-white/65">Simple flow: choose a source, add your content, and jump right in.</p>
               </div>
-              <span class="pill">Topic / PDF / URL</span>
+              <span class="rounded-full bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-100">3 steps</span>
             </div>
 
-            <div class="dashboard-generate-grid">
-              <div class="builder-column">
-                <div class="quiz-settings">
-                  <div class="setting">
-                    <label>Difficulty</label>
-                    <div class="mode-group" data-target="difficultyMode">
-                      <button type="button" class="mode-option" data-value="easy" data-emoji="E">Easy</button>
-                      <button type="button" class="mode-option active" data-value="moderate" data-emoji="M">Moderate</button>
-                      <button type="button" class="mode-option" data-value="tough" data-emoji="T">Tough</button>
-                      <button type="button" class="mode-option danger" data-value="super" data-emoji="S">Super</button>
+            <div class="grid gap-5">
+              <div>
+                <p class="mb-3 text-sm font-bold text-white">Step 1 → Choose your input type</p>
+                <div class="grid gap-3 sm:grid-cols-3">
+                  <button type="button" class="source-btn rounded-3xl border border-white/12 bg-white/6 px-4 py-4 text-left transition hover:-translate-y-0.5 hover:border-violet-300/50 hover:bg-white/10 active" data-source="text">
+                    <span class="block text-sm font-black text-white">Topic</span>
+                    <span class="mt-1 block text-xs leading-5 text-white/60">Type a topic or paste notes.</span>
+                  </button>
+                  <button type="button" class="source-btn rounded-3xl border border-white/12 bg-white/6 px-4 py-4 text-left transition hover:-translate-y-0.5 hover:border-violet-300/50 hover:bg-white/10" data-source="pdf">
+                    <span class="block text-sm font-black text-white">PDF</span>
+                    <span class="mt-1 block text-xs leading-5 text-white/60">Upload slides or study docs.</span>
+                  </button>
+                  <button type="button" class="source-btn rounded-3xl border border-white/12 bg-white/6 px-4 py-4 text-left transition hover:-translate-y-0.5 hover:border-violet-300/50 hover:bg-white/10" data-source="url">
+                    <span class="block text-sm font-black text-white">URL</span>
+                    <span class="mt-1 block text-xs leading-5 text-white/60">Turn an article into a quiz.</span>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <p class="mb-3 text-sm font-bold text-white">Step 2 → Add your content</p>
+                <textarea id="inputText" class="min-h-[180px] w-full rounded-[28px] border border-white/12 bg-slate-950/35 px-5 py-4 text-base text-white outline-none placeholder:text-white/30 focus:border-cyan-300/60" placeholder="Try something like: photosynthesis, Indian constitution, recursion, cell division, Newton's laws..."></textarea>
+                <input id="urlInput" class="source-input hidden w-full rounded-[24px] border border-white/12 bg-slate-950/35 px-5 py-4 text-base text-white outline-none placeholder:text-white/30 focus:border-cyan-300/60" type="url" placeholder="https://example.com/article" />
+                <input id="pdfInput" class="source-input hidden w-full rounded-[24px] border border-dashed border-white/20 bg-slate-950/25 px-5 py-4 text-sm text-white/70 file:mr-4 file:rounded-full file:border-0 file:bg-white file:px-4 file:py-2 file:font-semibold file:text-slate-900 hover:file:bg-cyan-100" type="file" accept=".pdf,application/pdf" />
+                <p id="sourceHint" class="mt-3 text-sm text-white/55">Paste study text to generate a quiz.</p>
+              </div>
+
+              <div class="rounded-[28px] border border-white/10 bg-white/5 p-4">
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p class="text-sm font-bold text-white">Step 3 → Generate and play</p>
+                    <p class="mt-1 text-sm text-white/55">Default settings are already tuned for a quick student quiz.</p>
+                  </div>
+                  <div class="flex flex-col gap-3 sm:flex-row">
+                    <button id="generateBtn" class="rounded-full bg-gradient-to-r from-violet-500 to-cyan-400 px-6 py-3 text-sm font-black text-white shadow-lg transition hover:-translate-y-0.5 hover:scale-[1.02]" disabled>Generate Quiz</button>
+                    <button id="flashcardsBtn" class="ghost rounded-full border border-white/14 bg-white/8 px-6 py-3 text-sm font-bold text-white transition hover:bg-white/12" disabled>Generate Flashcards</button>
+                  </div>
+                </div>
+              </div>
+
+              <details class="rounded-[28px] border border-white/10 bg-slate-950/20 p-4">
+                <summary class="cursor-pointer text-sm font-bold text-white">Optional tuning</summary>
+                <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                  <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <label for="languageMode" class="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-white/45">Language</label>
+                    <select id="languageMode" class="w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white outline-none">
+                      <option value="English" selected>English</option>
+                      <option value="Hindi">Hindi</option>
+                      <option value="Bengali">Bengali</option>
+                      <option value="Tamil">Tamil</option>
+                      <option value="Telugu">Telugu</option>
+                      <option value="Marathi">Marathi</option>
+                      <option value="Gujarati">Gujarati</option>
+                      <option value="Kannada">Kannada</option>
+                      <option value="Malayalam">Malayalam</option>
+                      <option value="Punjabi">Punjabi</option>
+                      <option value="Urdu">Urdu</option>
+                      <option value="Spanish">Spanish</option>
+                      <option value="French">French</option>
+                      <option value="German">German</option>
+                      <option value="Portuguese">Portuguese</option>
+                      <option value="Italian">Italian</option>
+                      <option value="Arabic">Arabic</option>
+                      <option value="Chinese">Chinese</option>
+                      <option value="Korean">Korean</option>
+                      <option value="Japanese">Japanese</option>
+                    </select>
+                  </div>
+                  <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <p class="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/45">Mode</p>
+                    <div class="grid gap-3">
+                      <div class="grid grid-cols-2 gap-2 mode-group" data-target="difficultyMode">
+                        <button type="button" class="mode-option rounded-2xl border border-white/10 bg-white/8 px-4 py-3 text-sm font-semibold text-white active" data-value="moderate">Moderate</button>
+                        <button type="button" class="mode-option rounded-2xl border border-white/10 bg-white/8 px-4 py-3 text-sm font-semibold text-white" data-value="tough">Tough</button>
+                      </div>
+                      <div class="grid grid-cols-2 gap-2 mode-group" data-target="questionMode">
+                        <button type="button" class="mode-option rounded-2xl border border-white/10 bg-white/8 px-4 py-3 text-sm font-semibold text-white active" data-value="mcq">MCQ</button>
+                        <button type="button" class="mode-option rounded-2xl border border-white/10 bg-white/8 px-4 py-3 text-sm font-semibold text-white" data-value="mixed">Mixed</button>
+                      </div>
                     </div>
                     <input type="hidden" id="difficultyMode" value="moderate" />
-                  </div>
-
-                  <div class="setting">
-                    <label>Learner Type</label>
-                    <div class="role-cards">
-                      <button type="button" class="role-card active" data-role="student" data-emoji="S">
-                        <strong><span class="role-icon">Student</span></strong>
-                        <span>Exam practice, timing pressure, and clearer corrections.</span>
-                      </button>
-                      <button type="button" class="role-card" data-role="teacher" data-emoji="T">
-                        <strong><span class="role-icon">Teacher</span></strong>
-                        <span>Diagnostic prompts, misconception checks, and class-ready questions.</span>
-                      </button>
-                      <button type="button" class="role-card" data-role="self-study" data-emoji="L">
-                        <strong><span class="role-icon">Self-study</span></strong>
-                        <span>Retention-first flow with quick explanations and memory support.</span>
-                      </button>
-                    </div>
-                    <p id="roleFlavor" class="mode-note">Student mode: balanced exam-oriented practice.</p>
+                    <input type="hidden" id="questionMode" value="mcq" />
                     <input type="hidden" id="learnerMode" value="student" />
+                    <p id="roleFlavor" class="mt-3 text-xs text-white/45">Student mode: balanced exam-oriented practice.</p>
                   </div>
                 </div>
+              </details>
+            </div>
+          </div>
+
+          <div class="grid gap-6">
+            <section class="glass-panel rounded-[32px] p-6 sm:p-8">
+              <div class="mb-5 flex items-center justify-between gap-4">
+                <div>
+                  <p class="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-200">Your momentum</p>
+                  <h3 class="mt-2 text-2xl font-black text-white">Progress snapshot</h3>
+                </div>
+                <a class="rounded-full border border-white/12 px-4 py-2 text-sm font-semibold text-white/80 transition hover:border-cyan-300/50 hover:text-white" href="./scoreboard.html">Open leaderboard</a>
               </div>
+              <section id="evaluationBoard" class="space-y-4"></section>
+            </section>
 
-              <div class="builder-column">
-                <div class="setting setting-right">
-                  <label for="languageMode">Output Language</label>
-                  <select id="languageMode" class="language-select">
-                    <option value="English" selected>English</option>
-                    <option value="Hindi">Hindi</option>
-                    <option value="Bengali">Bengali</option>
-                    <option value="Tamil">Tamil</option>
-                    <option value="Telugu">Telugu</option>
-                    <option value="Marathi">Marathi</option>
-                    <option value="Gujarati">Gujarati</option>
-                    <option value="Kannada">Kannada</option>
-                    <option value="Malayalam">Malayalam</option>
-                    <option value="Punjabi">Punjabi</option>
-                    <option value="Urdu">Urdu</option>
-                    <option value="Spanish">Spanish</option>
-                    <option value="French">French</option>
-                    <option value="German">German</option>
-                    <option value="Portuguese">Portuguese</option>
-                    <option value="Italian">Italian</option>
-                    <option value="Arabic">Arabic</option>
-                    <option value="Chinese">Chinese</option>
-                    <option value="Korean">Korean</option>
-                    <option value="Japanese">Japanese</option>
-                  </select>
-                </div>
-
-                <div class="setting setting-right">
-                  <label>Question Type</label>
-                  <div class="mode-group mode-group-three" data-target="questionMode">
-                    <button type="button" class="mode-option active" data-value="mcq" data-emoji="M">MCQ</button>
-                    <button type="button" class="mode-option" data-value="mixed" data-emoji="X">Mixed</button>
-                    <button type="button" class="mode-option" data-value="short" data-emoji="S">Short</button>
-                  </div>
-                  <input type="hidden" id="questionMode" value="mcq" />
-                </div>
-
-                <div class="setting setting-right">
-                  <label>Topic or Study Material</label>
-                  <div class="source-switch" role="tablist" aria-label="Input source">
-                    <button type="button" class="source-btn active" data-source="text">Topic / Text</button>
-                    <button type="button" class="source-btn" data-source="url">URL</button>
-                    <button type="button" class="source-btn" data-source="pdf">PDF</button>
-                  </div>
-                  <textarea id="inputText" placeholder="Explain CPU scheduling, photosynthesis, recursion, or paste your own notes..."></textarea>
-                  <input id="urlInput" class="source-input hidden" type="url" placeholder="https://example.com/article" />
-                  <input id="pdfInput" class="source-input hidden" type="file" accept=".pdf,application/pdf" />
-                  <p id="sourceHint" class="source-hint">Paste study text to generate a quiz.</p>
-                </div>
-
-                <div class="generate-actions">
-                  <button id="generateBtn" disabled>Generate Quiz</button>
-                  <button id="flashcardsBtn" class="ghost" disabled>Generate Flashcards</button>
+            <section class="glass-panel rounded-[32px] p-6 sm:p-8">
+              <div class="mb-5 flex items-center justify-between gap-4">
+                <div>
+                  <p class="text-xs font-semibold uppercase tracking-[0.28em] text-violet-200">Study stash</p>
+                  <h3 class="mt-2 text-2xl font-black text-white">Saved for later</h3>
                 </div>
               </div>
-            </div>
-          </section>
+              <section id="historySection" class="grid gap-4 lg:grid-cols-3">
+                <div class="rounded-[24px] border border-white/10 bg-white/5 p-4">
+                  <p id="timelineTitle" class="text-sm font-bold text-white">Recent runs</p>
+                  <div id="attemptList" class="mt-4 space-y-3"></div>
+                </div>
+                <div class="rounded-[24px] border border-white/10 bg-white/5 p-4">
+                  <p id="savedTitle" class="text-sm font-bold text-white">Saved questions</p>
+                  <div id="savedList" class="mt-4 space-y-3"></div>
+                </div>
+                <div class="rounded-[24px] border border-white/10 bg-white/5 p-4">
+                  <p id="flashTitle" class="text-sm font-bold text-white">Flash decks</p>
+                  <div id="flashList" class="mt-4 space-y-3"></div>
+                </div>
+              </section>
+            </section>
+          </div>
+        </section>
 
-          <section id="quizSection" class="card section-panel">
-            <div class="section-head">
-              <div>
-                <p class="eyebrow">Quiz Session</p>
-                <h2>Take the quiz</h2>
-              </div>
-              <span class="pill">MCQ + Short Answer</span>
-            </div>
-            <div id="quiz"></div>
-            <section id="flashcardsBoard" class="evaluation-board"></section>
-          </section>
+        <section id="quizSection" class="relative">
+          <div id="quiz"></div>
+          <section id="flashcardsBoard" class="mt-8"></section>
+        </section>
 
-          <section class="card section-panel">
-            <div class="section-head">
-              <div>
-                <p class="eyebrow">Rewards</p>
-                <h2>Badges, challenges, and games</h2>
-              </div>
-              <span class="pill">Rewards</span>
+        <section class="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+          <div class="glass-panel rounded-[32px] p-6 sm:p-8">
+            <div class="mb-5">
+              <p class="text-xs font-semibold uppercase tracking-[0.28em] text-violet-200">Collection</p>
+              <h3 class="mt-2 text-2xl font-black text-white">Badge cabinet</h3>
             </div>
-            <section id="badgeCabinet" class="evaluation-board"></section>
-            <section id="gameHub" class="evaluation-board"></section>
-          </section>
-        </main>
+            <section id="badgeCabinet"></section>
+          </div>
+          <div class="glass-panel rounded-[32px] p-6 sm:p-8">
+            <div class="mb-5">
+              <p class="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-200">Bonus mode</p>
+              <h3 class="mt-2 text-2xl font-black text-white">Mini arcade</h3>
+            </div>
+            <section id="gameHub"></section>
+          </div>
+        </section>
 
-        <aside class="right-rail">
-          <section id="profileSection" class="card profile-card">
-            <div class="section-head compact">
-              <div>
-                <p class="eyebrow">Profile</p>
-                <h3>Profile</h3>
-              </div>
-            </div>
-            <div class="profile-card-body">
-              <div class="profile-avatar-large" id="profileAvatar">Q</div>
-              <div>
-                <strong id="profileName">Quizzy User</strong>
-                <p id="profileSummary">Sign in to sync your attempts, streak, and leaderboard rank.</p>
-              </div>
-            </div>
-          </section>
-
-          <aside id="quizSidebar" class="card quiz-sidebar">
-            <h3 id="sidebarTitle">Mission Control</h3>
-            <p class="sidebar-note">Your attempts, saved questions, and flashcards live here.</p>
-            <div class="sidebar-block" id="historySection">
-              <h4 id="timelineTitle">Attempt Timeline</h4>
-              <div id="attemptList" class="sidebar-list"></div>
-            </div>
-            <div class="sidebar-block">
-              <h4 id="savedTitle">Saved Questions</h4>
-              <div id="savedList" class="sidebar-list"></div>
-            </div>
-            <div class="sidebar-block">
-              <h4 id="flashTitle">Flashcard Decks</h4>
-              <div id="flashList" class="sidebar-list"></div>
-            </div>
-            <div class="sidebar-block">
-              <a class="nav-link sidebar-link-button" href="./scoreboard.html">Open Leaderboard & Full Stats</a>
-            </div>
-          </aside>
-        </aside>
-      </div>
+        <div id="sidebarTitle" class="hidden"></div>
+      </main>
     </div>
   </div>
 
@@ -269,7 +393,7 @@
     <video autoplay muted loop playsinline>
       <source src="assets/loader.mp4" type="video/mp4">
     </video>
-    <p>Quizzy is generating your study experience...</p>
+    <p>Quizzy is spinning up your next challenge...</p>
   </div>
 
   <script type="module" src="script.js"></script>

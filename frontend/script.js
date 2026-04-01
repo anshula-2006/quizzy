@@ -868,6 +868,12 @@ function getBandLabel(score) {
   return "Recovery";
 }
 
+function getSourceEmoji(sourceType) {
+  if (sourceType === "pdf") return "PDF";
+  if (sourceType === "url") return "URL";
+  return "TOPIC";
+}
+
 function renderSidebar() {
   const entries = getHistory();
   const saved = getSavedQuestions();
@@ -877,17 +883,34 @@ function renderSidebar() {
   if (attemptList) {
     attemptList.innerHTML = entries.length
       ? entries.slice(0, 8).map((e) => `
-          <div class="mini-item">
-            <strong>${e.percentage}%</strong>
-            <span>${e.score}/${e.total} | ${formatShortDate(e.createdAt)}</span>
-            <small>${(e.settings?.difficulty || "moderate").toUpperCase()} | ${(e.settings?.questionMode || "mcq").toUpperCase()} | ${(e.settings?.outputLanguage || "English").toUpperCase()}</small>
-          </div>
+          <article class="rounded-2xl border border-white/10 bg-white/6 p-3 text-white">
+            <div class="flex items-center justify-between gap-2">
+              <strong class="text-lg font-black">${e.percentage}%</strong>
+              <span class="rounded-full bg-white/10 px-2 py-1 text-[11px] font-semibold tracking-[0.18em] text-white/70">${getSourceEmoji(e.sourceType)}</span>
+            </div>
+            <p class="mt-2 text-xs text-white/65">${e.score}/${e.total} • ${formatShortDate(e.createdAt)}</p>
+            <p class="mt-1 text-xs text-white/50">${(e.settings?.difficulty || "moderate").toUpperCase()} • ${(e.settings?.questionMode || "mcq").toUpperCase()} • ${(e.settings?.outputLanguage || "English").toUpperCase()}</p>
+          </article>
         `).join("")
-      : `<p class="mini-empty">No attempts yet.</p>`;
+      : `<p class="rounded-2xl border border-dashed border-white/10 bg-white/5 px-4 py-5 text-sm text-white/55">No attempts yet. Your latest runs will appear here.</p>`;
     if (entries.length) {
       attemptList.insertAdjacentHTML(
         "afterbegin",
-        `<div class="mini-item mini-item-accent"><strong>Lvl ${game.level}</strong><span>${game.totalXp} XP</span><small>${game.badges.length} badge(s) unlocked</small><div class="mini-progress"><span style="width:${game.progress}%"></span></div></div>`
+        `<article class="rounded-3xl border border-cyan-300/20 bg-gradient-to-r from-violet-500/20 to-cyan-400/15 p-4 text-white">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <p class="text-xs uppercase tracking-[0.25em] text-cyan-100/80">Current level</p>
+              <strong class="mt-1 block text-2xl font-black">Lvl ${game.level}</strong>
+            </div>
+            <div class="text-right">
+              <p class="text-sm font-bold">${game.totalXp} XP</p>
+              <p class="text-xs text-white/60">${game.badges.length} badge(s) unlocked</p>
+            </div>
+          </div>
+          <div class="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
+            <span class="block h-full rounded-full bg-gradient-to-r from-violet-300 to-cyan-300" style="width:${game.progress}%"></span>
+          </div>
+        </article>`
       );
     }
   }
@@ -895,24 +918,26 @@ function renderSidebar() {
   if (savedList) {
     savedList.innerHTML = saved.length
       ? saved.slice(0, 10).map((item) => `
-          <details class="saved-item">
-            <summary>${item.question}</summary>
-            <p><strong>Answer:</strong> ${item.correct}</p>
-            <p>${item.explanation || ""}</p>
+          <details class="rounded-2xl border border-white/10 bg-white/6 p-3 text-white/80">
+            <summary class="cursor-pointer list-none text-sm font-semibold text-white">${item.question}</summary>
+            <p class="mt-3 text-xs"><strong class="text-white">Answer:</strong> ${item.correct}</p>
+            <p class="mt-2 text-xs leading-5 text-white/60">${item.explanation || ""}</p>
           </details>
         `).join("")
-      : `<p class="mini-empty">No saved questions yet.</p>`;
+      : `<p class="rounded-2xl border border-dashed border-white/10 bg-white/5 px-4 py-5 text-sm text-white/55">No saved questions yet.</p>`;
   }
 
   if (flashList) {
     flashList.innerHTML = decks.length
       ? decks.slice(0, 6).map((deck) => `
-          <details class="saved-item">
-            <summary>${deck.title} (${deck.flashcards.length})</summary>
-            ${deck.flashcards.slice(0, 3).map((c) => `<p><strong>${c.front}</strong><br/>${c.back}</p>`).join("")}
+          <details class="rounded-2xl border border-white/10 bg-white/6 p-3 text-white/80">
+            <summary class="cursor-pointer list-none text-sm font-semibold text-white">${deck.title} (${deck.flashcards.length})</summary>
+            <div class="mt-3 space-y-2">
+              ${deck.flashcards.slice(0, 3).map((c) => `<p class="rounded-xl bg-black/20 px-3 py-2 text-xs"><strong class="text-white">${c.front}</strong><br/>${c.back}</p>`).join("")}
+            </div>
           </details>
         `).join("")
-      : `<p class="mini-empty">No flashcard decks generated yet.</p>`;
+      : `<p class="rounded-2xl border border-dashed border-white/10 bg-white/5 px-4 py-5 text-sm text-white/55">No flashcard decks generated yet.</p>`;
   }
 
 }
@@ -963,14 +988,15 @@ function renderEvaluationBoard() {
 
   if (entries.length === 0) {
     evaluationBoard.innerHTML = `
-      <div class="card evaluation-empty">
-        <div class="evaluation-head">
-          <h3>${labels.dashboard}</h3>
-          <div class="evaluation-head-actions">
-            <button id="clearHistoryBtn" class="ghost" type="button">Clear Dashboard</button>
+      <div class="rounded-[28px] border border-dashed border-white/15 bg-white/5 p-6 text-white">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[0.25em] text-violet-200">${labels.dashboard}</p>
+            <h3 class="mt-2 text-2xl font-black">No runs yet</h3>
+            <p class="mt-2 max-w-xl text-sm leading-6 text-white/60">Generate your first quiz and this area will turn into a progress snapshot with streaks, XP, and review notes.</p>
           </div>
+          <button id="clearHistoryBtn" class="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-white/75 transition hover:text-white" type="button">Clear History</button>
         </div>
-        <p>Attempt quizzes to unlock your progress board, trends, and review deck.</p>
       </div>
     `;
     document.getElementById("clearHistoryBtn")?.addEventListener("click", clearDashboardHistory);
@@ -985,51 +1011,103 @@ function renderEvaluationBoard() {
   const recent = entries.slice(0, 5);
   const wrongCount = latestAnswers.filter((a) => !a.isCorrect).length;
   const game = getGamification(entries);
-  const unlockedBadges = game.badges.map((badge) => `<span class="meta-chip">${badge.icon} ${badge.label}</span>`).join("");
+  const unlockedBadges = game.badges.slice(0, 4).map((badge) => `
+    <span class="rounded-full border border-white/10 bg-white/8 px-3 py-1 text-xs font-semibold text-white/80">${badge.label}</span>
+  `).join("");
 
   evaluationBoard.innerHTML = `
-    <div class="evaluation-wrap">
-      <div class="evaluation-head">
-        <h3>${labels.dashboard}</h3>
-        <div class="evaluation-head-actions">
-          <button id="clearHistoryBtn" class="ghost" type="button">Clear Dashboard</button>
+    <div class="space-y-4">
+      <div class="grid gap-4 md:grid-cols-[1.1fr_0.9fr]">
+        <div class="rounded-[28px] border border-white/10 bg-gradient-to-br from-violet-500/18 to-cyan-400/10 p-5 text-white">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[0.25em] text-violet-200">${labels.dashboard}</p>
+              <h3 class="mt-2 text-3xl font-black">${latest.percentage}% latest score</h3>
+              <p class="mt-2 text-sm leading-6 text-white/65">${getFeedback(entries)}</p>
+            </div>
+            <button id="clearHistoryBtn" class="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-white/75 transition hover:text-white" type="button">Clear</button>
+          </div>
+          <div class="mt-5 grid gap-3 sm:grid-cols-4">
+            <div class="rounded-2xl bg-black/20 p-4">
+              <p class="text-xs uppercase tracking-[0.18em] text-white/45">Level</p>
+              <strong class="mt-2 block text-2xl font-black">${game.level}</strong>
+            </div>
+            <div class="rounded-2xl bg-black/20 p-4">
+              <p class="text-xs uppercase tracking-[0.18em] text-white/45">XP</p>
+              <strong class="mt-2 block text-2xl font-black">${game.totalXp}</strong>
+            </div>
+            <div class="rounded-2xl bg-black/20 p-4">
+              <p class="text-xs uppercase tracking-[0.18em] text-white/45">Streak</p>
+              <strong class="mt-2 block text-2xl font-black">${streak}</strong>
+            </div>
+            <div class="rounded-2xl bg-black/20 p-4">
+              <p class="text-xs uppercase tracking-[0.18em] text-white/45">Best</p>
+              <strong class="mt-2 block text-2xl font-black">${best}%</strong>
+            </div>
+          </div>
+          <div class="mt-5 h-3 overflow-hidden rounded-full bg-white/10">
+            <div class="h-full rounded-full bg-gradient-to-r from-violet-300 via-fuchsia-300 to-cyan-300" style="width:${game.progress}%"></div>
+          </div>
+          <div class="mt-4 flex flex-wrap gap-2">
+            ${unlockedBadges || `<span class="rounded-full border border-white/10 bg-white/8 px-3 py-1 text-xs font-semibold text-white/70">No badges yet</span>`}
+          </div>
+        </div>
+        <div class="rounded-[28px] border border-white/10 bg-white/6 p-5 text-white">
+          <p class="text-xs font-semibold uppercase tracking-[0.25em] text-cyan-200">Snapshot</p>
+          <div class="mt-4 grid grid-cols-2 gap-3">
+            <div class="rounded-2xl bg-black/20 p-4">
+              <p class="text-xs uppercase tracking-[0.18em] text-white/45">Average</p>
+              <strong class="mt-2 block text-2xl font-black">${avg}%</strong>
+            </div>
+            <div class="rounded-2xl bg-black/20 p-4">
+              <p class="text-xs uppercase tracking-[0.18em] text-white/45">Need review</p>
+              <strong class="mt-2 block text-2xl font-black">${wrongCount}</strong>
+            </div>
+            <div class="rounded-2xl bg-black/20 p-4">
+              <p class="text-xs uppercase tracking-[0.18em] text-white/45">Band</p>
+              <strong class="mt-2 block text-lg font-black">${getBandLabel(latest.percentage)}</strong>
+            </div>
+            <div class="rounded-2xl bg-black/20 p-4">
+              <p class="text-xs uppercase tracking-[0.18em] text-white/45">Trend</p>
+              <strong class="mt-2 block text-sm font-bold">${getTrend(entries).label}</strong>
+            </div>
+          </div>
+          <div class="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+            <p class="text-sm font-semibold text-white">Latest attempt</p>
+            <p class="mt-2 text-sm text-white/65">${latest.score}/${latest.total} • ${formatShortDate(latest.createdAt)} • ${(latest.settings?.outputLanguage || "English").toUpperCase()}</p>
+          </div>
         </div>
       </div>
-      <div class="evaluation-stats">
-        <div class="card"><p>Level</p><h4>${game.level}</h4></div>
-        <div class="card"><p>Total XP</p><h4>${game.totalXp}</h4></div>
-        <div class="card"><p>Next Level</p><h4>${game.progress}%</h4></div>
-        <div class="card"><p>Total Quizzes</p><h4>${entries.length}</h4></div>
-        <div class="card"><p>Best Score</p><h4>${best}%</h4></div>
-        <div class="card"><p>Average</p><h4>${avg}%</h4></div>
-        <div class="card"><p>Current Streak</p><h4>${streak}</h4></div>
-      </div>
-      <div class="evaluation-grid">
-        <div class="card latest-attempt">
-          <h4>Latest Attempt</h4>
-          <p>${latest.score}/${latest.total} (${latest.percentage}%) | ${(latest.sourceType || "text").toUpperCase()} | ${formatShortDate(latest.createdAt)}</p>
-          <p>Language: <strong>${latest.settings?.outputLanguage || "English"}</strong> | XP gained: <strong>${game.latestXp}</strong></p>
-          <p>Assessment: <strong>${getAssessmentLabel(latest.percentage)}</strong>. ${wrongCount} question(s) need revision.</p>
-          <div class="xp-progress"><span style="width:${game.progress}%"></span></div>
-          <div class="meta-chip-row">${unlockedBadges || `<span class="meta-chip muted">No badges yet</span>`}</div>
-          <div class="review-rail">
+
+      <div class="grid gap-4 lg:grid-cols-[0.92fr_1.08fr]">
+        <div class="rounded-[28px] border border-white/10 bg-white/6 p-5 text-white">
+          <div class="flex items-center justify-between gap-3">
+            <h4 class="text-lg font-black">Recent attempts</h4>
+            <span class="rounded-full bg-white/8 px-3 py-1 text-xs font-semibold text-white/60">${entries.length} total</span>
+          </div>
+          <div class="mt-4 space-y-3">
+            ${recent.map((e) => `
+              <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <div class="flex items-center justify-between gap-3">
+                  <strong class="text-lg font-black">${e.percentage}%</strong>
+                  <span class="text-xs uppercase tracking-[0.18em] text-white/45">${(e.settings?.difficulty || "moderate").toUpperCase()}</span>
+                </div>
+                <p class="mt-2 text-sm text-white/65">${e.score}/${e.total} • ${formatShortDate(e.createdAt)}</p>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+
+        <div class="rounded-[28px] border border-white/10 bg-white/6 p-5 text-white">
+          <h4 class="text-lg font-black">Question review</h4>
+          <div class="mt-4 flex flex-wrap gap-2">
             ${latestAnswers.map((a, i) => `
-              <button class="review-q-btn ${a.isCorrect ? "good" : "bad"}" data-review-index="${i}">
-                Q${i + 1}. ${a.question}
+              <button class="review-q-btn rounded-full border px-4 py-2 text-sm font-semibold ${a.isCorrect ? "border-emerald-300/30 bg-emerald-400/15 text-emerald-100" : "border-rose-300/30 bg-rose-400/15 text-rose-100"}" data-review-index="${i}">
+                Q${i + 1}
               </button>
             `).join("")}
           </div>
-          <div id="reviewDetail" class="review-detail">Click a question to view full explanation.</div>
-        </div>
-        <div class="card recent-attempts">
-          <h4>Recent Attempts</h4>
-          ${recent.map((e) => `
-            <div class="attempt-row">
-              <span>${formatShortDate(e.createdAt)}</span>
-              <span>${e.score}/${e.total} (${e.percentage}%)</span>
-              <span>${(e.settings?.difficulty || "moderate").toUpperCase()}</span>
-            </div>
-          `).join("")}
+          <div id="reviewDetail" class="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4 text-sm leading-6 text-white/70">Click a question chip to view the explanation.</div>
         </div>
       </div>
     </div>
@@ -1157,33 +1235,36 @@ function renderBadgeCabinet() {
   const unlockedCount = badgeList.filter((badge) => badge.unlocked).length;
 
   badgeCabinet.innerHTML = `
-    <div class="evaluation-wrap">
-      <div class="card badge-cabinet">
-        <div class="evaluation-head">
-          <div>
-            <h3>Badge Cabinet</h3>
-            <p class="cabinet-note">Collect badges, complete fun tasks, and raise your XP faster with mini-games.</p>
-          </div>
-          <div class="cabinet-score">
-            <strong>${unlockedCount}/${badgeList.length}</strong>
-            <span>badges unlocked</span>
-          </div>
+    <div class="space-y-5 text-white">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h3 class="text-xl font-black">Badge cabinet</h3>
+          <p class="mt-2 text-sm leading-6 text-white/60">Collect playful rewards while you quiz, review, and explore bonus modes.</p>
         </div>
-        <div class="cabinet-meta">
-          <div class="meta-chip">Quiz XP ${game.quizXp}</div>
-          <div class="meta-chip">Bonus XP ${game.bonusXp}</div>
-          <div class="meta-chip">Level ${game.level}</div>
-          <div class="meta-chip">Speed Best ${game.gameStats.speedBest}</div>
+        <div class="rounded-2xl border border-white/10 bg-white/8 px-4 py-3 text-center">
+          <strong class="block text-2xl font-black">${unlockedCount}/${badgeList.length}</strong>
+          <span class="text-xs uppercase tracking-[0.22em] text-white/45">Unlocked</span>
         </div>
-        <div class="badge-grid">
-          ${badgeList.map((badge) => `
-            <article class="badge-card ${badge.unlocked ? "is-unlocked" : "is-locked"} ${badge.rarity}">
-              <span class="badge-icon"><img src="${badge.icon}" alt="${badge.label}" loading="lazy" /></span>
-              <strong>${badge.label}</strong>
-              <small>${badge.unlocked ? `${badge.rarity.toUpperCase()} reward unlocked` : badge.hint}</small>
-            </article>
-          `).join("")}
-        </div>
+      </div>
+      <div class="flex flex-wrap gap-2 text-xs font-semibold">
+        <span class="rounded-full border border-white/10 bg-white/8 px-3 py-1">Quiz XP ${game.quizXp}</span>
+        <span class="rounded-full border border-white/10 bg-white/8 px-3 py-1">Bonus XP ${game.bonusXp}</span>
+        <span class="rounded-full border border-white/10 bg-white/8 px-3 py-1">Level ${game.level}</span>
+        <span class="rounded-full border border-white/10 bg-white/8 px-3 py-1">Speed Best ${game.gameStats.speedBest}</span>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        ${badgeList.map((badge) => `
+          <article class="rounded-[26px] border p-4 ${badge.unlocked ? "border-white/12 bg-white/8 text-white" : "border-white/8 bg-white/[0.04] text-white/65"}">
+            <div class="flex items-start justify-between gap-3">
+              <span class="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10">
+                <img src="${badge.icon}" alt="${badge.label}" loading="lazy" class="h-11 w-11 object-contain" />
+              </span>
+              <span class="rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] ${badge.unlocked ? "bg-emerald-400/15 text-emerald-100" : "bg-white/8 text-white/45"}">${badge.rarity}</span>
+            </div>
+            <strong class="mt-4 block text-base font-black">${badge.label}</strong>
+            <small class="mt-2 block text-sm leading-6">${badge.unlocked ? `${badge.rarity.toUpperCase()} reward unlocked` : badge.hint}</small>
+          </article>
+        `).join("")}
       </div>
     </div>
   `;
@@ -2298,10 +2379,10 @@ flashcardsBtn?.addEventListener("click", async () => {
 
 function renderShortAnswerInput() {
   return `
-    <div class="short-wrap">
-      <label class="answer-label" for="shortAnswerInput">Your answer</label>
-      <textarea id="shortAnswerInput" class="short-answer" placeholder="Type your answer here..."></textarea>
-      <button id="submitShortBtn" type="button">Submit Answer</button>
+    <div class="space-y-4">
+      <label class="block text-sm font-bold text-white" for="shortAnswerInput">Your answer</label>
+      <textarea id="shortAnswerInput" class="min-h-[150px] w-full rounded-[28px] border border-white/12 bg-slate-950/35 px-5 py-4 text-base text-white outline-none placeholder:text-white/30 focus:border-cyan-300/60" placeholder="Type your answer here..."></textarea>
+      <button id="submitShortBtn" class="rounded-full bg-gradient-to-r from-violet-500 to-cyan-400 px-6 py-3 text-sm font-black text-white transition hover:-translate-y-0.5 hover:scale-[1.02]" type="button">Lock Answer</button>
     </div>
   `;
 }
@@ -2314,31 +2395,59 @@ function showQuestion() {
   const progress = Math.round(((index + 1) / questions.length) * 100);
 
   quiz.innerHTML = `
-    <div class="card quiz-card">
-      <div class="quiz-top">
-        <span class="quiz-chip">Question ${index + 1} of ${questions.length}</span>
-        <span class="quiz-chip quiz-chip-soft">${q.type.toUpperCase()}</span>
-        <span class="quiz-chip quiz-chip-timer">${isShort ? "No time limit" : `${timeLeft}s`}</span>
-      </div>
-      <div class="progress">
-        <div class="progress-fill" style="width:${progress}%"></div>
-      </div>
-      <div class="quiz-question-block">
-        <p class="quiz-kicker">Focus and answer carefully</p>
-        <h2>${q.question}</h2>
-      </div>
-      ${q.type === "mcq"
-        ? q.options.map((o, i) => `
-          <div class="option" data-o="${String.fromCharCode(65 + i)}">
-            <span class="option-key">${String.fromCharCode(65 + i)}</span>
-            <span class="option-text">${o}</span>
-          </div>`).join("")
-        : renderShortAnswerInput()}
-      <div class="quiz-actions">
-        <button id="prevBtn" class="ghost" ${index === 0 ? "disabled" : ""}>Previous</button>
-        <button id="moreQuestionsBtn" class="ghost" ${isLoadingMoreQuestions ? "disabled" : ""}>${isLoadingMoreQuestions ? "Loading..." : "More Questions"}</button>
-        <button id="finishBtn" class="ghost">Finish</button>
-        <button id="nextBtn">Next</button>
+    <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 px-4 py-4 backdrop-blur-md sm:px-6 sm:py-6">
+      <div class="mx-auto flex min-h-full max-w-5xl items-center justify-center">
+        <div class="quiz-card fade-in-up w-full rounded-[36px] border border-white/12 bg-[linear-gradient(180deg,rgba(16,23,42,0.95),rgba(11,18,32,0.98))] p-5 text-white shadow-[0_24px_80px_rgba(0,0,0,0.45)] sm:p-8">
+          <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[0.32em] text-violet-200">Quiz mode</p>
+              <h2 class="mt-2 text-2xl font-black sm:text-3xl">Question ${index + 1} of ${questions.length}</h2>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <span class="rounded-full border border-white/10 bg-white/8 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/70">${q.type.toUpperCase()}</span>
+              <span id="quizTimerChip" class="rounded-full border border-white/10 bg-white/8 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/70">${isShort ? "No timer" : `${timeLeft}s left`}</span>
+            </div>
+          </div>
+
+          <div class="mt-5">
+            <div class="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-[0.2em] text-white/45">
+              <span>Progress</span>
+              <span>${progress}%</span>
+            </div>
+            <div class="h-3 overflow-hidden rounded-full bg-white/10">
+              <div class="h-full rounded-full bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-300 transition-all duration-300" style="width:${progress}%"></div>
+            </div>
+          </div>
+
+          <div class="mt-6 grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+            <div class="rounded-[30px] bg-gradient-to-br from-violet-500/16 to-cyan-400/10 p-6">
+              <p class="text-sm font-semibold uppercase tracking-[0.22em] text-cyan-100/80">Focus prompt</p>
+              <h3 class="mt-4 text-2xl font-black leading-tight sm:text-3xl">${q.question}</h3>
+              <p class="mt-4 text-sm leading-6 text-white/60">Choose your answer and move to the next challenge. Smooth and fast, one step at a time.</p>
+            </div>
+
+            <div class="space-y-4">
+              ${q.type === "mcq"
+                ? q.options.map((o, i) => `
+                  <button class="option quiz-option flex w-full items-center gap-4 rounded-[28px] border border-white/12 bg-white/6 px-5 py-5 text-left" data-o="${String.fromCharCode(65 + i)}" type="button">
+                    <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-sm font-black text-cyan-100">${String.fromCharCode(65 + i)}</span>
+                    <span class="text-base font-semibold text-white">${o}</span>
+                  </button>`).join("")
+                : renderShortAnswerInput()}
+            </div>
+          </div>
+
+          <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex flex-wrap gap-3">
+              <button id="prevBtn" class="rounded-full border border-white/12 bg-white/8 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/12" ${index === 0 ? "disabled" : ""}>Previous</button>
+              <button id="moreQuestionsBtn" class="rounded-full border border-white/12 bg-white/8 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/12" ${isLoadingMoreQuestions ? "disabled" : ""}>${isLoadingMoreQuestions ? "Loading..." : "More Questions"}</button>
+            </div>
+            <div class="flex flex-wrap gap-3">
+              <button id="finishBtn" class="rounded-full border border-rose-300/20 bg-rose-400/10 px-5 py-3 text-sm font-semibold text-rose-100 transition hover:bg-rose-400/15">Finish</button>
+              <button id="nextBtn" class="rounded-full bg-gradient-to-r from-violet-500 to-cyan-400 px-6 py-3 text-sm font-black text-white transition hover:-translate-y-0.5 hover:scale-[1.02]">Next</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   `;
@@ -2361,7 +2470,8 @@ function showQuestion() {
 
   if (answered[index]) {
     clearInterval(timer);
-    document.querySelector(".quiz-top span:last-child").innerText = "Done";
+    const timerChip = document.getElementById("quizTimerChip");
+    if (timerChip) timerChip.innerText = "Done";
     reveal(q, choices[index], true);
     return;
   }
@@ -2370,7 +2480,7 @@ function showQuestion() {
 
   timer = setInterval(() => {
     timeLeft--;
-    const clock = document.querySelector(".quiz-top span:last-child");
+    const clock = document.getElementById("quizTimerChip");
     if (clock) clock.innerText = `${timeLeft}s`;
 
     if (timeLeft <= 0 && !answered[index]) {
@@ -2458,7 +2568,7 @@ function reveal(q, choice, isReview) {
   if (!quiz.querySelector(".explanation")) {
     const answerText = isShort ? `Correct answer: ${q.shortAnswer || q.correct}` : `Correct option: ${q.correct}`;
     const wrongBlock = !isCorrect
-      ? `<p><strong>Why your answer was wrong:</strong> ${q.wrongExplanation || "Your selected answer does not match the validated correct answer and supporting concept."}</p>`
+      ? `<p class="text-sm leading-6 text-rose-100"><strong>Why your answer was wrong:</strong> ${q.wrongExplanation || "Your selected answer does not match the validated correct answer and supporting concept."}</p>`
       : "";
     const imageBlock = q.image && /^https:\/\/upload\.wikimedia\.org\/.+\.(png|jpg)$/i.test(q.image)
       ? `<div class="explain-image-wrap"><img class="explain-image" src="${q.image}" alt="Explanation visual" loading="lazy" onerror="this.closest('.explain-image-wrap')?.remove()" /></div>`
@@ -2466,15 +2576,15 @@ function reveal(q, choice, isReview) {
 
     quiz.querySelector(".quiz-card").insertAdjacentHTML(
       "beforeend",
-      `<div class="explanation">
-        <div class="explanation-head">
-          <span class="quiz-chip ${isCorrect ? "quiz-chip-success" : "quiz-chip-danger"}">${isCorrect ? "Correct" : "Needs review"}</span>
-          <strong>${answerText}</strong>
+      `<div class="explanation mt-6 rounded-[28px] border border-white/12 bg-black/20 p-5 text-white">
+        <div class="explanation-head flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <span class="inline-flex w-fit rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] ${isCorrect ? "bg-emerald-400/15 text-emerald-100" : "bg-rose-400/15 text-rose-100"}">${isCorrect ? "Correct" : "Wrong"}</span>
+          <strong class="text-sm text-white/85">${answerText}</strong>
         </div>
-        <p>${q.explanation || ""}</p>
+        <p class="mt-4 text-sm leading-6 text-white/70">${q.explanation || ""}</p>
         ${wrongBlock}
         ${imageBlock}
-        <button id="saveQuestionBtn" class="ghost explanation-save" type="button">Save Question</button>
+        <button id="saveQuestionBtn" class="mt-4 rounded-full border border-white/12 bg-white/8 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/12" type="button">Save Question</button>
       </div>`
     );
     document.getElementById("saveQuestionBtn")?.addEventListener("click", () => {
@@ -2640,46 +2750,60 @@ async function finish() {
   revealNewBadges(previousBadgeIds, allEntries);
 
   quiz.innerHTML = `
-    <div class="card quiz-card result-card">
-      <div class="result-head">
-        <span class="quiz-chip quiz-chip-success">Quiz Completed</span>
-        <h2>${assessment}</h2>
-        <p>Your quiz has been evaluated and added to your progress history.</p>
-      </div>
-      <div class="result-score-ring" style="--score:${entry.percentage}">
-        <strong>${entry.percentage}%</strong>
-        <span>${score} / ${questions.length} correct</span>
-      </div>
-      <div class="result-stats-grid">
-        <div class="result-stat">
-          <span>Correct</span>
-          <strong>${score}</strong>
+    <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 px-4 py-4 backdrop-blur-md sm:px-6 sm:py-6">
+      <div class="mx-auto flex min-h-full max-w-4xl items-center justify-center">
+        <div class="fade-in-up w-full rounded-[36px] border border-white/12 bg-[linear-gradient(180deg,rgba(16,23,42,0.95),rgba(11,18,32,0.98))] p-6 text-white shadow-[0_24px_80px_rgba(0,0,0,0.45)] sm:p-8">
+          <div class="text-center">
+            <span class="inline-flex rounded-full bg-emerald-400/15 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-emerald-100">Quiz completed</span>
+            <h2 class="mt-4 text-3xl font-black sm:text-5xl">You scored ${score}/${questions.length} 🎯</h2>
+            <p class="mt-3 text-base leading-7 text-white/65">${assessment}. Your run has been added to your progress history.</p>
+          </div>
+
+          <div class="mt-8 grid gap-4 md:grid-cols-[0.9fr_1.1fr] md:items-center">
+            <div class="rounded-[30px] bg-gradient-to-br from-violet-500/18 to-cyan-400/10 p-6 text-center">
+              <p class="text-xs font-semibold uppercase tracking-[0.24em] text-violet-200">Final score</p>
+              <strong class="mt-3 block text-6xl font-black">${entry.percentage}%</strong>
+              <p class="mt-3 text-sm text-white/65">${Math.max(0, questions.length - score)} miss(es) • ${entry.gamification?.xp || getAttemptXp(entry)} XP earned</p>
+            </div>
+
+            <div class="grid gap-3 sm:grid-cols-2">
+              <div class="rounded-2xl border border-white/10 bg-white/6 p-4">
+                <p class="text-xs uppercase tracking-[0.18em] text-white/45">Correct</p>
+                <strong class="mt-2 block text-2xl font-black">${score}</strong>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-white/6 p-4">
+                <p class="text-xs uppercase tracking-[0.18em] text-white/45">Wrong</p>
+                <strong class="mt-2 block text-2xl font-black">${Math.max(0, questions.length - score)}</strong>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-white/6 p-4">
+                <p class="text-xs uppercase tracking-[0.18em] text-white/45">Streak</p>
+                <strong class="mt-2 block text-2xl font-black">${entry.gamification?.streak || game.streak || 0}</strong>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-white/6 p-4">
+                <p class="text-xs uppercase tracking-[0.18em] text-white/45">Level</p>
+                <strong class="mt-2 block text-2xl font-black">${game.level}</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-6 flex flex-wrap gap-2">
+            <span class="rounded-full border border-white/10 bg-white/8 px-3 py-1 text-xs font-semibold">Mode ${(entry.settings?.difficulty || "moderate").toUpperCase()}</span>
+            <span class="rounded-full border border-white/10 bg-white/8 px-3 py-1 text-xs font-semibold">Type ${(entry.settings?.questionMode || "mcq").toUpperCase()}</span>
+            <span class="rounded-full border border-white/10 bg-white/8 px-3 py-1 text-xs font-semibold">Language ${entry.settings?.outputLanguage || "English"}</span>
+            ${entry.confidence ? `<span class="rounded-full border border-white/10 bg-white/8 px-3 py-1 text-xs font-semibold">Confidence ${entry.confidence}%</span>` : ""}
+          </div>
+
+          <div class="mt-5 h-3 overflow-hidden rounded-full bg-white/10">
+            <span class="block h-full rounded-full bg-gradient-to-r from-violet-300 via-fuchsia-300 to-cyan-300" style="width:${game.progress}%"></span>
+          </div>
+
+          <p class="mt-5 text-sm leading-6 text-white/70">${newBadges.length ? `New badges unlocked: ${newBadges.map((badge) => badge.label).join(", ")}` : `Badges unlocked: ${game.badges.map((badge) => badge.label).join(", ") || "None yet"}`}</p>
+
+          <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <button id="retryQuizBtn" class="rounded-full bg-gradient-to-r from-violet-500 to-cyan-400 px-6 py-3 text-sm font-black text-white transition hover:-translate-y-0.5 hover:scale-[1.02]" type="button">Retry</button>
+            <button id="goDashboardBtn" class="rounded-full border border-white/12 bg-white/8 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/12" type="button">New Quiz</button>
+          </div>
         </div>
-        <div class="result-stat">
-          <span>Wrong</span>
-          <strong>${Math.max(0, questions.length - score)}</strong>
-        </div>
-        <div class="result-stat">
-          <span>XP Earned</span>
-          <strong>${entry.gamification?.xp || getAttemptXp(entry)}</strong>
-        </div>
-        <div class="result-stat">
-          <span>Streak</span>
-          <strong>${entry.gamification?.streak || game.streak || 0}</strong>
-        </div>
-      </div>
-      <div class="result-meta">
-        <span class="meta-chip">Mode ${(entry.settings?.difficulty || "moderate").toUpperCase()}</span>
-        <span class="meta-chip">Type ${(entry.settings?.questionMode || "mcq").toUpperCase()}</span>
-        <span class="meta-chip">Learner ${(entry.settings?.learnerMode || "student").toUpperCase()}</span>
-        <span class="meta-chip">Language ${entry.settings?.outputLanguage || "English"}</span>
-        ${entry.confidence ? `<span class="meta-chip">Confidence ${entry.confidence}%</span>` : ""}
-      </div>
-      <div class="xp-progress"><span style="width:${game.progress}%"></span></div>
-      <p class="result-badges">${newBadges.length ? `New badges unlocked: ${newBadges.map((badge) => `${badge.icon} ${badge.label}`).join(", ")}` : `Badges unlocked: ${game.badges.map((badge) => `${badge.icon} ${badge.label}`).join(", ") || "None yet"}`}</p>
-      <div class="quiz-actions result-actions">
-        <button id="retryQuizBtn" type="button">Retry Quiz</button>
-        <button id="goDashboardBtn" class="ghost" type="button">Go to Dashboard</button>
       </div>
     </div>
   `;
@@ -2690,7 +2814,7 @@ async function finish() {
   });
 
   document.getElementById("goDashboardBtn")?.addEventListener("click", () => {
-    document.getElementById("dashboardSection")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    document.getElementById("generateSection")?.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 }
 

@@ -1,3 +1,5 @@
+import { playCorrectSound, playWrongSound } from "./audio.js";
+
 const sequenceNode = document.getElementById("sequenceDisplay");
 const levelNode = document.getElementById("levelValue");
 const form = document.getElementById("recallForm");
@@ -47,10 +49,12 @@ form?.addEventListener("submit", (event) => {
   if (!currentSequence || showing) return;
 
   if (input.value.trim() === currentSequence) {
+    playCorrectSound();
     feedback.textContent = "Correct. Next level unlocked.";
     feedback.className = "arcade-feedback good";
     level += 1;
   } else {
+    playWrongSound();
     feedback.textContent = `Wrong. The correct sequence was ${currentSequence}.`;
     feedback.className = "arcade-feedback bad";
     level = Math.max(3, level - 1);

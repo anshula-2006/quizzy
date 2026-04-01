@@ -1,3 +1,5 @@
+import { playCorrectSound, playWrongSound } from "./audio.js";
+
 const board = document.getElementById("memoryBoard");
 const movesNode = document.getElementById("movesCount");
 const timeNode = document.getElementById("timeCount");
@@ -141,6 +143,7 @@ function flipCard(index) {
   if (firstCard.pairId === secondCard.pairId) {
     firstCard.matched = true;
     secondCard.matched = true;
+    playCorrectSound();
     firstPick = null;
     secondPick = null;
     render();
@@ -151,6 +154,7 @@ function flipCard(index) {
   firstCard.wrong = true;
   secondCard.wrong = true;
   lockBoard = true;
+  playWrongSound();
   render();
 
   window.setTimeout(() => {

@@ -1,3 +1,5 @@
+import { playCorrectSound, playWrongSound } from "./audio.js";
+
 const stage = document.getElementById("reactionStage");
 const statusNode = document.getElementById("reactionStatus");
 const bestNode = document.getElementById("bestReaction");
@@ -72,9 +74,13 @@ stage?.addEventListener("click", () => {
   renderStatus(`${reaction} ms`, "Solid response time.", `${reaction} ms`);
 
   if (bestTime == null || reaction < bestTime) {
+    playCorrectSound();
     bestTime = reaction;
     bestNode.textContent = `${bestTime} ms`;
+    return;
   }
+
+  playWrongSound();
 });
 
 resetStage();

@@ -1,11 +1,13 @@
 import { defineConfig } from "vite";
 import { fileURLToPath } from "url";
 import { resolve } from "path";
+import react from "@vitejs/plugin-react";
 
 const rootDir = fileURLToPath(new URL(".", import.meta.url));
 const proxyTarget = process.env.VITE_API_PROXY_TARGET || "https://quizzy-3lt0.onrender.com";
 
 export default defineConfig({
+  plugins: [react()],
   build: {
     rollupOptions: {
       input: {

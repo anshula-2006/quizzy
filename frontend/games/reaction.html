@@ -3,40 +3,40 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Reaction Tap | Quizzy Arcade</title>
+  <title>Reaction Tap | Mini Arcade</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../app.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../arcade.css" />
 </head>
-<body>
-  <div class="page-shell">
-    <div class="page-container">
-      <header class="panel top-nav">
-        <a class="brand" href="../index.html"><span class="brand-badge">Q</span><span>Quizzy</span></a>
-        <nav class="nav-links">
-          <a class="nav-link" href="../arcade.html">Back to Arcade</a>
-        </nav>
+<body class="arcade-body">
+  <div class="arcade-shell">
+    <div class="arcade-frame">
+      <header class="arcade-header">
+        <div>
+          <div class="arcade-mark">Mini Arcade</div>
+          <h1 class="arcade-title">Reaction Tap</h1>
+          <p class="arcade-subtitle">Wait for the signal, then respond with one clean tap.</p>
+        </div>
+        <a class="arcade-back" href="../arcade.html">Back to Arcade</a>
       </header>
 
-      <main class="panel game-panel game-board page-fade">
-        <div>
-          <p class="eyebrow">Reaction Tap ⚡</p>
-          <h1 class="section-title">Wait, then strike</h1>
-          <p class="section-copy">Start a round, wait for the signal, and click as fast as possible.</p>
-        </div>
+      <main class="arcade-panel arcade-game-wrap">
+        <section class="arcade-game-head">
+          <div class="arcade-kpis">
+            <div class="arcade-kpi"><span>Best</span><strong id="bestReaction">--</strong></div>
+          </div>
+          <div class="arcade-actions">
+            <button id="startReactionBtn" class="arcade-btn" type="button">Start Round</button>
+          </div>
+        </section>
 
-        <div class="game-status-row">
-          <span class="pill">Best: <strong id="bestReaction" style="margin-left:8px;color:#fff;">--</strong></span>
-        </div>
-
-        <button id="reactionStage" class="reaction-stage">
-          <span id="reactionStatus">Tap start when you're ready.</span>
+        <button id="reactionStage" class="reaction-stage" type="button">
+          <div id="reactionStatus" class="reaction-stage-inner">
+            <div class="reaction-label">Wait...</div>
+            <p class="reaction-caption">Press start to begin a round.</p>
+          </div>
         </button>
-
-        <div class="button-row">
-          <button id="startReactionBtn" class="btn">Start Round</button>
-        </div>
       </main>
     </div>
   </div>

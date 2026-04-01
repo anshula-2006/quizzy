@@ -6,43 +6,78 @@
   <title>Mini Arcade | Quizzy</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./app.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./arcade.css" />
 </head>
-<body>
-  <div class="page-shell">
-    <div class="page-container">
-      <header class="panel top-nav">
-        <a class="brand" href="./index.html"><span class="brand-badge">Q</span><span>Quizzy</span></a>
-        <nav class="nav-links">
-          <a class="nav-link" href="./index.html">Home</a>
-          <a class="nav-link" href="./generate.html">Generate</a>
-          <a class="nav-link is-active" href="./arcade.html">Arcade</a>
-        </nav>
+<body class="arcade-body">
+  <div class="arcade-shell">
+    <div class="arcade-frame">
+      <header class="arcade-header">
+        <div>
+          <div class="arcade-mark">Quizzy</div>
+          <h1 class="arcade-title">Mini Arcade</h1>
+          <p class="arcade-subtitle">Train your brain</p>
+        </div>
+        <a class="arcade-back" href="./index.html">Back Home</a>
       </header>
 
-      <main class="panel game-card page-fade">
-        <p class="eyebrow">Mini Arcade 🎮</p>
-        <h1 class="section-title">Train your brain</h1>
-        <p class="section-copy">Pick a game mode below. The hub stays clean and does not preload any game content before you choose.</p>
+      <main class="arcade-panel arcade-hero">
+        <section class="arcade-hub">
+          <a class="arcade-card-link" href="./games/memory.html">
+            <article class="arcade-game-card memory">
+              <div class="arcade-preview">
+                <img src="./assets/memory-game/aleksandr-isaev-rgP5gqM9INo-unsplash.jpg" alt="Memory Match preview" />
+              </div>
+              <div class="arcade-icon-tile" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M12 4c-4.4 0-8 2.9-8 6.5 0 2.4 1.6 4.6 4 5.7V20l3-2h1c4.4 0 8-2.9 8-6.5S16.4 4 12 4Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M9.5 11.5h.01M14.5 11.5h.01" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <div>
+                <h2 class="arcade-card-title">Memory Match</h2>
+                <p class="arcade-card-copy">Flip image cards, find the pairs, and track how efficiently you solve the board.</p>
+              </div>
+              <span class="arcade-card-cta">Open Game</span>
+            </article>
+          </a>
 
-        <section class="arcade-grid">
-          <a class="tile-link" href="./games/memory.html">
-            <article class="arcade-card">
-              <strong>Memory Match 🧠</strong>
-              <p class="helper-text">Flip cards, match pairs, and track your moves and time.</p>
+          <a class="arcade-card-link" href="./games/reaction.html">
+            <article class="arcade-game-card reaction">
+              <div class="arcade-preview">
+                <img src="./assets/memory-game/giorgio-trovato-fczCr7MdE7U-unsplash.jpg" alt="Reaction Tap preview" />
+              </div>
+              <div class="arcade-icon-tile" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M13 2L4 14h6l-1 8 9-12h-6l1-8Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div>
+                <h2 class="arcade-card-title">Reaction Tap</h2>
+                <p class="arcade-card-copy">Wait for the state change, then react as quickly as you can with a single clean tap.</p>
+              </div>
+              <span class="arcade-card-cta">Open Game</span>
             </article>
           </a>
-          <a class="tile-link" href="./games/reaction.html">
-            <article class="arcade-card">
-              <strong>Reaction Tap ⚡</strong>
-              <p class="helper-text">Wait for the color shift, then tap as fast as you can.</p>
-            </article>
-          </a>
-          <a class="tile-link" href="./games/recall.html">
-            <article class="arcade-card">
-              <strong>Number Recall 🔢</strong>
-              <p class="helper-text">Memorize the number sequence, type it back, and level up.</p>
+
+          <a class="arcade-card-link" href="./games/recall.html">
+            <article class="arcade-game-card recall">
+              <div class="arcade-preview">
+                <img src="./assets/memory-game/personalgraphic-com-_Ef2SUNv468-unsplash.jpg" alt="Number Recall preview" />
+              </div>
+              <div class="arcade-icon-tile" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M6 5h12M6 12h12M6 19h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                  <circle cx="4" cy="5" r="1" fill="currentColor"/>
+                  <circle cx="4" cy="12" r="1" fill="currentColor"/>
+                  <circle cx="4" cy="19" r="1" fill="currentColor"/>
+                </svg>
+              </div>
+              <div>
+                <h2 class="arcade-card-title">Number Recall</h2>
+                <p class="arcade-card-copy">Memorize a sequence, type it back from memory, and progress through higher difficulty rounds.</p>
+              </div>
+              <span class="arcade-card-cta">Open Game</span>
             </article>
           </a>
         </section>

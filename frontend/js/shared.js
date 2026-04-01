@@ -1,4 +1,4 @@
-import API_BASE from "../src/config.js";
+import API_BASE from "./config.js";
 
 export const SESSION_KEY = "quizzy-session-v2";
 export const QUIZ_KEY = "quizzy-vanilla-quiz-v1";

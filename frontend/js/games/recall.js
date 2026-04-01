@@ -8,6 +8,7 @@ const startBtn = document.getElementById("startRecallBtn");
 let level = 3;
 let currentSequence = "";
 let showing = false;
+let revealTimeout = null;
 
 function buildSequence(length) {
   let value = "";
@@ -23,16 +24,20 @@ function updateLevel() {
 
 function hideSequence() {
   showing = false;
-  sequenceNode.innerHTML = `<span class="hidden-sequence">Now type the sequence</span>`;
+  sequenceNode.className = "recall-hidden";
+  sequenceNode.textContent = "Now type the sequence";
 }
 
 function startRound() {
+  clearTimeout(revealTimeout);
   currentSequence = buildSequence(level);
   input.value = "";
   feedback.textContent = "";
+  feedback.className = "arcade-feedback";
   showing = true;
-  sequenceNode.innerHTML = `<span class="recall-sequence">${currentSequence}</span>`;
-  window.setTimeout(hideSequence, 3000);
+  sequenceNode.className = "recall-sequence";
+  sequenceNode.textContent = currentSequence;
+  revealTimeout = window.setTimeout(hideSequence, 2600);
 }
 
 startBtn?.addEventListener("click", startRound);
@@ -42,10 +47,12 @@ form?.addEventListener("submit", (event) => {
   if (!currentSequence || showing) return;
 
   if (input.value.trim() === currentSequence) {
-    feedback.textContent = "Correct ✅ Next level unlocked.";
+    feedback.textContent = "Correct. Next level unlocked.";
+    feedback.className = "arcade-feedback good";
     level += 1;
   } else {
-    feedback.textContent = `Wrong ❌ The sequence was ${currentSequence}.`;
+    feedback.textContent = `Wrong. The correct sequence was ${currentSequence}.`;
+    feedback.className = "arcade-feedback bad";
     level = Math.max(3, level - 1);
   }
 

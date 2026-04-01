@@ -1,4 +1,4 @@
-import API_BASE from "./src/config.js";
+import API_BASE from "./js/config.js";
 import auth from "./auth.js";
 
 const input = document.getElementById("inputText");

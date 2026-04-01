@@ -3,39 +3,36 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Memory Match | Quizzy Arcade</title>
+  <title>Memory Match | Mini Arcade</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../app.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../arcade.css" />
 </head>
-<body>
-  <div class="page-shell">
-    <div class="page-container">
-      <header class="panel top-nav">
-        <a class="brand" href="../index.html"><span class="brand-badge">Q</span><span>Quizzy</span></a>
-        <nav class="nav-links">
-          <a class="nav-link" href="../arcade.html">Back to Arcade</a>
-        </nav>
+<body class="arcade-body">
+  <div class="arcade-shell">
+    <div class="arcade-frame">
+      <header class="arcade-header">
+        <div>
+          <div class="arcade-mark">Mini Arcade</div>
+          <h1 class="arcade-title">Memory Match</h1>
+          <p class="arcade-subtitle">Match the visual pairs with as few moves as possible.</p>
+        </div>
+        <a class="arcade-back" href="../arcade.html">Back to Arcade</a>
       </header>
 
-      <main class="panel game-panel game-board page-fade">
-        <div>
-          <p class="eyebrow">Memory Match 🧠</p>
-          <h1 class="section-title">Find all the pairs</h1>
-          <p class="section-copy">Flip cards, remember positions, and clear the board in the fewest moves.</p>
-        </div>
-
-        <div class="game-status-row">
-          <span class="pill">Moves: <strong id="movesCount" style="margin-left:8px;color:#fff;">0</strong></span>
-          <span class="pill">Time: <strong id="timeCount" style="margin-left:8px;color:#fff;">0s</strong></span>
-        </div>
+      <main class="arcade-panel arcade-game-wrap">
+        <section class="arcade-game-head">
+          <div class="arcade-kpis">
+            <div class="arcade-kpi"><span>Moves</span><strong id="movesCount">0</strong></div>
+            <div class="arcade-kpi"><span>Time</span><strong id="timeCount">0s</strong></div>
+          </div>
+          <div class="arcade-actions">
+            <button id="restartGameBtn" class="arcade-btn-secondary" type="button">Restart</button>
+          </div>
+        </section>
 
         <div id="memoryBoard" class="memory-grid"></div>
-
-        <div class="button-row">
-          <button id="restartGameBtn" class="btn">Restart Game</button>
-        </div>
       </main>
     </div>
   </div>

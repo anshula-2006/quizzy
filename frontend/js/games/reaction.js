@@ -9,12 +9,31 @@ let waiting = false;
 let ready = false;
 let bestTime = null;
 
+function renderStatus(title, copy = "", result = "") {
+  if (result) {
+    statusNode.innerHTML = `
+      <div class="reaction-result">
+        <div class="reaction-time">${result}</div>
+        <p class="reaction-note">${copy}</p>
+      </div>
+    `;
+    return;
+  }
+
+  statusNode.innerHTML = `
+    <div class="reaction-stage-inner">
+      <div class="reaction-label">${title}</div>
+      ${copy ? `<p class="reaction-caption">${copy}</p>` : ""}
+    </div>
+  `;
+}
+
 function resetStage() {
   stage.className = "reaction-stage";
-  statusNode.textContent = "Tap start when you're ready.";
   ready = false;
   waiting = false;
   startedAt = 0;
+  renderStatus("Wait...", "Press start to begin a round.");
 }
 
 function beginRound() {
@@ -22,16 +41,16 @@ function beginRound() {
   resetStage();
   waiting = true;
   stage.classList.add("waiting");
-  statusNode.textContent = "Wait...";
+  renderStatus("Wait...", "Do not click until the screen changes.");
 
-  const delay = 1500 + Math.floor(Math.random() * 2500);
+  const delay = 2000 + Math.floor(Math.random() * 3000);
   timeoutId = window.setTimeout(() => {
     waiting = false;
     ready = true;
     startedAt = performance.now();
     stage.classList.remove("waiting");
     stage.classList.add("ready");
-    statusNode.textContent = "TAP!";
+    renderStatus("Tap", "Click immediately.");
   }, delay);
 }
 
@@ -41,7 +60,7 @@ stage?.addEventListener("click", () => {
   if (waiting) {
     clearTimeout(timeoutId);
     resetStage();
-    statusNode.textContent = "Too early. Tap start to try again.";
+    renderStatus("Too early", "Wait for the green signal before tapping.");
     return;
   }
 
@@ -50,7 +69,7 @@ stage?.addEventListener("click", () => {
   const reaction = Math.round(performance.now() - startedAt);
   ready = false;
   stage.classList.remove("ready");
-  statusNode.innerHTML = `<span class="reaction-time">${reaction} ms</span>`;
+  renderStatus(`${reaction} ms`, "Solid response time.", `${reaction} ms`);
 
   if (bestTime == null || reaction < bestTime) {
     bestTime = reaction;

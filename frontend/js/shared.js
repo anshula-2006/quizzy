@@ -4,6 +4,10 @@ export const SESSION_KEY = "quizzy-session-v2";
 export const QUIZ_KEY = "quizzy-vanilla-quiz-v1";
 export const RESULT_KEY = "quizzy-vanilla-result-v1";
 export const MAX_PDF_BYTES = 100 * 1024 * 1024;
+export const HISTORY_BASE = "quizzy-history-v2";
+export const MINI_GAME_BASE = "quizzy-mini-games-v1";
+export const SESSION_ACTIVITY_BASE = "quizzy-session-activity-v1";
+const MAX_HISTORY_ITEMS = 20;
 
 export function getSession() {
   try {
@@ -12,6 +16,46 @@ export function getSession() {
   } catch {
     return null;
   }
+}
+
+export function isLoggedIn() {
+  const session = getSession();
+  return Boolean(session?.token && session?.user?.email);
+}
+
+function getScopeId() {
+  return getSession()?.user?.email || null;
+}
+
+function historyKey() {
+  const scopeId = getScopeId();
+  return scopeId ? `${HISTORY_BASE}-${scopeId}` : "";
+}
+
+function miniGameKey() {
+  const scopeId = getScopeId();
+  return scopeId ? `${MINI_GAME_BASE}-${scopeId}` : "";
+}
+
+function sessionActivityKey() {
+  const scopeId = getScopeId();
+  return scopeId ? `${SESSION_ACTIVITY_BASE}-${scopeId}` : "";
+}
+
+function readJson(key, fallback) {
+  if (!key) return fallback;
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function writeJson(key, value) {
+  if (!key) return false;
+  localStorage.setItem(key, JSON.stringify(value));
+  return true;
 }
 
 export function getQuizState() {
@@ -51,6 +95,93 @@ export function setResultState(value) {
 export function clearQuizFlow() {
   sessionStorage.removeItem(QUIZ_KEY);
   sessionStorage.removeItem(RESULT_KEY);
+}
+
+export function getSavedQuizHistory() {
+  const parsed = readJson(historyKey(), []);
+  return Array.isArray(parsed) ? parsed : [];
+}
+
+export function markSessionActivity(activity) {
+  if (!isLoggedIn()) return false;
+  const key = sessionActivityKey();
+  const previous = readJson(key, { quizDone: false, flashcardsDone: false, miniGameDone: false });
+  return writeJson(key, {
+    quizDone: Boolean(activity?.quizDone || previous.quizDone),
+    flashcardsDone: Boolean(activity?.flashcardsDone || previous.flashcardsDone),
+    miniGameDone: Boolean(activity?.miniGameDone || previous.miniGameDone)
+  });
+}
+
+export function saveQuizAttemptLocal(quizState, resultState) {
+  if (!isLoggedIn() || !quizState || !resultState) return false;
+
+  const entry = {
+    createdAt: new Date().toISOString(),
+    generatedAt: quizState.generatedAt || null,
+    score: Number(resultState.score || 0),
+    total: Number(resultState.total || 0),
+    percentage: Number(resultState.percentage || 0),
+    confidence: Number(resultState.confidence || 0),
+    answers: Array.isArray(resultState.answers) ? resultState.answers : [],
+    settings: quizState.settings || {},
+    meta: quizState.meta || {}
+  };
+
+  const next = [entry, ...getSavedQuizHistory()].slice(0, MAX_HISTORY_ITEMS);
+  const saved = writeJson(historyKey(), next);
+  if (saved) markSessionActivity({ quizDone: true });
+  return saved;
+}
+
+export function getMiniGameStats() {
+  const parsed = readJson(miniGameKey(), {});
+  return {
+    memoryWins: Math.max(0, Number(parsed?.memoryWins || 0)),
+    memoryBestMoves: Math.max(0, Number(parsed?.memoryBestMoves || 0)),
+    memoryBestTime: Math.max(0, Number(parsed?.memoryBestTime || 0)),
+    reactionBest: Math.max(0, Number(parsed?.reactionBest || 0)),
+    reactionRuns: Math.max(0, Number(parsed?.reactionRuns || 0)),
+    recallBestLevel: Math.max(0, Number(parsed?.recallBestLevel || 0)),
+    recallRuns: Math.max(0, Number(parsed?.recallRuns || 0))
+  };
+}
+
+function saveMiniGameStats(stats) {
+  const saved = writeJson(miniGameKey(), stats);
+  if (saved) markSessionActivity({ miniGameDone: true });
+  return saved;
+}
+
+export function recordMemoryWin({ moves, seconds }) {
+  if (!isLoggedIn()) return false;
+  const previous = getMiniGameStats();
+  return saveMiniGameStats({
+    ...previous,
+    memoryWins: previous.memoryWins + 1,
+    memoryBestMoves: previous.memoryBestMoves ? Math.min(previous.memoryBestMoves, moves) : moves,
+    memoryBestTime: previous.memoryBestTime ? Math.min(previous.memoryBestTime, seconds) : seconds
+  });
+}
+
+export function recordReactionAttempt(reaction) {
+  if (!isLoggedIn()) return false;
+  const previous = getMiniGameStats();
+  return saveMiniGameStats({
+    ...previous,
+    reactionRuns: previous.reactionRuns + 1,
+    reactionBest: previous.reactionBest ? Math.min(previous.reactionBest, reaction) : reaction
+  });
+}
+
+export function recordRecallAttempt(level) {
+  if (!isLoggedIn()) return false;
+  const previous = getMiniGameStats();
+  return saveMiniGameStats({
+    ...previous,
+    recallRuns: previous.recallRuns + 1,
+    recallBestLevel: Math.max(previous.recallBestLevel, level)
+  });
 }
 
 export function normalizeQuestion(question) {
@@ -241,8 +372,8 @@ export function buildResultState(quizState, evaluationOverride = null) {
 }
 
 export function feedbackText(percentage) {
-  if (percentage >= 90) return "Nice! You're sharp 😏";
+  if (percentage >= 90) return "Nice! You're sharp.";
   if (percentage >= 75) return "Strong run. You're warming up fast.";
   if (percentage >= 60) return "Good momentum. One more round will feel even better.";
-  return "You’ve got this. Try again and level up.";
+  return "You've got this. Try again and level up.";
 }

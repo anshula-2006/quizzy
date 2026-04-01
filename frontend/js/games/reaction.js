@@ -1,4 +1,5 @@
 import { playCorrectSound, playWrongSound } from "./audio.js";
+import { isLoggedIn, recordReactionAttempt } from "../shared.js";
 
 const stage = document.getElementById("reactionStage");
 const statusNode = document.getElementById("reactionStatus");
@@ -72,15 +73,22 @@ stage?.addEventListener("click", () => {
   ready = false;
   stage.classList.remove("ready");
   renderStatus(`${reaction} ms`, "Solid response time.", `${reaction} ms`);
+  recordReactionAttempt(reaction);
 
   if (bestTime == null || reaction < bestTime) {
     playCorrectSound();
     bestTime = reaction;
     bestNode.textContent = `${bestTime} ms`;
+    if (!isLoggedIn()) {
+      renderStatus(`${reaction} ms`, "Log in to save your best reaction time.", `${reaction} ms`);
+    }
     return;
   }
 
   playWrongSound();
+  if (!isLoggedIn()) {
+    renderStatus(`${reaction} ms`, "Log in to save your reaction history.", `${reaction} ms`);
+  }
 });
 
 resetStage();

@@ -1,4 +1,5 @@
 import { playCorrectSound, playWrongSound } from "./audio.js";
+import { isLoggedIn, recordRecallAttempt } from "../shared.js";
 
 const sequenceNode = document.getElementById("sequenceDisplay");
 const levelNode = document.getElementById("levelValue");
@@ -50,6 +51,7 @@ form?.addEventListener("submit", (event) => {
 
   if (input.value.trim() === currentSequence) {
     playCorrectSound();
+    recordRecallAttempt(level);
     feedback.textContent = "Correct. Next level unlocked.";
     feedback.className = "arcade-feedback good";
     level += 1;
@@ -58,6 +60,10 @@ form?.addEventListener("submit", (event) => {
     feedback.textContent = `Wrong. The correct sequence was ${currentSequence}.`;
     feedback.className = "arcade-feedback bad";
     level = Math.max(3, level - 1);
+  }
+
+  if (!isLoggedIn()) {
+    feedback.textContent += " Log in to save your recall progress.";
   }
 
   updateLevel();

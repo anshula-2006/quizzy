@@ -82,7 +82,7 @@ function getBadgeCatalog(entries) {
     { id: "legend", label: "Quiz Legend", icon: getBadgeImagePath("gold", "quiz_legend.png"), rarity: "gold", unlocked: totalXp >= 600, hint: "Earn 600 total XP." },
     { id: "flash-fan", label: "Flash Fan", icon: getBadgeImagePath("bronze", "flash_fan.png"), rarity: "bronze", unlocked: getFlashDecks().length >= 1, hint: "Generate one flashcard deck." },
     { id: "memory-master", label: "Memory Master", icon: getBadgeImagePath("gold", "memory_master.png"), rarity: "gold", unlocked: Number(gameStats.memoryWins || 0) >= 1, hint: "Win one Memory Match game." },
-    { id: "speedster", label: "Speedster", icon: getBadgeImagePath("silver", "speedster.png"), rarity: "silver", unlocked: Number(gameStats.speedBest || 0) >= 4, hint: "Get 4 right in Speed Round." },
+    { id: "speedster", label: "Speedster", icon: getBadgeImagePath("silver", "speedster.png"), rarity: "silver", unlocked: Number(gameStats.reactionBest || 0) > 0 && Number(gameStats.reactionBest || 0) <= 350, hint: "Hit 350 ms or faster in Reaction Tap." },
     { id: "xp-hunter", label: "XP Hunter", icon: getBadgeImagePath("silver", "xp_hunter.png"), rarity: "silver", unlocked: bonusXp >= 300, hint: "Earn 300 bonus XP from games and missions." },
     { id: "challenge-crusher", label: "Challenge Crusher", icon: getBadgeImagePath("gold", "challenge_crusher.png"), rarity: "gold", unlocked: completedChallenges >= 3, hint: "Complete 3 XP missions." },
     { id: "comeback-kid", label: "Comeback Kid", icon: getBadgeImagePath("silver", "comeback_kid.png"), rarity: "silver", unlocked: hasComeback(list), hint: "Improve by 20% from one quiz to the next." },
@@ -212,15 +212,16 @@ function getMiniGameStats() {
     const raw = localStorage.getItem(miniGameKey());
     const parsed = raw ? JSON.parse(raw) : null;
     return {
-      speedBest: Math.max(0, Number(parsed?.speedBest || 0)),
-      speedRuns: Math.max(0, Number(parsed?.speedRuns || 0)),
       memoryWins: Math.max(0, Number(parsed?.memoryWins || 0)),
-      scrambleWins: Math.max(0, Number(parsed?.scrambleWins || 0)),
-      trueFalseBest: Math.max(0, Number(parsed?.trueFalseBest || 0)),
-      oddOneOutWins: Math.max(0, Number(parsed?.oddOneOutWins || 0))
+      memoryBestMoves: Math.max(0, Number(parsed?.memoryBestMoves || 0)),
+      memoryBestTime: Math.max(0, Number(parsed?.memoryBestTime || 0)),
+      reactionBest: Math.max(0, Number(parsed?.reactionBest || 0)),
+      reactionRuns: Math.max(0, Number(parsed?.reactionRuns || 0)),
+      recallBestLevel: Math.max(0, Number(parsed?.recallBestLevel || 0)),
+      recallRuns: Math.max(0, Number(parsed?.recallRuns || 0))
     };
   } catch {
-    return { speedBest: 0, speedRuns: 0, memoryWins: 0, scrambleWins: 0, trueFalseBest: 0, oddOneOutWins: 0 };
+    return { memoryWins: 0, memoryBestMoves: 0, memoryBestTime: 0, reactionBest: 0, reactionRuns: 0, recallBestLevel: 0, recallRuns: 0 };
   }
 }
 
@@ -368,12 +369,13 @@ function renderProgressExtras(entries) {
         </div>
       </div>
       <div class="evaluation-stats">
-        <div class="card"><p>Speed Best</p><h4>${game.gameStats.speedBest}</h4></div>
-        <div class="card"><p>Speed Runs</p><h4>${game.gameStats.speedRuns}</h4></div>
         <div class="card"><p>Memory Wins</p><h4>${game.gameStats.memoryWins}</h4></div>
-        <div class="card"><p>Scramble Wins</p><h4>${game.gameStats.scrambleWins}</h4></div>
-        <div class="card"><p>True/False Best</p><h4>${game.gameStats.trueFalseBest}</h4></div>
-        <div class="card"><p>Odd One Out</p><h4>${game.gameStats.oddOneOutWins}</h4></div>
+        <div class="card"><p>Best Moves</p><h4>${game.gameStats.memoryBestMoves || "--"}</h4></div>
+        <div class="card"><p>Best Time</p><h4>${game.gameStats.memoryBestTime ? `${game.gameStats.memoryBestTime}s` : "--"}</h4></div>
+        <div class="card"><p>Reaction Best</p><h4>${game.gameStats.reactionBest ? `${game.gameStats.reactionBest} ms` : "--"}</h4></div>
+        <div class="card"><p>Reaction Runs</p><h4>${game.gameStats.reactionRuns}</h4></div>
+        <div class="card"><p>Recall Best</p><h4>${game.gameStats.recallBestLevel || "--"}</h4></div>
+        <div class="card"><p>Recall Runs</p><h4>${game.gameStats.recallRuns}</h4></div>
       </div>
       <div class="cabinet-meta">
         <div class="meta-chip">Study Ninja ${getSessionActivity().quizDone && getSessionActivity().flashcardsDone && getSessionActivity().miniGameDone ? "Unlocked" : "In progress"}</div>
@@ -407,7 +409,7 @@ function renderBoard() {
     scoreboardContent.innerHTML = `
       <div class="card evaluation-empty">
         <h3>No Data Yet</h3>
-        <p>Take at least one quiz from the home page to populate your scoreboard.</p>
+        <p>${isLoggedIn() ? "Take at least one quiz from the home page to populate your scoreboard." : "Log in or register first, then your quiz and arcade progress will start saving here."}</p>
       </div>
       ${cloudProfile ? `<div class="card"><h3>Cloud Profile</h3><p>Total Points: ${cloudProfile.totalPoints || 0} | Total XP: ${cloudProfile.totalXp || 0} | Best Streak: ${cloudProfile.bestStreak || 0}</p></div>` : ""}
       ${leaderboardMarkup}

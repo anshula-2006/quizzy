@@ -41,6 +41,60 @@ body {
     linear-gradient(180deg, var(--bg), var(--bg-deep));
 }
 
+.global-auth-bar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 28px 0;
+}
+
+.global-auth-home,
+.global-auth-link,
+.global-auth-logout,
+.global-auth-user {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.global-auth-home {
+  letter-spacing: -0.03em;
+}
+
+.global-auth-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.global-auth-link,
+.global-auth-logout {
+  transition: transform 0.28s ease, border-color 0.28s ease, background 0.28s ease;
+}
+
+.global-auth-link:hover,
+.global-auth-logout:hover {
+  transform: translateY(-2px);
+  border-color: rgba(6, 182, 212, 0.4);
+}
+
+.global-auth-link-strong {
+  background: linear-gradient(90deg, var(--purple), var(--cyan));
+  border-color: transparent;
+  color: #fff;
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -668,6 +722,12 @@ button {
 @media (max-width: 640px) {
   .page-shell {
     padding: 16px;
+  }
+
+  .global-auth-bar {
+    padding: 12px 16px 0;
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .hero-card,

@@ -29,6 +29,55 @@ body.arcade-body {
     linear-gradient(180deg, var(--arcade-bg-top), var(--arcade-bg-bottom));
 }
 
+.global-auth-bar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 20px 0;
+}
+
+.global-auth-home,
+.global-auth-link,
+.global-auth-logout,
+.global-auth-user {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--arcade-line);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--arcade-white);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.global-auth-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.global-auth-link,
+.global-auth-logout {
+  transition: transform 0.28s ease, border-color 0.28s ease, background 0.28s ease;
+}
+
+.global-auth-link:hover,
+.global-auth-logout:hover {
+  transform: translateY(-2px);
+  border-color: rgba(6, 182, 212, 0.4);
+}
+
+.global-auth-link-strong {
+  background: linear-gradient(90deg, var(--arcade-purple), var(--arcade-cyan));
+  border-color: transparent;
+}
+
 .arcade-shell {
   min-height: 100vh;
   padding: 28px 20px;
@@ -557,6 +606,12 @@ body.arcade-body {
 @media (max-width: 640px) {
   .arcade-shell {
     padding: 18px 14px;
+  }
+
+  .global-auth-bar {
+    padding: 12px 14px 0;
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .arcade-hero,

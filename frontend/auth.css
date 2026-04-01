@@ -28,6 +28,41 @@ body {
   padding: 24px;
 }
 
+.global-auth-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding-bottom: 18px;
+}
+
+.global-auth-home,
+.global-auth-link,
+.global-auth-logout,
+.global-auth-user {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--auth-border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--auth-text);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.global-auth-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.global-auth-link-strong {
+  background: linear-gradient(90deg, var(--auth-accent-1), var(--auth-accent-2));
+  border-color: transparent;
+}
+
 .auth-shell {
   min-height: calc(100vh - 48px);
   display: grid;
@@ -241,6 +276,11 @@ body {
 @media (max-width: 640px) {
   body {
     padding: 16px;
+  }
+
+  .global-auth-bar {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .auth-hero,

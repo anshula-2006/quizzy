@@ -1,4 +1,5 @@
 import { playCorrectSound, playWrongSound } from "./audio.js";
+import { isLoggedIn, recordMemoryWin } from "../shared.js";
 
 const board = document.getElementById("memoryBoard");
 const movesNode = document.getElementById("movesCount");
@@ -78,7 +79,11 @@ function preloadImages(images) {
 function finishIfDone() {
   if (cards.every((card) => card.matched)) {
     clearInterval(timerId);
+    recordMemoryWin({ moves, seconds });
     setStatus(`Board cleared in ${moves} moves and ${seconds}s.`, "good");
+    if (!isLoggedIn()) {
+      setStatus(`Board cleared in ${moves} moves and ${seconds}s. Log in to save this run.`, "good");
+    }
   }
 }
 

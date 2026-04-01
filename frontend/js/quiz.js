@@ -2,6 +2,7 @@ import {
   buildResultState,
   getQuizState,
   gradeShortAnswer,
+  saveQuizAttemptLocal,
   setQuizState,
   setResultState,
   submitQuizAttempt
@@ -74,7 +75,9 @@ async function finishQuiz() {
     evaluation = null;
   }
 
-  setResultState(buildResultState(quizState, evaluation));
+  const resultState = buildResultState(quizState, evaluation);
+  saveQuizAttemptLocal(quizState, resultState);
+  setResultState(resultState);
   window.location.href = "./result.html";
 }
 

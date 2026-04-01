@@ -1,22 +1,21 @@
 :root {
-  --arcade-bg-top: #0f172a;
-  --arcade-bg-bottom: #1e293b;
-  --arcade-panel: rgba(15, 23, 42, 0.72);
-  --arcade-panel-strong: rgba(15, 23, 42, 0.9);
-  --arcade-line: rgba(148, 163, 184, 0.22);
-  --arcade-text: #e2e8f0;
-  --arcade-muted: #94a3b8;
+  --arcade-bg-top: #071120;
+  --arcade-bg-bottom: #040914;
+  --arcade-panel: rgba(9, 18, 34, 0.78);
+  --arcade-panel-strong: rgba(11, 21, 40, 0.92);
+  --arcade-line: rgba(255, 255, 255, 0.1);
+  --arcade-text: #f7fbff;
+  --arcade-muted: rgba(214, 226, 255, 0.68);
   --arcade-white: #f8fafc;
   --arcade-purple: #7c3aed;
   --arcade-cyan: #06b6d4;
   --arcade-emerald: #10b981;
-  --arcade-red: #ef4444;
-  --arcade-amber: #f59e0b;
-  --arcade-shadow: 0 22px 50px rgba(2, 6, 23, 0.32);
-  --arcade-glow: 0 20px 42px rgba(124, 58, 237, 0.18);
-  --arcade-radius-xl: 24px;
-  --arcade-radius-lg: 16px;
-  --arcade-radius-md: 12px;
+  --arcade-red: #fb7185;
+  --arcade-shadow: 0 28px 90px rgba(2, 6, 23, 0.45);
+  --arcade-glow: 0 24px 50px rgba(124, 58, 237, 0.18);
+  --arcade-radius-xl: 30px;
+  --arcade-radius-lg: 20px;
+  --arcade-radius-md: 14px;
 }
 
 body.arcade-body {
@@ -25,8 +24,8 @@ body.arcade-body {
   color: var(--arcade-text);
   font-family: "Inter", system-ui, sans-serif;
   background:
-    radial-gradient(circle at top left, rgba(124, 58, 237, 0.18), transparent 22%),
-    radial-gradient(circle at top right, rgba(6, 182, 212, 0.16), transparent 20%),
+    radial-gradient(circle at 12% 10%, rgba(124, 58, 237, 0.24), transparent 26%),
+    radial-gradient(circle at 88% 12%, rgba(6, 182, 212, 0.18), transparent 22%),
     linear-gradient(180deg, var(--arcade-bg-top), var(--arcade-bg-bottom));
 }
 
@@ -36,7 +35,7 @@ body.arcade-body {
 }
 
 .arcade-frame {
-  width: min(1040px, 100%);
+  width: min(1100px, 100%);
   margin: 0 auto;
 }
 
@@ -45,45 +44,46 @@ body.arcade-body {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 30px;
+  margin-bottom: 28px;
 }
 
 .arcade-back {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  min-height: 44px;
-  padding: 0 16px;
+  min-height: 46px;
+  padding: 0 18px;
   border-radius: 999px;
   border: 1px solid var(--arcade-line);
-  background: rgba(15, 23, 42, 0.42);
+  background: rgba(255, 255, 255, 0.04);
   color: var(--arcade-white);
-  font-size: 0.95rem;
+  font-size: 0.94rem;
   font-weight: 700;
   text-decoration: none;
-  transition: transform 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+  transition: transform 0.28s ease, border-color 0.28s ease, background 0.28s ease;
 }
 
 .arcade-back:hover {
-  transform: translateY(-1px);
-  border-color: rgba(6, 182, 212, 0.42);
-  background: rgba(30, 41, 59, 0.72);
+  transform: translateY(-2px);
+  border-color: rgba(6, 182, 212, 0.4);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .arcade-mark {
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 800;
-  letter-spacing: 0.28em;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
   color: #c4b5fd;
 }
 
 .arcade-panel {
-  background: var(--arcade-panel);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
+    var(--arcade-panel);
   border: 1px solid var(--arcade-line);
   border-radius: var(--arcade-radius-xl);
   box-shadow: var(--arcade-shadow);
-  backdrop-filter: blur(18px);
+  backdrop-filter: blur(24px);
 }
 
 .arcade-hero,
@@ -94,10 +94,10 @@ body.arcade-body {
 .arcade-title {
   margin: 12px 0 0;
   color: var(--arcade-white);
-  font-size: clamp(2.4rem, 4.5vw, 3.8rem);
-  line-height: 1;
-  font-weight: 800;
-  letter-spacing: -0.04em;
+  font-size: clamp(2.6rem, 4.5vw, 4rem);
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+  font-weight: 900;
 }
 
 .arcade-subtitle {
@@ -105,7 +105,7 @@ body.arcade-body {
   max-width: 560px;
   color: var(--arcade-muted);
   font-size: 1rem;
-  line-height: 1.75;
+  line-height: 1.8;
 }
 
 .arcade-hub {
@@ -120,24 +120,46 @@ body.arcade-body {
 }
 
 .arcade-game-card {
-  min-height: 220px;
+  min-height: 280px;
   display: grid;
-  align-content: space-between;
-  gap: 22px;
-  padding: 24px;
-  border-radius: 20px;
+  align-content: start;
+  gap: 18px;
+  padding: 22px;
+  border-radius: 24px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.06), rgba(15, 23, 42, 0.18));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  transition: transform 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease, background 0.35s ease;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition: transform 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+}
+
+.arcade-game-card.memory {
+  background:
+    radial-gradient(circle at top right, rgba(124, 58, 237, 0.26), transparent 34%),
+    linear-gradient(145deg, rgba(124, 58, 237, 0.12), rgba(255, 255, 255, 0.03));
+}
+
+.arcade-game-card.reaction {
+  background:
+    radial-gradient(circle at top right, rgba(6, 182, 212, 0.24), transparent 34%),
+    linear-gradient(145deg, rgba(6, 182, 212, 0.12), rgba(255, 255, 255, 0.03));
+}
+
+.arcade-game-card.recall {
+  background:
+    radial-gradient(circle at top right, rgba(16, 185, 129, 0.24), transparent 34%),
+    linear-gradient(145deg, rgba(16, 185, 129, 0.12), rgba(255, 255, 255, 0.03));
+}
+
+.arcade-card-link:hover .arcade-game-card {
+  transform: translateY(-6px);
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: var(--arcade-shadow), var(--arcade-glow);
 }
 
 .arcade-preview {
-  height: 132px;
+  height: 156px;
   overflow: hidden;
-  border-radius: 16px;
+  border-radius: 18px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
 }
 
 .arcade-preview img {
@@ -148,37 +170,13 @@ body.arcade-body {
   transition: transform 0.45s ease;
 }
 
-.arcade-game-card.memory {
-  background:
-    radial-gradient(circle at top right, rgba(124, 58, 237, 0.26), transparent 36%),
-    linear-gradient(145deg, rgba(124, 58, 237, 0.14), rgba(15, 23, 42, 0.42));
-}
-
-.arcade-game-card.reaction {
-  background:
-    radial-gradient(circle at top right, rgba(6, 182, 212, 0.24), transparent 36%),
-    linear-gradient(145deg, rgba(6, 182, 212, 0.12), rgba(15, 23, 42, 0.42));
-}
-
-.arcade-game-card.recall {
-  background:
-    radial-gradient(circle at top right, rgba(16, 185, 129, 0.24), transparent 36%),
-    linear-gradient(145deg, rgba(16, 185, 129, 0.12), rgba(15, 23, 42, 0.42));
-}
-
-.arcade-card-link:hover .arcade-game-card {
-  transform: translateY(-6px) scale(1.01);
-  border-color: rgba(255, 255, 255, 0.18);
-  box-shadow: var(--arcade-shadow), var(--arcade-glow);
-}
-
 .arcade-card-link:hover .arcade-preview img {
   transform: scale(1.06);
 }
 
 .arcade-icon-tile {
-  width: 58px;
-  height: 58px;
+  width: 54px;
+  height: 54px;
   display: inline-grid;
   place-items: center;
   border-radius: 18px;
@@ -187,36 +185,36 @@ body.arcade-body {
 }
 
 .arcade-icon-tile svg {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   color: var(--arcade-white);
 }
 
 .arcade-card-title {
   margin: 0;
   color: var(--arcade-white);
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: 1.2rem;
+  font-weight: 800;
 }
 
 .arcade-card-copy {
-  margin: 10px 0 0;
+  margin: 8px 0 0;
   color: var(--arcade-muted);
-  line-height: 1.65;
+  line-height: 1.68;
 }
 
 .arcade-card-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+  margin-top: auto;
   color: var(--arcade-white);
-  font-size: 0.9rem;
-  font-weight: 700;
+  font-size: 0.88rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .arcade-game-wrap {
   display: grid;
-  gap: 28px;
+  gap: 26px;
 }
 
 .arcade-game-head {
@@ -233,19 +231,19 @@ body.arcade-body {
 }
 
 .arcade-kpi {
-  min-width: 108px;
+  min-width: 114px;
   padding: 14px 16px;
-  border-radius: 16px;
+  border-radius: 18px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .arcade-kpi span {
   display: block;
   color: var(--arcade-muted);
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
 }
 
@@ -254,19 +252,52 @@ body.arcade-body {
   margin-top: 10px;
   color: var(--arcade-white);
   font-size: 1.5rem;
+  font-weight: 900;
+}
+
+.arcade-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.arcade-btn,
+.arcade-btn-secondary {
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: 999px;
+  border: 1px solid transparent;
   font-weight: 800;
+  transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease, background 0.28s ease;
+}
+
+.arcade-btn {
+  color: #fff;
+  background: linear-gradient(90deg, var(--arcade-purple), var(--arcade-cyan));
+  box-shadow: 0 18px 40px rgba(124, 58, 237, 0.22);
+}
+
+.arcade-btn-secondary {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--arcade-line);
+  color: var(--arcade-white);
+}
+
+.arcade-btn:hover,
+.arcade-btn-secondary:hover {
+  transform: translateY(-2px);
 }
 
 .memory-grid {
   display: grid;
-  grid-template-columns: repeat(4, 92px);
+  grid-template-columns: repeat(4, 96px);
   justify-content: center;
   gap: 14px;
 }
 
 .memory-card {
-  width: 92px;
-  height: 92px;
+  width: 96px;
+  height: 96px;
   position: relative;
   border: 0;
   background: transparent;
@@ -279,7 +310,7 @@ body.arcade-body {
   width: 100%;
   height: 100%;
   transform-style: preserve-3d;
-  transition: transform 0.45s ease;
+  transition: transform 0.46s ease;
 }
 
 .memory-card:hover .memory-card-shell {
@@ -296,21 +327,23 @@ body.arcade-body {
   inset: 0;
   display: grid;
   place-items: center;
-  border-radius: 18px;
+  border-radius: 20px;
   overflow: hidden;
   backface-visibility: hidden;
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .memory-card-front {
-  background: linear-gradient(145deg, rgba(30, 41, 59, 0.82), rgba(51, 65, 85, 0.86));
-  color: rgba(248, 250, 252, 0.72);
-  font-size: 1.7rem;
-  font-weight: 800;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(124, 58, 237, 0.2), transparent 26%),
+    linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.96));
+  color: rgba(248, 250, 252, 0.74);
+  font-size: 1.4rem;
+  font-weight: 900;
 }
 
 .memory-card-back {
-  background: rgba(15, 23, 42, 0.94);
+  background: rgba(15, 23, 42, 0.96);
   transform: rotateY(180deg);
 }
 
@@ -321,7 +354,7 @@ body.arcade-body {
 }
 
 .memory-card.is-matched .memory-card-face {
-  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.24), 0 0 22px rgba(16, 185, 129, 0.22);
+  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.28), 0 0 24px rgba(16, 185, 129, 0.22);
 }
 
 .memory-card.is-wrong .memory-card-shell {
@@ -329,157 +362,125 @@ body.arcade-body {
 }
 
 @keyframes memoryShake {
-  0%, 100% { transform: rotateY(180deg) translateX(0); }
-  25% { transform: rotateY(180deg) translateX(-4px); }
-  50% { transform: rotateY(180deg) translateX(4px); }
-  75% { transform: rotateY(180deg) translateX(-3px); }
-}
-
-.arcade-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.arcade-btn,
-.arcade-btn-secondary {
-  min-height: 48px;
-  padding: 0 20px;
-  border-radius: 999px;
-  border: 1px solid transparent;
-  font-weight: 700;
-  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease, border-color 0.3s ease;
-}
-
-.arcade-btn {
-  background: linear-gradient(90deg, var(--arcade-purple), var(--arcade-cyan));
-  color: #fff;
-  box-shadow: 0 16px 34px rgba(124, 58, 237, 0.22);
-}
-
-.arcade-btn-secondary {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: var(--arcade-line);
-  color: var(--arcade-white);
-}
-
-.arcade-btn:hover,
-.arcade-btn-secondary:hover {
-  transform: translateY(-1px);
+  0%,
+  100% {
+    transform: rotateY(180deg) translateX(0);
+  }
+  25% {
+    transform: rotateY(180deg) translateX(-4px);
+  }
+  50% {
+    transform: rotateY(180deg) translateX(4px);
+  }
+  75% {
+    transform: rotateY(180deg) translateX(-3px);
+  }
 }
 
 .reaction-stage {
-  min-height: 360px;
-  border-radius: 22px;
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  background: linear-gradient(145deg, rgba(30, 41, 59, 0.92), rgba(15, 23, 42, 0.96));
+  min-height: 380px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(145deg, rgba(30, 41, 59, 0.94), rgba(15, 23, 42, 0.98));
   display: grid;
   place-items: center;
   width: 100%;
   padding: 28px;
-  transition: background 0.4s ease, transform 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+  transition: background 0.38s ease, border-color 0.38s ease, box-shadow 0.38s ease, transform 0.35s ease;
 }
 
 .reaction-stage.waiting {
-  background: linear-gradient(145deg, rgba(127, 29, 29, 0.92), rgba(69, 10, 10, 0.96));
-  border-color: rgba(248, 113, 113, 0.35);
+  background: linear-gradient(145deg, rgba(127, 29, 29, 0.94), rgba(69, 10, 10, 0.98));
+  border-color: rgba(248, 113, 113, 0.32);
 }
 
 .reaction-stage.ready {
-  background: linear-gradient(145deg, rgba(6, 95, 70, 0.96), rgba(4, 120, 87, 0.96));
-  border-color: rgba(52, 211, 153, 0.38);
-  box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.18), 0 0 28px rgba(52, 211, 153, 0.18);
+  background: linear-gradient(145deg, rgba(6, 95, 70, 0.96), rgba(5, 150, 105, 0.96));
+  border-color: rgba(52, 211, 153, 0.34);
+  box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.14), 0 0 34px rgba(52, 211, 153, 0.16);
+}
+
+.reaction-stage-inner,
+.reaction-result {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
 }
 
 .reaction-label {
   color: var(--arcade-white);
-  font-size: clamp(2rem, 6vw, 4rem);
-  font-weight: 800;
-  letter-spacing: -0.04em;
+  font-size: clamp(2.2rem, 6vw, 4.4rem);
+  font-weight: 900;
+  letter-spacing: -0.05em;
 }
 
-.reaction-caption {
-  margin-top: 12px;
+.reaction-caption,
+.reaction-note {
   color: rgba(226, 232, 240, 0.82);
   font-size: 1rem;
 }
 
-.reaction-stage-inner {
-  display: grid;
-  justify-items: center;
-}
-
-.reaction-result {
-  display: grid;
-  justify-items: center;
-  gap: 8px;
-}
-
 .reaction-time {
   color: var(--arcade-white);
-  font-size: clamp(3rem, 9vw, 4.6rem);
-  font-weight: 800;
+  font-size: clamp(3rem, 9vw, 4.8rem);
+  font-weight: 900;
   line-height: 1;
-  letter-spacing: -0.05em;
-}
-
-.reaction-note {
-  color: var(--arcade-muted);
-  font-size: 0.98rem;
+  letter-spacing: -0.06em;
 }
 
 .recall-stage {
-  min-height: 240px;
+  min-height: 250px;
   display: grid;
   place-items: center;
-  border-radius: 22px;
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  background: linear-gradient(145deg, rgba(15, 23, 42, 0.88), rgba(30, 41, 59, 0.94));
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.96));
   padding: 28px;
 }
 
 .recall-sequence {
   color: var(--arcade-white);
-  font-size: clamp(2.4rem, 8vw, 4.6rem);
-  font-weight: 800;
-  letter-spacing: 0.22em;
+  font-size: clamp(2.6rem, 8vw, 5rem);
+  font-weight: 900;
+  letter-spacing: 0.24em;
 }
 
 .recall-hidden {
   color: var(--arcade-muted);
-  font-size: 1.05rem;
-  letter-spacing: 0.1em;
+  font-size: 1rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .recall-form {
   display: grid;
   gap: 14px;
-  max-width: 420px;
+  max-width: 440px;
 }
 
 .recall-input {
   width: 100%;
-  min-height: 54px;
+  min-height: 56px;
   padding: 0 18px;
-  border-radius: 16px;
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  background: rgba(15, 23, 42, 0.86);
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(4, 10, 22, 0.76);
   color: var(--arcade-white);
-  font-size: 1.1rem;
+  font-size: 1.08rem;
   outline: none;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  transition: border-color 0.28s ease, box-shadow 0.28s ease, transform 0.28s ease;
 }
 
 .recall-input:focus {
   border-color: rgba(6, 182, 212, 0.42);
   box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.12);
+  transform: translateY(-1px);
 }
 
 .arcade-feedback {
   min-height: 24px;
   color: var(--arcade-muted);
-  font-size: 0.95rem;
+  font-size: 0.94rem;
 }
 
 .arcade-feedback.good {
@@ -507,7 +508,7 @@ body.arcade-body {
 
   .arcade-hero,
   .arcade-game-wrap {
-    padding: 22px;
+    padding: 24px;
   }
 
   .arcade-header {

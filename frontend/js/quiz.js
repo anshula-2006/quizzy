@@ -195,7 +195,7 @@ function render() {
   if (answer) {
     feedbackWrap.innerHTML = `
       <div class="feedback-box ${answer.isCorrect ? "good" : "bad"}">
-        <h3 class="feedback-title">${answer.isCorrect ? "Correct ✅" : "Wrong ❌"}</h3>
+        <h3 class="feedback-title">${answer.isCorrect ? "Correct \u2705" : "Wrong \u274C"}</h3>
         <p class="feedback-copy">${question.type === "short" ? `Correct answer: ${question.shortAnswer}` : `Correct option: ${question.correct}`}</p>
         <p class="feedback-copy" style="margin-top:10px;">${question.explanation || "No explanation available."}</p>
         ${!answer.isCorrect && question.wrongExplanation ? `<p class="feedback-copy" style="margin-top:10px;">${question.wrongExplanation}</p>` : ""}

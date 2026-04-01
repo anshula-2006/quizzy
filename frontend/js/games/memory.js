@@ -4,11 +4,11 @@ const board = document.getElementById("memoryBoard");
 const movesNode = document.getElementById("movesCount");
 const timeNode = document.getElementById("timeCount");
 const restartBtn = document.getElementById("restartGameBtn");
+const statusNode = document.getElementById("memoryStatus");
 
 const MEMORY_IMAGES = [
   "aleksandr-isaev-rgP5gqM9INo-unsplash.jpg",
   "bryam-blanco-o3o3dq-nODE-unsplash.jpg",
-  "cardia-gong-p6v03N53mOE-unsplash.jpg",
   "christy-hinko-aE-gyTpRU2c-unsplash.jpg",
   "david-trinks-DT32nVCMXKk-unsplash.jpg",
   "debbie-molle-6DSID8Ey9-U-unsplash.jpg",
@@ -18,10 +18,8 @@ const MEMORY_IMAGES = [
   "hamad-alahamad-6QaCUioE_nE-unsplash.jpg",
   "hamad-alahamad-bNuil3PcTSM-unsplash.jpg",
   "henry-fraczek-eByZOJr4pbE-unsplash.jpg",
-  "jacques-bopp-aBKYaN4c25Q-unsplash.jpg",
   "maheera-kulsoom-lEpdF8D18zc-unsplash.jpg",
   "mockup-graphics-7qU176TIxDk-unsplash.jpg",
-  "mockup-graphics-HuMXepbutF8-unsplash.jpg",
   "mockup-graphics-lDhhUl3Gp3Q-unsplash.jpg",
   "mockup-graphics-nZUQgW0FVnc-unsplash.jpg",
   "mockup-graphics-q7BJL1qZ1Bw-unsplash.jpg",
@@ -29,8 +27,7 @@ const MEMORY_IMAGES = [
   "mockup-graphics-XiWQbLEhFyo-unsplash.jpg",
   "personalgraphic-com-_Ef2SUNv468-unsplash.jpg",
   "phuong-nguyen-O6bVl2bmgAA-unsplash.jpg",
-  "rich-dahlgren--MMRAIrqgUE-unsplash.jpg",
-  "taylor-gregory-6NbZ4t71Jbw-unsplash.jpg"
+  "rich-dahlgren--MMRAIrqgUE-unsplash.jpg"
 ].map((filename) => new URL(`../../assets/memory-game/${filename}`, import.meta.url).href);
 
 let cards = [];
@@ -50,18 +47,15 @@ function shuffle(list) {
   return copy;
 }
 
-function generateVisualPairs() {
-  return shuffle(MEMORY_IMAGES)
-    .slice(0, 8)
-    .map((image, index) => ({
-      pairId: `pair-${index}`,
-      image
-    }));
+function setStatus(message, tone = "") {
+  if (!statusNode) return;
+  statusNode.textContent = message;
+  statusNode.className = `arcade-feedback${tone ? ` ${tone}` : ""}`;
 }
 
 function updateStats() {
-  movesNode.textContent = moves;
-  timeNode.textContent = `${seconds}s`;
+  if (movesNode) movesNode.textContent = moves;
+  if (timeNode) timeNode.textContent = `${seconds}s`;
 }
 
 function startTimer() {
@@ -72,15 +66,46 @@ function startTimer() {
   }, 1000);
 }
 
+function preloadImages(images) {
+  return Promise.all(images.map((src) => new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(src);
+    img.onerror = () => reject(new Error(`Failed to load ${src}`));
+    img.src = src;
+  })));
+}
+
 function finishIfDone() {
   if (cards.every((card) => card.matched)) {
     clearInterval(timerId);
+    setStatus(`Board cleared in ${moves} moves and ${seconds}s.`, "good");
   }
 }
 
-function resetGame() {
+function buildDeck() {
+  return shuffle(MEMORY_IMAGES)
+    .slice(0, 8)
+    .map((image, index) => ({
+      pairId: `pair-${index}`,
+      image
+    }));
+}
+
+async function resetGame() {
+  if (!board) return;
+
   clearInterval(timerId);
-  const basePairs = generateVisualPairs();
+  const basePairs = buildDeck();
+  setStatus("Loading image deck...");
+  board.innerHTML = "";
+
+  try {
+    await preloadImages(basePairs.map((pair) => pair.image));
+  } catch {
+    setStatus("Memory images could not load. Please try restarting.", "bad");
+    return;
+  }
+
   cards = shuffle([...basePairs, ...basePairs].map((entry, index) => ({
     id: `${entry.pairId}-${index}`,
     pairId: entry.pairId,
@@ -89,21 +114,25 @@ function resetGame() {
     matched: false,
     wrong: false
   })));
+
   firstPick = null;
   secondPick = null;
   lockBoard = false;
   moves = 0;
   seconds = 0;
   updateStats();
+  setStatus("Match every pair as fast as you can.");
   startTimer();
   render();
 }
 
 function render() {
+  if (!board) return;
+
   board.innerHTML = cards.map((card, index) => `
     <button class="memory-card ${card.flipped || card.matched ? "is-flipped" : ""} ${card.matched ? "is-matched" : ""} ${card.wrong ? "is-wrong" : ""}" data-index="${index}" type="button">
       <span class="memory-card-shell">
-        <span class="memory-card-face memory-card-front">+</span>
+        <span class="memory-card-face memory-card-front">Flip</span>
         <span class="memory-card-face memory-card-back"><img src="${card.image}" alt="Memory tile" /></span>
       </span>
     </button>
@@ -144,6 +173,7 @@ function flipCard(index) {
     firstCard.matched = true;
     secondCard.matched = true;
     playCorrectSound();
+    setStatus("Match found.", "good");
     firstPick = null;
     secondPick = null;
     render();
@@ -155,6 +185,7 @@ function flipCard(index) {
   secondCard.wrong = true;
   lockBoard = true;
   playWrongSound();
+  setStatus("Not a match. Try again.", "bad");
   render();
 
   window.setTimeout(() => {
@@ -169,5 +200,8 @@ function flipCard(index) {
   }, 720);
 }
 
-restartBtn?.addEventListener("click", resetGame);
+restartBtn?.addEventListener("click", () => {
+  resetGame();
+});
+
 resetGame();

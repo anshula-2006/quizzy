@@ -1786,7 +1786,7 @@ function getLevelProgress(totalXp) {
 }
 
 function getBadgeImagePath(rarity, filename) {
-  return `assets/badges/${rarity}/${filename}`;
+  return new URL(`./assets/badges/${rarity}/${filename}`, import.meta.url).href;
 }
 
 function hasComeback(entries) {

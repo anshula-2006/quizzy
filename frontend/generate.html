@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Generate Quiz | Quizzy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./app.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <div class="page-container">
+      <header class="panel top-nav">
+        <a class="brand" href="./index.html"><span class="brand-badge">Q</span><span>Quizzy</span></a>
+        <nav class="nav-links">
+          <a class="nav-link" href="./index.html">Home</a>
+          <a class="nav-link is-active" href="./generate.html">Generate</a>
+          <a class="nav-link" href="./arcade.html">Arcade</a>
+          <a class="nav-link" href="./scoreboard.html">Leaderboard</a>
+        </nav>
+      </header>
+
+      <main class="split-grid two-col">
+        <section class="panel flow-card page-fade">
+          <p class="eyebrow">Generate</p>
+          <h1 class="section-title">Create your quiz</h1>
+          <p class="section-copy">Choose a source, add content, and generate only when you decide. No preloaded quiz content appears here.</p>
+
+          <form id="generateForm" class="field-stack" style="margin-top:28px;">
+            <div>
+              <label class="field-label">Step 1 — Choose Source</label>
+              <div class="source-grid">
+                <button type="button" class="source-card is-active" data-source="text"><strong>Topic</strong><span>Type a topic or paste notes.</span></button>
+                <button type="button" class="source-card" data-source="pdf"><strong>PDF</strong><span>Upload your study document.</span></button>
+                <button type="button" class="source-card" data-source="url"><strong>URL</strong><span>Convert an article into a quiz.</span></button>
+              </div>
+            </div>
+
+            <div>
+              <label class="field-label">Step 2 — Add Content</label>
+              <textarea id="topicInput" class="text-input" placeholder="Photosynthesis, recursion, Indian constitution, your own notes..."></textarea>
+              <input id="urlInput" class="text-input" type="url" placeholder="https://example.com/article" hidden />
+              <div class="file-wrap" hidden>
+                <input id="pdfInput" class="file-input" type="file" accept=".pdf,application/pdf" />
+              </div>
+              <p id="sourceHint" class="helper-text" style="margin:12px 0 0;">Type a topic or paste your notes.</p>
+            </div>
+
+            <div>
+              <label class="field-label">Step 3 — Tune Quiz</label>
+              <div class="settings-grid">
+                <div class="setting-card">
+                  <label class="field-label" for="difficultySelect">Difficulty</label>
+                  <select id="difficultySelect" class="select-input">
+                    <option value="easy">Easy</option>
+                    <option value="moderate" selected>Moderate</option>
+                    <option value="tough">Tough</option>
+                    <option value="super">Super</option>
+                  </select>
+                </div>
+                <div class="setting-card">
+                  <label class="field-label" for="modeSelect">Question Type</label>
+                  <select id="modeSelect" class="select-input">
+                    <option value="mcq" selected>MCQ</option>
+                    <option value="mixed">Mixed</option>
+                    <option value="short">Short</option>
+                  </select>
+                </div>
+                <div class="setting-card">
+                  <label class="field-label" for="languageSelect">Language</label>
+                  <select id="languageSelect" class="select-input">
+                    <option value="English" selected>English</option>
+                    <option value="Hindi">Hindi</option>
+                    <option value="Bengali">Bengali</option>
+                    <option value="Tamil">Tamil</option>
+                    <option value="Telugu">Telugu</option>
+                    <option value="Marathi">Marathi</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div id="generateError" class="error-message" hidden></div>
+            <div class="button-row">
+              <button class="btn" type="submit">Generate Quiz</button>
+            </div>
+          </form>
+        </section>
+
+        <aside class="panel game-card page-fade">
+          <p class="eyebrow">Flow</p>
+          <h2 class="section-title" style="font-size:2.4rem;">Simple by design</h2>
+          <div class="field-stack" style="margin-top:24px;">
+            <div class="setting-card"><strong>1. Pick input</strong><p class="helper-text">Topic, PDF, or URL.</p></div>
+            <div class="setting-card"><strong>2. Generate</strong><p class="helper-text">Quizzy calls your real backend only after you click.</p></div>
+            <div class="setting-card"><strong>3. Start quiz</strong><p class="helper-text">You move straight to the dedicated quiz page.</p></div>
+          </div>
+        </aside>
+      </main>
+    </div>
+  </div>
+
+  <script type="module" src="./js/generate.js"></script>
+</body>
+</html>

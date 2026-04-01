@@ -1,17 +1,22 @@
 import { defineConfig } from "vite";
 import { fileURLToPath } from "url";
 import { resolve } from "path";
-import react from "@vitejs/plugin-react";
 
 const rootDir = fileURLToPath(new URL(".", import.meta.url));
 const proxyTarget = process.env.VITE_API_PROXY_TARGET || "https://quizzy-3lt0.onrender.com";
 
 export default defineConfig({
-  plugins: [react()],
   build: {
     rollupOptions: {
       input: {
         main: resolve(rootDir, "index.html"),
+        generate: resolve(rootDir, "generate.html"),
+        quiz: resolve(rootDir, "quiz.html"),
+        result: resolve(rootDir, "result.html"),
+        arcade: resolve(rootDir, "arcade.html"),
+        memory: resolve(rootDir, "games/memory.html"),
+        reaction: resolve(rootDir, "games/reaction.html"),
+        recall: resolve(rootDir, "games/recall.html"),
         login: resolve(rootDir, "login.html"),
         register: resolve(rootDir, "register.html"),
         scoreboard: resolve(rootDir, "scoreboard.html")

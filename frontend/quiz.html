@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz | Quizzy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./app.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <div class="page-container">
+      <header class="panel top-nav">
+        <a class="brand" href="./index.html"><span class="brand-badge">Q</span><span>Quizzy</span></a>
+        <nav class="nav-links">
+          <a class="nav-link" href="./index.html">Home</a>
+          <a class="nav-link" href="./generate.html">Generate</a>
+          <a class="nav-link is-active" href="./quiz.html">Quiz</a>
+          <a class="nav-link" href="./arcade.html">Arcade</a>
+        </nav>
+      </header>
+
+      <main id="quizRoot"></main>
+    </div>
+  </div>
+
+  <script type="module" src="./js/quiz.js"></script>
+</body>
+</html>

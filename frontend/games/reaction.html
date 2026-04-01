@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reaction Tap | Quizzy Arcade</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../app.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <div class="page-container">
+      <header class="panel top-nav">
+        <a class="brand" href="../index.html"><span class="brand-badge">Q</span><span>Quizzy</span></a>
+        <nav class="nav-links">
+          <a class="nav-link" href="../arcade.html">Back to Arcade</a>
+        </nav>
+      </header>
+
+      <main class="panel game-panel game-board page-fade">
+        <div>
+          <p class="eyebrow">Reaction Tap ⚡</p>
+          <h1 class="section-title">Wait, then strike</h1>
+          <p class="section-copy">Start a round, wait for the signal, and click as fast as possible.</p>
+        </div>
+
+        <div class="game-status-row">
+          <span class="pill">Best: <strong id="bestReaction" style="margin-left:8px;color:#fff;">--</strong></span>
+        </div>
+
+        <button id="reactionStage" class="reaction-stage">
+          <span id="reactionStatus">Tap start when you're ready.</span>
+        </button>
+
+        <div class="button-row">
+          <button id="startReactionBtn" class="btn">Start Round</button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script type="module" src="../js/games/reaction.js"></script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Number Recall | Quizzy Arcade</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../app.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <div class="page-container">
+      <header class="panel top-nav">
+        <a class="brand" href="../index.html"><span class="brand-badge">Q</span><span>Quizzy</span></a>
+        <nav class="nav-links">
+          <a class="nav-link" href="../arcade.html">Back to Arcade</a>
+        </nav>
+      </header>
+
+      <main class="panel game-panel game-board page-fade">
+        <div>
+          <p class="eyebrow">Number Recall 🔢</p>
+          <h1 class="section-title">Remember the sequence</h1>
+          <p class="section-copy">Watch the numbers for 3 seconds, then type them back from memory.</p>
+        </div>
+
+        <div class="game-status-row">
+          <span class="pill">Level: <strong id="levelValue" style="margin-left:8px;color:#fff;">3</strong></span>
+        </div>
+
+        <div class="recall-stage">
+          <div id="sequenceDisplay" class="stack-center">
+            <span class="hidden-sequence">Press start to begin</span>
+          </div>
+        </div>
+
+        <form id="recallForm" class="field-stack" autocomplete="off">
+          <input id="recallInput" class="select-input" type="text" inputmode="numeric" placeholder="Enter the sequence" />
+          <div class="button-row">
+            <button id="startRecallBtn" class="btn-outline" type="button">Start Round</button>
+            <button class="btn" type="submit">Submit Answer</button>
+          </div>
+          <p id="recallFeedback" class="helper-text"></p>
+        </form>
+      </main>
+    </div>
+  </div>
+
+  <script type="module" src="../js/games/recall.js"></script>
+</body>
+</html>

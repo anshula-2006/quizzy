@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quizzy</title>
+  <title>Result | Quizzy</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -11,17 +11,9 @@
 </head>
 <body>
   <div class="page-shell center-page">
-    <main class="page-container">
-      <section class="panel hero-card page-fade" style="text-align:center;">
-        <p class="eyebrow">Quizzy</p>
-        <h1 class="page-title">Quizzy 🧠⚡</h1>
-        <p class="page-subtitle">Test your brain in seconds</p>
-        <div class="button-row landing-actions">
-          <a class="btn" href="./generate.html">Start Quiz</a>
-          <a class="btn-outline" href="./arcade.html">Mini Arcade 🎮</a>
-        </div>
-      </section>
-    </main>
+    <main class="page-container" id="resultRoot"></main>
   </div>
+
+  <script type="module" src="./js/result.js"></script>
 </body>
 </html>

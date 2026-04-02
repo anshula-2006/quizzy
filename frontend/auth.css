@@ -1,4 +1,23 @@
 :root {
+  color-scheme: light;
+  --auth-bg: #f5f7fb;
+  --auth-bg-deep: #e8eef7;
+  --auth-panel: rgba(255, 255, 255, 0.9);
+  --auth-panel-soft: rgba(15, 23, 42, 0.04);
+  --auth-border: rgba(15, 23, 42, 0.12);
+  --auth-text: #0f172a;
+  --auth-muted: rgba(71, 85, 105, 0.75);
+  --auth-accent-1: #4f46e5;
+  --auth-accent-2: #06b6d4;
+  --auth-shadow: 0 24px 72px rgba(15, 23, 42, 0.12);
+  --auth-label: #334155;
+  --auth-input-bg: rgba(255, 255, 255, 0.95);
+  --auth-placeholder: rgba(71, 85, 105, 0.55);
+  --auth-link: #0ea5e9;
+}
+
+body.dark {
+  color-scheme: dark;
   --auth-bg: #08111f;
   --auth-bg-deep: #050b16;
   --auth-panel: rgba(10, 18, 34, 0.78);
@@ -9,6 +28,10 @@
   --auth-accent-1: #7c3aed;
   --auth-accent-2: #06b6d4;
   --auth-shadow: 0 28px 90px rgba(2, 6, 23, 0.45);
+  --auth-label: #dbeafe;
+  --auth-input-bg: rgba(4, 10, 22, 0.74);
+  --auth-placeholder: rgba(214, 226, 255, 0.4);
+  --auth-link: #8ae8f7;
 }
 
 * {
@@ -122,7 +145,7 @@ body {
   border-radius: 999px;
   border: 1px solid var(--auth-border);
   background: rgba(255, 255, 255, 0.05);
-  color: #c4b5fd;
+  color: var(--auth-accent-1);
   font-size: 0.76rem;
   font-weight: 800;
   letter-spacing: 0.16em;
@@ -192,7 +215,7 @@ body {
 }
 
 .auth-field label {
-  color: #dbeafe;
+  color: var(--auth-label);
   font-size: 0.8rem;
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -205,13 +228,13 @@ body {
   border: 1px solid var(--auth-border);
   border-radius: 18px;
   padding: 0 16px;
-  background: rgba(4, 10, 22, 0.74);
+  background: var(--auth-input-bg);
   color: var(--auth-text);
   transition: border-color 0.28s ease, box-shadow 0.28s ease, transform 0.28s ease;
 }
 
 .auth-field input::placeholder {
-  color: rgba(214, 226, 255, 0.4);
+  color: var(--auth-placeholder);
 }
 
 .auth-field input:focus {
@@ -261,8 +284,19 @@ body {
 }
 
 .auth-footer a {
-  color: #8ae8f7;
+  color: var(--auth-link);
   text-decoration: none;
+  font-weight: 700;
+}
+
+.theme-toggle {
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--auth-border);
+  background: var(--auth-panel-soft);
+  color: var(--auth-text);
+  font-size: 0.9rem;
   font-weight: 700;
 }
 

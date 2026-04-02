@@ -7,23 +7,19 @@ const timeNode = document.getElementById("timeCount");
 const restartBtn = document.getElementById("restartGameBtn");
 const statusNode = document.getElementById("memoryStatus");
 
-const MEMORY_IMAGES = [
-  "aleksandr-isaev-rgP5gqM9INo-unsplash.jpg",
-  "bryam-blanco-o3o3dq-nODE-unsplash.jpg",
-  "christy-hinko-aE-gyTpRU2c-unsplash.jpg",
-  "hamad-alahamad-6QaCUioE_nE-unsplash.jpg",
-  "mockup-graphics-7qU176TIxDk-unsplash.jpg",
-  "mockup-graphics-nZUQgW0FVnc-unsplash.jpg",
-  "mockup-graphics-q7BJL1qZ1Bw-unsplash.jpg",
-  "personalgraphic-com-_Ef2SUNv468-unsplash.jpg",
-  "mockup-graphics-XiWQbLEhFyo-unsplash.jpg",
-  "hamad-alahamad-bNuil3PcTSM-unsplash.jpg",
-  "henry-fraczek-eByZOJr4pbE-unsplash.jpg",
-  "elianna-friedman-uDeMugA9ojU-unsplash.jpg",
-  "giorgio-trovato-fczCr7MdE7U-unsplash.jpg",
-  "maheera-kulsoom-lEpdF8D18zc-unsplash.jpg",
-  "diane-helentjaris-tSseNCVa-Yo-unsplash.jpg"
-].map((filename) => new URL(`../../assets/memory-game/${filename}`, import.meta.url).href);
+const imageModules = import.meta.glob("../../assets/memory-game/*.jpg", { eager: true, as: "url" });
+const MEMORY_IMAGE_FILENAMES = [
+  "image1.jpg",
+  "image2.jpg",
+  "image3.jpg",
+  "image4.jpg",
+  "image5.jpg",
+  "image6.jpg",
+  "image7.jpg",
+  "image8.jpg"
+];
+
+const MEMORY_IMAGES = MEMORY_IMAGE_FILENAMES.map((filename) => imageModules[`../../assets/memory-game/${filename}`]).filter(Boolean);
 
 let cards = [];
 let firstPick = null;

@@ -35,7 +35,8 @@ export async function generateQuiz(req, res) {
     preferFull: Boolean(req.body?.preferFull),
     sourceType: req.body?.sourceType || (req.body?.topic ? "topic" : "text"),
     sourceInput: req.body?.sourceInput || req.body?.topic || "",
-    questionCount: req.body?.questionCount || 5
+    questionCount: req.body?.questionCount || 5,
+    variation: req.body?.variation
   });
   res.json(payload);
 }

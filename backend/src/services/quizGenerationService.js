@@ -203,7 +203,7 @@ async function parseJsonCompletion(prompt, sanitizer, retries = 2) {
   throw new AppError(lastError?.message || "AI generation failed", 502);
 }
 
-export async function generateQuizSession({ userId = null, topic = "", text = "", difficulty = "moderate", learnerMode = "student", questionMode = "mcq", outputLanguage = "English", extractionId = "", preferFull = false, sourceType = "topic", sourceInput = "", questionCount = 5 }) {
+export async function generateQuizSession({ userId = null, topic = "", text = "", difficulty = "moderate", learnerMode = "student", questionMode = "mcq", outputLanguage = "English", extractionId = "", preferFull = false, sourceType = "topic", sourceInput = "", questionCount = 5, variation = null }) {
   const resolvedCount = Math.max(1, Math.min(10, Math.floor(Number(questionCount) || 5)));
   const effectiveText = resolveFullExtractedText(extractionId, text, preferFull);
 
@@ -219,7 +219,7 @@ export async function generateQuizSession({ userId = null, topic = "", text = ""
     questionMode,
     outputLanguage,
     questionCount: resolvedCount,
-    variation: Math.floor(Math.random() * 100000)
+    variation: Number.isFinite(Number(variation)) ? Number(variation) : Math.floor(Math.random() * 100000)
   });
 
   let questions = await parseJsonCompletion(prompt, (parsed) => sanitizeQuestions(parsed?.questions, questionMode, resolvedCount));

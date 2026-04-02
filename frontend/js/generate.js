@@ -7,6 +7,7 @@ const pdfInput = document.getElementById("pdfInput");
 const difficultySelect = document.getElementById("difficultySelect");
 const modeSelect = document.getElementById("modeSelect");
 const languageSelect = document.getElementById("languageSelect");
+const countSelect = document.getElementById("countSelect");
 const sourceHint = document.getElementById("sourceHint");
 const form = document.getElementById("generateForm");
 const errorNode = document.getElementById("generateError");
@@ -50,7 +51,8 @@ form?.addEventListener("submit", async (event) => {
     const quizPayload = await requestQuiz({
       ...contentPayload,
       ...settings,
-      questionCount: 5
+      questionCount: Number(countSelect?.value || 10),
+      variation: Date.now()
     });
 
     setQuizState({

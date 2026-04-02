@@ -112,9 +112,22 @@ function render() {
 }
 
 function clearWrongState() {
-  cards.forEach((card) => {
-    card.wrong = false;
+  cards.forEach((card, index) => {
+    if (card.wrong) {
+      card.wrong = false;
+      updateCardDOM(index);
+    }
   });
+}
+
+function updateCardDOM(index) {
+  const card = cards[index];
+  const node = board.querySelector(`[data-index="${index}"]`);
+  if (!node) return;
+
+  node.classList.toggle("is-flipped", card.flipped || card.matched);
+  node.classList.toggle("is-matched", card.matched);
+  node.classList.toggle("is-wrong", card.wrong);
 }
 
 function flipCard(index) {
@@ -123,7 +136,7 @@ function flipCard(index) {
 
   clearWrongState();
   card.flipped = true;
-  render();
+  updateCardDOM(index);
 
   if (firstPick == null) {
     firstPick = index;
@@ -136,6 +149,8 @@ function flipCard(index) {
 
   const firstCard = cards[firstPick];
   const secondCard = cards[secondPick];
+  const currentFirstPick = firstPick;
+  const currentSecondPick = secondPick;
 
   if (firstCard.pairId === secondCard.pairId) {
     firstCard.matched = true;
@@ -144,7 +159,8 @@ function flipCard(index) {
     setStatus("Match found.", "good");
     firstPick = null;
     secondPick = null;
-    render();
+    updateCardDOM(currentFirstPick);
+    updateCardDOM(currentSecondPick);
     finishIfDone();
     return;
   }
@@ -154,7 +170,8 @@ function flipCard(index) {
   lockBoard = true;
   playWrongSound();
   setStatus("Not a match. Try again.", "bad");
-  render();
+  updateCardDOM(currentFirstPick);
+  updateCardDOM(currentSecondPick);
 
   window.setTimeout(() => {
     firstCard.flipped = false;
@@ -164,7 +181,8 @@ function flipCard(index) {
     firstPick = null;
     secondPick = null;
     lockBoard = false;
-    render();
+    updateCardDOM(currentFirstPick);
+    updateCardDOM(currentSecondPick);
   }, 720);
 }
 

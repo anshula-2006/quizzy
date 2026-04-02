@@ -7,19 +7,10 @@ const timeNode = document.getElementById("timeCount");
 const restartBtn = document.getElementById("restartGameBtn");
 const statusNode = document.getElementById("memoryStatus");
 
-const imageModules = import.meta.glob("../../assets/memory-game/*.jpg", { eager: true, as: "url" });
-const MEMORY_IMAGE_FILENAMES = [
-  "image1.jpg",
-  "image2.jpg",
-  "image3.jpg",
-  "image4.jpg",
-  "image5.jpg",
-  "image6.jpg",
-  "image7.jpg",
-  "image8.jpg"
-];
-
-const MEMORY_IMAGES = MEMORY_IMAGE_FILENAMES.map((filename) => imageModules[`../../assets/memory-game/${filename}`]).filter(Boolean);
+const imageModules = import.meta.glob("../../assets/memory-game/*.{jpg,jpeg,png,webp}", { eager: true, as: "url" });
+const MEMORY_IMAGES = Object.values(imageModules)
+  .map((mod) => (typeof mod === "string" ? mod : mod?.default))
+  .filter(Boolean);
 
 let cards = [];
 let firstPick = null;

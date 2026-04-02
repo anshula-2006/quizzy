@@ -14,6 +14,7 @@ export default defineConfig({
         quiz: resolve(rootDir, "quiz.html"),
         result: resolve(rootDir, "result.html"),
         arcade: resolve(rootDir, "arcade.html"),
+        dashboard: resolve(rootDir, "dashboard.html"),
         memory: resolve(rootDir, "games/memory.html"),
         reaction: resolve(rootDir, "games/reaction.html"),
         recall: resolve(rootDir, "games/recall.html"),

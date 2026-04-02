@@ -1,4 +1,33 @@
 :root {
+  color-scheme: light;
+  --bg: #f4f7fb;
+  --bg-deep: #e7edf6;
+  --panel: rgba(255, 255, 255, 0.86);
+  --panel-strong: #ffffff;
+  --panel-soft: rgba(15, 23, 42, 0.04);
+  --text: #0f172a;
+  --muted: rgba(71, 85, 105, 0.78);
+  --line: rgba(15, 23, 42, 0.12);
+  --line-strong: rgba(15, 23, 42, 0.18);
+  --purple: #4f46e5;
+  --cyan: #06b6d4;
+  --blue: #0ea5e9;
+  --green: #16a34a;
+  --red: #dc2626;
+  --amber: #f59e0b;
+  --shadow: 0 22px 64px rgba(15, 23, 42, 0.12);
+  --shadow-soft: 0 16px 32px rgba(15, 23, 42, 0.08);
+  --radius-xl: 36px;
+  --radius-lg: 26px;
+  --radius-md: 18px;
+  --eyebrow: #4338ca;
+  --label: #334155;
+  --input-bg: rgba(255, 255, 255, 0.9);
+  --input-placeholder: rgba(71, 85, 105, 0.55);
+}
+
+body.dark {
+  color-scheme: dark;
   --bg: #08111f;
   --bg-deep: #050b16;
   --panel: rgba(9, 18, 34, 0.76);
@@ -16,9 +45,10 @@
   --amber: #f59e0b;
   --shadow: 0 28px 90px rgba(2, 6, 23, 0.45);
   --shadow-soft: 0 18px 42px rgba(2, 6, 23, 0.24);
-  --radius-xl: 36px;
-  --radius-lg: 26px;
-  --radius-md: 18px;
+  --eyebrow: #c4b5fd;
+  --label: #dbeafe;
+  --input-bg: rgba(4, 10, 22, 0.72);
+  --input-placeholder: rgba(214, 226, 255, 0.48);
 }
 
 * {
@@ -146,7 +176,7 @@ button {
 
 .eyebrow {
   margin: 0;
-  color: #c4b5fd;
+  color: var(--eyebrow);
   font-size: 0.76rem;
   font-weight: 800;
   letter-spacing: 0.3em;
@@ -387,7 +417,7 @@ button {
 .field-label {
   display: block;
   margin-bottom: 10px;
-  color: #dbeafe;
+  color: var(--label);
   font-size: 0.82rem;
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -425,7 +455,7 @@ button {
   gap: 8px;
   width: 100%;
   padding: 22px 20px;
-  color: #fff;
+  color: var(--text);
   text-align: left;
   transition: transform 0.28s ease, border-color 0.28s ease, box-shadow 0.28s ease, background 0.28s ease;
 }
@@ -456,8 +486,8 @@ button {
   width: 100%;
   border: 1px solid var(--line);
   border-radius: 22px;
-  background: rgba(4, 10, 22, 0.72);
-  color: #fff;
+  background: var(--input-bg);
+  color: var(--text);
   padding: 16px 18px;
   outline: none;
   transition: border-color 0.28s ease, box-shadow 0.28s ease, transform 0.28s ease;
@@ -485,7 +515,7 @@ button {
 
 .text-input::placeholder,
 .answer-input::placeholder {
-  color: rgba(214, 226, 255, 0.48);
+  color: var(--input-placeholder);
 }
 
 .error-message {
@@ -576,7 +606,7 @@ button {
   align-items: center;
   gap: 16px;
   padding: 18px 20px;
-  color: #fff;
+  color: var(--text);
   text-align: left;
   transition: transform 0.28s ease, border-color 0.28s ease, background 0.28s ease, box-shadow 0.28s ease;
 }
@@ -631,8 +661,34 @@ button {
 
 .feedback-copy {
   margin: 0;
-  color: rgba(255, 255, 255, 0.82);
+  color: var(--muted);
   line-height: 1.68;
+}
+
+#themeToggle,
+.theme-toggle {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--panel-soft);
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 800;
+  transition: transform 0.28s ease, border-color 0.28s ease, background 0.28s ease;
+}
+
+#themeToggle:hover,
+.theme-toggle:hover {
+  transform: translateY(-2px);
+  border-color: rgba(6, 182, 212, 0.4);
+}
+
+.theme-toggle-float {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 40;
 }
 
 .quiz-actions {

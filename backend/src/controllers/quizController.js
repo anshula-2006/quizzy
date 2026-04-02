@@ -91,6 +91,7 @@ export async function bootstrapUserData(req, res) {
     attempts: attempts.map(toClientDoc),
     savedQuestions: savedQuestions.map(toClientDoc),
     flashDecks: flashDecks.map(toClientDoc),
+    miniGameStats: req.user?.stats?.miniGameStats || {},
     profile: buildProfileSummary(req.user),
     leaderboard: leaderboard.map((item, index) => ({
       rank: index + 1,
@@ -157,4 +158,72 @@ export async function clearAttempts(req, res) {
   };
   await req.user.save();
   res.json({ message: "Attempts cleared" });
+}
+
+export async function updateMiniGameStats(req, res) {
+  const type = String(req.body?.type || "").trim().toLowerCase();
+  const payload = req.body || {};
+  const current = req.user.stats?.miniGameStats || {};
+
+  const next = { ...current };
+
+  if (type === "memory") {
+    const moves = Math.max(0, Number(payload.moves || 0));
+    const seconds = Math.max(0, Number(payload.seconds || 0));
+    next.memoryWins = Math.max(0, Number(current.memoryWins || 0)) + 1;
+    next.memoryBestMoves = current.memoryBestMoves ? Math.min(current.memoryBestMoves, moves) : moves;
+    next.memoryBestTime = current.memoryBestTime ? Math.min(current.memoryBestTime, seconds) : seconds;
+  } else if (type === "reaction") {
+    const reaction = Math.max(0, Number(payload.reaction || 0));
+    next.reactionRuns = Math.max(0, Number(current.reactionRuns || 0)) + 1;
+    next.reactionBest = current.reactionBest ? Math.min(current.reactionBest, reaction) : reaction;
+  } else if (type === "recall") {
+    const level = Math.max(0, Number(payload.level || 0));
+    next.recallRuns = Math.max(0, Number(current.recallRuns || 0)) + 1;
+    next.recallBestLevel = Math.max(Number(current.recallBestLevel || 0), level);
+  } else {
+    throw new AppError("Invalid mini-game update type.", 400);
+  }
+
+  req.user.stats = {
+    ...(req.user.stats || {}),
+    miniGameStats: next
+  };
+  await req.user.save();
+
+  res.json({ miniGameStats: next });
+}
+
+export async function clearDashboard(req, res) {
+  await Promise.all([
+    QuizAttempt.deleteMany({ user: req.user._id }),
+    SavedQuestion.deleteMany({ user: req.user._id }),
+    FlashDeck.deleteMany({ user: req.user._id })
+  ]);
+
+  req.user.stats = {
+    ...req.user.stats,
+    totalQuizzes: 0,
+    totalQuestions: 0,
+    totalCorrectAnswers: 0,
+    totalPoints: 0,
+    totalXp: 0,
+    leaderboardScore: 0,
+    currentStreak: 0,
+    bestStreak: 0,
+    bestPercentage: 0,
+    achievements: [],
+    miniGameStats: {
+      memoryWins: 0,
+      memoryBestMoves: 0,
+      memoryBestTime: 0,
+      reactionBest: 0,
+      reactionRuns: 0,
+      recallBestLevel: 0,
+      recallRuns: 0
+    }
+  };
+  await req.user.save();
+
+  res.json({ message: "Dashboard data cleared" });
 }

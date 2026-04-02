@@ -225,6 +225,18 @@ function getMiniGameStats() {
   }
 }
 
+function saveMiniGameStats(stats) {
+  localStorage.setItem(miniGameKey(), JSON.stringify({
+    memoryWins: Math.max(0, Number(stats?.memoryWins || 0)),
+    memoryBestMoves: Math.max(0, Number(stats?.memoryBestMoves || 0)),
+    memoryBestTime: Math.max(0, Number(stats?.memoryBestTime || 0)),
+    reactionBest: Math.max(0, Number(stats?.reactionBest || 0)),
+    reactionRuns: Math.max(0, Number(stats?.reactionRuns || 0)),
+    recallBestLevel: Math.max(0, Number(stats?.recallBestLevel || 0)),
+    recallRuns: Math.max(0, Number(stats?.recallRuns || 0))
+  }));
+}
+
 function getSessionActivity() {
   try {
     const raw = localStorage.getItem(sessionActivityKey());
@@ -306,6 +318,7 @@ async function syncFromCloud() {
   cloudProfile = result.data?.profile || null;
   cloudLeaderboard = Array.isArray(result.data?.leaderboard) ? result.data.leaderboard : [];
   saveHistory(attempts);
+  if (result.data?.miniGameStats) saveMiniGameStats(result.data.miniGameStats);
 }
 
 function renderAuthNav() {

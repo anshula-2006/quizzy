@@ -12,6 +12,15 @@ const userStatsSchema = new mongoose.Schema(
     bestStreak: { type: Number, default: 0 },
     bestPercentage: { type: Number, default: 0 },
     achievements: { type: [String], default: [] },
+    miniGameStats: {
+      memoryWins: { type: Number, default: 0 },
+      memoryBestMoves: { type: Number, default: 0 },
+      memoryBestTime: { type: Number, default: 0 },
+      reactionBest: { type: Number, default: 0 },
+      reactionRuns: { type: Number, default: 0 },
+      recallBestLevel: { type: Number, default: 0 },
+      recallRuns: { type: Number, default: 0 }
+    },
     lastAttemptAt: { type: Date, default: null }
   },
   { _id: false }

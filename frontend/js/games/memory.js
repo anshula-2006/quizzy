@@ -1,17 +1,22 @@
 import { playCorrectSound, playWrongSound } from "./audio.js";
 import { isLoggedIn, recordMemoryWin } from "../shared.js";
 
+// DOM
 const board = document.getElementById("memoryBoard");
 const movesNode = document.getElementById("movesCount");
 const timeNode = document.getElementById("timeCount");
 const restartBtn = document.getElementById("restartGameBtn");
 const statusNode = document.getElementById("memoryStatus");
 
-const imageModules = import.meta.glob("../../assets/memory-game/*.{jpg,jpeg,png,webp}", { eager: true, as: "url" });
-const MEMORY_IMAGES = Object.values(imageModules)
-  .map((mod) => (typeof mod === "string" ? mod : mod?.default))
-  .filter(Boolean);
+// ✅ LOAD IMAGES FROM frontend/assets
+const imageModules = import.meta.glob(
+  "../../assets/memory-game/*.{jpg,jpeg,png,webp}",
+  { eager: true, import: "default" }
+);
 
+const MEMORY_IMAGES = Object.values(imageModules);
+
+// STATE
 let cards = [];
 let firstPick = null;
 let secondPick = null;
@@ -20,19 +25,15 @@ let moves = 0;
 let seconds = 0;
 let timerId = null;
 
-function shuffle(list) {
-  const copy = [...list];
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy;
+// UTIL
+function shuffle(arr) {
+  return [...arr].sort(() => Math.random() - 0.5);
 }
 
-function setStatus(message, tone = "") {
+function setStatus(msg, tone = "") {
   if (!statusNode) return;
-  statusNode.textContent = message;
-  statusNode.className = `arcade-feedback${tone ? ` ${tone}` : ""}`;
+  statusNode.textContent = msg;
+  statusNode.className = `arcade-feedback ${tone}`;
 }
 
 function updateStats() {
@@ -42,152 +43,141 @@ function updateStats() {
 
 function startTimer() {
   clearInterval(timerId);
-  timerId = window.setInterval(() => {
-    seconds += 1;
+  timerId = setInterval(() => {
+    seconds++;
     updateStats();
   }, 1000);
 }
 
-function finishIfDone() {
-  if (cards.every((card) => card.matched)) {
-    clearInterval(timerId);
-    recordMemoryWin({ moves, seconds });
-    setStatus(`Board cleared in ${moves} moves and ${seconds}s.`, "good");
-    if (!isLoggedIn()) {
-      setStatus(`Board cleared in ${moves} moves and ${seconds}s. Log in to save this run.`, "good");
-    }
+// GAME SETUP
+function createCards() {
+  if (MEMORY_IMAGES.length === 0) {
+    console.log("❌ No images loaded:", imageModules);
+    setStatus("Images failed to load 💀 Check path.", "bad");
+    return [];
   }
+
+  const selected = shuffle(MEMORY_IMAGES).slice(0, 8);
+
+  return shuffle(
+    [...selected, ...selected].map((img, i) => ({
+      id: i,
+      image: img,
+      flipped: false,
+      matched: false,
+    }))
+  );
 }
 
-function buildDeck() {
-  return shuffle(MEMORY_IMAGES)
-    .slice(0, 8)
-    .map((image, index) => ({
-      pairId: `pair-${index}`,
-      image
-    }));
-}
-
-async function resetGame() {
+function resetGame() {
   if (!board) return;
 
   clearInterval(timerId);
-  const basePairs = buildDeck();
 
-  cards = shuffle([...basePairs, ...basePairs].map((entry, index) => ({
-    id: `${entry.pairId}-${index}`,
-    pairId: entry.pairId,
-    image: entry.image,
-    flipped: false,
-    matched: false,
-    wrong: false
-  })));
-
+  cards = createCards();
   firstPick = null;
   secondPick = null;
   lockBoard = false;
   moves = 0;
   seconds = 0;
+
   updateStats();
-  setStatus("Deck ready. Flip cards to reveal the images.");
+  setStatus("Game started. Match the pairs 🔥");
   startTimer();
   render();
 }
 
+// RENDER
 function render() {
   if (!board) return;
 
-  board.innerHTML = cards.map((card, index) => `
-    <button class="memory-card ${card.flipped || card.matched ? "is-flipped" : ""} ${card.matched ? "is-matched" : ""} ${card.wrong ? "is-wrong" : ""}" data-index="${index}" type="button">
-      <span class="memory-card-shell">
-        <span class="memory-card-face memory-card-front">Flip</span>
-        <span class="memory-card-face memory-card-back"><img src="${card.image}" alt="Memory tile" loading="lazy" decoding="async" /></span>
-      </span>
-    </button>
-  `).join("");
+  board.innerHTML = cards
+    .map(
+      (card, i) => `
+      <div class="memory-card ${card.flipped || card.matched ? "flip" : ""}" data-index="${i}">
+        <div class="front">?</div>
+        <div class="back">
+          <img src="${card.image}" alt="card"/>
+        </div>
+      </div>
+    `
+    )
+    .join("");
 
-  board.querySelectorAll(".memory-card").forEach((button) => {
-    button.addEventListener("click", () => flipCard(Number(button.dataset.index)));
+  document.querySelectorAll(".memory-card").forEach((el) => {
+    el.addEventListener("click", () => flipCard(+el.dataset.index));
   });
 }
 
-function clearWrongState() {
-  cards.forEach((card, index) => {
-    if (card.wrong) {
-      card.wrong = false;
-      updateCardDOM(index);
-    }
-  });
-}
-
-function updateCardDOM(index) {
-  const card = cards[index];
-  const node = board.querySelector(`[data-index="${index}"]`);
-  if (!node) return;
-
-  node.classList.toggle("is-flipped", card.flipped || card.matched);
-  node.classList.toggle("is-matched", card.matched);
-  node.classList.toggle("is-wrong", card.wrong);
-}
-
+// GAME LOGIC
 function flipCard(index) {
   const card = cards[index];
+
   if (!card || lockBoard || card.flipped || card.matched) return;
 
-  clearWrongState();
   card.flipped = true;
-  updateCardDOM(index);
+  updateCard(index);
 
-  if (firstPick == null) {
+  if (firstPick === null) {
     firstPick = index;
     return;
   }
 
   secondPick = index;
-  moves += 1;
+  moves++;
   updateStats();
 
-  const firstCard = cards[firstPick];
-  const secondCard = cards[secondPick];
-  const currentFirstPick = firstPick;
-  const currentSecondPick = secondPick;
+  const first = cards[firstPick];
+  const second = cards[secondPick];
 
-  if (firstCard.pairId === secondCard.pairId) {
-    firstCard.matched = true;
-    secondCard.matched = true;
+  if (first.image === second.image) {
+    first.matched = true;
+    second.matched = true;
     playCorrectSound();
-    setStatus("Match found.", "good");
-    firstPick = null;
-    secondPick = null;
-    updateCardDOM(currentFirstPick);
-    updateCardDOM(currentSecondPick);
-    finishIfDone();
-    return;
+
+    resetTurn();
+    checkWin();
+  } else {
+    lockBoard = true;
+    playWrongSound();
+
+    setTimeout(() => {
+      first.flipped = false;
+      second.flipped = false;
+      updateCard(firstPick);
+      updateCard(secondPick);
+      resetTurn();
+    }, 800);
   }
-
-  firstCard.wrong = true;
-  secondCard.wrong = true;
-  lockBoard = true;
-  playWrongSound();
-  setStatus("Not a match. Try again.", "bad");
-  updateCardDOM(currentFirstPick);
-  updateCardDOM(currentSecondPick);
-
-  window.setTimeout(() => {
-    firstCard.flipped = false;
-    secondCard.flipped = false;
-    firstCard.wrong = false;
-    secondCard.wrong = false;
-    firstPick = null;
-    secondPick = null;
-    lockBoard = false;
-    updateCardDOM(currentFirstPick);
-    updateCardDOM(currentSecondPick);
-  }, 720);
 }
 
-restartBtn?.addEventListener("click", () => {
-  resetGame();
-});
+function updateCard(index) {
+  const el = document.querySelector(`[data-index="${index}"]`);
+  if (!el) return;
 
+  el.classList.toggle("flip", cards[index].flipped || cards[index].matched);
+}
+
+function resetTurn() {
+  firstPick = null;
+  secondPick = null;
+  lockBoard = false;
+}
+
+function checkWin() {
+  if (cards.every((c) => c.matched)) {
+    clearInterval(timerId);
+
+    setStatus(`🎉 Completed in ${moves} moves & ${seconds}s`, "good");
+
+    if (isLoggedIn()) {
+      recordMemoryWin({ moves, seconds });
+    }
+  }
+}
+
+// EVENTS
+restartBtn?.addEventListener("click", resetGame);
+
+// INIT
 resetGame();

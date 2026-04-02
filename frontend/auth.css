@@ -1,18 +1,18 @@
 :root {
   color-scheme: light;
-  --auth-bg: #f5f7fb;
-  --auth-bg-deep: #e8eef7;
-  --auth-panel: rgba(255, 255, 255, 0.9);
+  --auth-bg: #fdfdff;
+  --auth-bg-deep: #eef3f9;
+  --auth-panel: #ffffff;
   --auth-panel-soft: rgba(15, 23, 42, 0.04);
-  --auth-border: rgba(15, 23, 42, 0.12);
-  --auth-text: #0f172a;
-  --auth-muted: rgba(71, 85, 105, 0.75);
+  --auth-border: rgba(15, 23, 42, 0.14);
+  --auth-text: #0b132b;
+  --auth-muted: rgba(51, 65, 85, 0.72);
   --auth-accent-1: #4f46e5;
   --auth-accent-2: #06b6d4;
   --auth-shadow: 0 24px 72px rgba(15, 23, 42, 0.12);
   --auth-label: #334155;
-  --auth-input-bg: rgba(255, 255, 255, 0.95);
-  --auth-placeholder: rgba(71, 85, 105, 0.55);
+  --auth-input-bg: #ffffff;
+  --auth-placeholder: rgba(71, 85, 105, 0.6);
   --auth-link: #0ea5e9;
 }
 
@@ -45,8 +45,8 @@ body {
   min-height: 100vh;
   color: var(--auth-text);
   background:
-    radial-gradient(circle at 12% 12%, rgba(124, 58, 237, 0.26), transparent 26%),
-    radial-gradient(circle at 88% 16%, rgba(6, 182, 212, 0.2), transparent 22%),
+    radial-gradient(circle at 12% 12%, rgba(124, 58, 237, 0.16), transparent 30%),
+    radial-gradient(circle at 88% 16%, rgba(6, 182, 212, 0.12), transparent 26%),
     linear-gradient(180deg, var(--auth-bg), var(--auth-bg-deep));
   padding: 24px;
 }

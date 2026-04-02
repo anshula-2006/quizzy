@@ -1,14 +1,14 @@
 :root {
   color-scheme: light;
-  --bg: #f8fafc;
-  --bg-deep: #e2e8f0;
-  --panel: rgba(255, 255, 255, 0.96);
+  --bg: #fdfdff;
+  --bg-deep: #eef3f9;
+  --panel: #ffffff;
   --panel-strong: #ffffff;
   --panel-soft: rgba(15, 23, 42, 0.03);
-  --text: #0f172a;
-  --muted: rgba(71, 85, 105, 0.74);
-  --line: rgba(15, 23, 42, 0.14);
-  --line-strong: rgba(15, 23, 42, 0.22);
+  --text: #0b132b;
+  --muted: rgba(51, 65, 85, 0.72);
+  --line: rgba(15, 23, 42, 0.16);
+  --line-strong: rgba(15, 23, 42, 0.24);
   --purple: #4f46e5;
   --cyan: #06b6d4;
   --blue: #0ea5e9;
@@ -22,8 +22,8 @@
   --radius-md: 18px;
   --eyebrow: #4338ca;
   --label: #334155;
-  --input-bg: rgba(255, 255, 255, 0.9);
-  --input-placeholder: rgba(71, 85, 105, 0.55);
+  --input-bg: #ffffff;
+  --input-placeholder: rgba(71, 85, 105, 0.6);
 }
 
 body.dark {
@@ -65,16 +65,16 @@ body {
   font-family: "Inter", system-ui, sans-serif;
   color: var(--text);
   background:
-    radial-gradient(circle at 12% 10%, rgba(124, 58, 237, 0.28), transparent 28%),
-    radial-gradient(circle at 88% 14%, rgba(6, 182, 212, 0.2), transparent 22%),
-    radial-gradient(circle at 50% 100%, rgba(56, 189, 248, 0.14), transparent 30%),
+    radial-gradient(circle at 12% 10%, rgba(124, 58, 237, 0.18), transparent 30%),
+    radial-gradient(circle at 88% 14%, rgba(6, 182, 212, 0.14), transparent 26%),
+    radial-gradient(circle at 50% 100%, rgba(56, 189, 248, 0.1), transparent 34%),
     linear-gradient(180deg, var(--bg), var(--bg-deep));
 }
 
 body:not(.dark) {
   background:
-    radial-gradient(circle at 10% 12%, rgba(79, 70, 229, 0.12), transparent 28%),
-    radial-gradient(circle at 90% 14%, rgba(14, 165, 233, 0.12), transparent 26%),
+    radial-gradient(circle at 10% 12%, rgba(79, 70, 229, 0.08), transparent 32%),
+    radial-gradient(circle at 90% 14%, rgba(14, 165, 233, 0.08), transparent 30%),
     linear-gradient(180deg, var(--bg), var(--bg-deep));
 }
 
@@ -140,15 +140,16 @@ body:not(.dark) {
 
 body:not(.dark) .global-auth-bar {
   border-color: var(--line-strong);
-  background: rgba(255, 255, 255, 0.92);
+  background: #ffffff;
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
 }
 
 body:not(.dark) .global-auth-home,
 body:not(.dark) .global-auth-link,
 body:not(.dark) .global-auth-logout,
 body:not(.dark) .global-auth-user {
-  background: rgba(15, 23, 42, 0.06);
-  border-color: var(--line-strong);
+  background: rgba(15, 23, 42, 0.04);
+  border-color: var(--line);
   color: var(--text);
 }
 
@@ -195,6 +196,11 @@ button {
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow);
   backdrop-filter: blur(24px);
+}
+
+body:not(.dark) .panel {
+  background: var(--panel-strong);
+  border-color: var(--line-strong);
 }
 
 .hero-card,
@@ -344,6 +350,33 @@ button {
   line-height: 1.5;
 }
 
+body:not(.dark) .hero-orbit-ring {
+  border-color: rgba(15, 23, 42, 0.1);
+  background:
+    radial-gradient(circle at 50% 50%, rgba(79, 70, 229, 0.16), transparent 58%),
+    radial-gradient(circle at 70% 30%, rgba(14, 165, 233, 0.12), transparent 20%);
+  box-shadow: inset 0 0 50px rgba(79, 70, 229, 0.1), 0 0 0 32px rgba(15, 23, 42, 0.02);
+}
+
+body:not(.dark) .hero-orbit-core {
+  background: linear-gradient(145deg, rgba(79, 70, 229, 0.18), rgba(14, 165, 233, 0.14));
+  border-color: rgba(15, 23, 42, 0.1);
+  color: var(--text);
+}
+
+body:not(.dark) .hero-floating-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(15, 23, 42, 0.12);
+}
+
+body:not(.dark) .hero-floating-card strong {
+  color: var(--text);
+}
+
+body:not(.dark) .hero-floating-card span {
+  color: var(--muted);
+}
+
 .hero-floating-top {
   top: 22px;
   left: 30px;
@@ -423,8 +456,8 @@ body:not(.dark) .top-nav {
 }
 
 body:not(.dark) .nav-link {
-  background: rgba(15, 23, 42, 0.06);
-  border-color: var(--line-strong);
+  background: rgba(15, 23, 42, 0.04);
+  border-color: var(--line);
   color: var(--text);
 }
 

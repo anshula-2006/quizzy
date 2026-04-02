@@ -71,8 +71,6 @@ form?.addEventListener("submit", async (event) => {
     window.location.href = "./quiz.html";
   } catch (error) {
     errorNode.hidden = false;
-    errorNode.textContent = error.message || "Something went wrong.";
+    errorNode.textContent = error.message || "Failed to generate quiz. Please try again.";
   }
 });
-
-setSource(activeSource);

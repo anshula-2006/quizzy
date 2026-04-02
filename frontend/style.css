@@ -1531,7 +1531,7 @@ footer {
 }
 
 /* ================= SCOREBOARD RESTYLE ================= */
-:root {
+body.dark {
   --bg: #08111f;
   --bg-soft: #050b16;
   --surface: rgba(9, 18, 34, 0.78);
@@ -1554,25 +1554,25 @@ footer {
   --radius-sm: 12px;
 }
 
-body {
+body.dark {
   background:
     radial-gradient(circle at 12% 10%, rgba(124, 58, 237, 0.22), transparent 24%),
     radial-gradient(circle at 88% 12%, rgba(6, 182, 212, 0.18), transparent 20%),
     linear-gradient(180deg, var(--bg), var(--bg-soft));
 }
 
-.bg {
+body.dark .bg {
   background:
     radial-gradient(circle at 18% 14%, rgba(124, 58, 237, 0.12), transparent 20%),
     radial-gradient(circle at 86% 10%, rgba(6, 182, 212, 0.1), transparent 18%),
     radial-gradient(circle at 70% 90%, rgba(124, 58, 237, 0.08), transparent 16%);
 }
 
-.app-shell {
+body.dark .app-shell {
   grid-template-columns: 240px minmax(0, 1fr);
 }
 
-.app-sidebar {
+body.dark .app-sidebar {
   padding: 26px 20px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
@@ -1580,39 +1580,39 @@ body {
   border-right: 1px solid var(--border);
 }
 
-.sidebar-link,
-.nav-link {
+body.dark .sidebar-link,
+body.dark .nav-link {
   min-height: 44px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.04);
 }
 
-.sidebar-link.active {
+body.dark .sidebar-link.active {
   background: linear-gradient(90deg, var(--primary), var(--primary-strong));
   box-shadow: 0 16px 34px rgba(124, 58, 237, 0.24);
 }
 
-.card,
-.scoreboard-head,
-.scoreboard-table-wrap,
-.badge-card,
-.challenge-card,
-.mini-game-panel,
-.badge-popup-card,
-.loader {
+body.dark .card,
+body.dark .scoreboard-head,
+body.dark .scoreboard-table-wrap,
+body.dark .badge-card,
+body.dark .challenge-card,
+body.dark .mini-game-panel,
+body.dark .badge-popup-card,
+body.dark .loader {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
     var(--surface);
   box-shadow: var(--shadow-md);
 }
 
-.app-topbar h1,
-.scoreboard-head h2 {
+body.dark .app-topbar h1,
+body.dark .scoreboard-head h2 {
   font-size: clamp(2.1rem, 4vw, 3.2rem);
   line-height: 1.02;
 }
 
-.scoreboard-head {
+body.dark .scoreboard-head {
   padding: 24px;
   background:
     radial-gradient(circle at top right, rgba(124, 58, 237, 0.2), transparent 32%),
@@ -1620,35 +1620,35 @@ body {
     var(--surface);
 }
 
-.scoreboard-grid > .card:first-child,
-.scoreboard-table-wrap,
-.badge-cabinet {
+body.dark .scoreboard-grid > .card:first-child,
+body.dark .scoreboard-table-wrap,
+body.dark .badge-cabinet {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
     var(--surface);
 }
 
-.evaluation-stats .card,
-.result-stat,
-.attempt-row,
-.review-detail,
-.analysis-card,
-.badge-icon,
-.latest-attempt,
-.recent-attempts {
+body.dark .evaluation-stats .card,
+body.dark .result-stat,
+body.dark .attempt-row,
+body.dark .review-detail,
+body.dark .analysis-card,
+body.dark .badge-icon,
+body.dark .latest-attempt,
+body.dark .recent-attempts {
   background: rgba(255, 255, 255, 0.04);
 }
 
-.attempt-row {
+body.dark .attempt-row {
   border-radius: 20px;
 }
 
-.badge-card {
+body.dark .badge-card {
   min-height: 230px;
 }
 
-.ghost,
-#themeToggle {
+body.dark .ghost,
+body.dark #themeToggle {
   min-height: 46px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.05);

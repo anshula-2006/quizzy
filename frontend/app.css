@@ -79,7 +79,13 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  padding: 14px 28px 0;
+  padding: 14px 18px;
+  margin: 12px 0 18px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: var(--panel-strong);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(16px);
 }
 
 .global-auth-home,
@@ -122,6 +128,24 @@ body {
 .global-auth-link-strong {
   background: linear-gradient(90deg, var(--purple), var(--cyan));
   border-color: transparent;
+  color: #fff;
+}
+
+body:not(.dark) .global-auth-bar {
+  border-color: var(--line-strong);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+body:not(.dark) .global-auth-home,
+body:not(.dark) .global-auth-link,
+body:not(.dark) .global-auth-logout,
+body:not(.dark) .global-auth-user {
+  background: rgba(15, 23, 42, 0.06);
+  border-color: var(--line-strong);
+  color: var(--text);
+}
+
+body:not(.dark) .global-auth-link-strong {
   color: #fff;
 }
 

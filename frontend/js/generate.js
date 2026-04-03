@@ -1,4 +1,4 @@
-import { extractContent, requestQuiz, setQuizState, setResultState } from "./shared.js";
+import { extractContent, requestQuiz, requestFlashcards, setQuizState, setResultState, addFlashDeck } from "./shared.js";
 
 const sourceCards = document.querySelectorAll("[data-source]");
 const topicInput = document.getElementById("topicInput");
@@ -10,6 +10,7 @@ const languageSelect = document.getElementById("languageSelect");
 const countSelect = document.getElementById("countSelect");
 const sourceHint = document.getElementById("sourceHint");
 const form = document.getElementById("generateForm");
+const flashcardsBtn = document.getElementById("flashcardsBtn");
 const errorNode = document.getElementById("generateError");
 
 let activeSource = "text";
@@ -72,5 +73,50 @@ form?.addEventListener("submit", async (event) => {
   } catch (error) {
     errorNode.hidden = false;
     errorNode.textContent = error.message || "Failed to generate quiz. Please try again.";
+  }
+});
+
+flashcardsBtn?.addEventListener("click", async (event) => {
+  event.preventDefault();
+  errorNode.hidden = true;
+  const originalText = flashcardsBtn.textContent;
+  flashcardsBtn.textContent = "Generating Cards...";
+  flashcardsBtn.disabled = true;
+
+  try {
+    const settings = {
+      difficulty: difficultySelect.value,
+      questionMode: modeSelect.value,
+      outputLanguage: languageSelect.value,
+      learnerMode: "student"
+    };
+
+    const contentPayload = await extractContent(activeSource, {
+      topic: topicInput.value,
+      url: urlInput.value,
+      pdfFile: pdfInput.files?.[0] || null
+    });
+
+    const data = await requestFlashcards({ ...contentPayload, ...settings });
+    const cards = Array.isArray(data.flashcards) ? data.flashcards : (Array.isArray(data) ? data : []);
+
+    if (!cards.length) throw new Error("No flashcards were generated.");
+
+    const deck = {
+      id: Date.now(),
+      createdAt: new Date().toISOString(),
+      title: (contentPayload.topic || contentPayload.sourceInput || "Study Deck").slice(0, 60),
+      sourceType: contentPayload.sourceType,
+      flashcards: cards.map(c => ({ front: c.front || "", back: c.back || "", hint: c.hint || "" }))
+    };
+
+    await addFlashDeck(deck);
+    window.location.href = "./dashboard.html";
+
+  } catch (error) {
+    errorNode.hidden = false;
+    errorNode.textContent = error.message || "Failed to generate flashcards. Please try again.";
+    flashcardsBtn.textContent = originalText;
+    flashcardsBtn.disabled = false;
   }
 });

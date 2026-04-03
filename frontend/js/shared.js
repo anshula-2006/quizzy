@@ -7,6 +7,7 @@ export const MAX_PDF_BYTES = 100 * 1024 * 1024;
 export const HISTORY_BASE = "quizzy-history-v2";
 export const MINI_GAME_BASE = "quizzy-mini-games-v1";
 export const SESSION_ACTIVITY_BASE = "quizzy-session-activity-v1";
+export const FLASH_BASE = "quizzy-flash-v1";
 const MAX_HISTORY_ITEMS = 20;
 
 export function spawnFloatingXP(amount, x, y) {
@@ -67,6 +68,38 @@ export function isLoggedIn() {
 
 function getScopeId() {
   return getSession()?.user?.email || null;
+}
+
+export function getFlashDecks() {
+  const scopeId = getScopeId() || "guest";
+  try {
+    const raw = localStorage.getItem(`${FLASH_BASE}-${scopeId}`);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveFlashDecks(items) {
+  const scopeId = getScopeId() || "guest";
+  localStorage.setItem(`${FLASH_BASE}-${scopeId}`, JSON.stringify(items.slice(0, 25)));
+}
+
+export async function addFlashDeck(deck) {
+  const decks = getFlashDecks();
+  decks.unshift(deck);
+  saveFlashDecks(decks);
+  markSessionActivity({ flashcardsDone: true });
+
+  const session = getSession();
+  if (session?.token) {
+    fetch(`${API_BASE}/data/flash-decks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.token}` },
+      body: JSON.stringify(deck)
+    }).catch(() => {});
+  }
 }
 
 function historyKey() {
@@ -384,6 +417,17 @@ export async function requestQuiz(payload) {
     .filter(Boolean);
   if (!questions.length) throw new Error("No quiz questions were returned.");
   return { quizId: data.quizId || null, questions };
+}
+
+export async function requestFlashcards(payload) {
+  const response = await fetch(`${API_BASE}/generate-flashcards`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "Failed to generate flashcards.");
+  return data;
 }
 
 export async function submitQuizAttempt(quizState) {

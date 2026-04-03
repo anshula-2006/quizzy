@@ -227,3 +227,25 @@ export async function clearDashboard(req, res) {
 
   res.json({ message: "Dashboard data cleared" });
 }
+
+export async function updateFlashDeck(req, res) {
+  const { id } = req.params;
+  const { title, flashcards } = req.body;
+
+  const doc = await FlashDeck.findOneAndUpdate(
+    { _id: id, user: req.user._id },
+    { $set: { ...(title && { title }), ...(flashcards && { flashcards }) } },
+    { new: true }
+  ).lean();
+
+  if (!doc) throw new AppError("Flashcard deck not found", 404);
+  res.json({ success: true, flashDeck: toClientDoc(doc) });
+}
+
+export async function deleteFlashDeck(req, res) {
+  const { id } = req.params;
+
+  const result = await FlashDeck.findOneAndDelete({ _id: id, user: req.user._id });
+  if (!result) throw new AppError("Flashcard deck not found", 404);
+  res.json({ success: true, message: "Flashcard deck deleted successfully" });
+}

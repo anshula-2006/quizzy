@@ -58,28 +58,16 @@ function startTimer() {
 
 // GAME SETUP
 function createCards() {
-  let selected = [];
-  let useEmojis = false;
+  const selected = shuffle(MEMORY_IMAGES).slice(0, 8);
 
-  // If images fail to load or aren't provided, use emojis to prevent crashes
-  const missingImages = MEMORY_IMAGES.some(img => !img);
-  
-  if (missingImages) {
-    selected = shuffle(FALLBACK_EMOJIS).slice(0, 8);
-    useEmojis = true;
-  } else {
-    selected = shuffle(MEMORY_IMAGES).slice(0, 8);
-  }
+  const deck = [];
+  selected.forEach((content, pairIndex) => {
+    // Store pairIndex so fallback emojis always visually match for identical image paths
+    deck.push({ content, pairIndex, isEmoji: false, flipped: false, matched: false });
+    deck.push({ content, pairIndex, isEmoji: false, flipped: false, matched: false });
+  });
 
-  const deck = shuffle([...selected, ...selected]);
-
-  return deck.map((content, i) => ({
-    id: i,
-    content,
-    isEmoji: useEmojis,
-    flipped: false,
-    matched: false,
-  }));
+  return shuffle(deck).map((card, id) => ({ ...card, id }));
 }
 
 function initGame() {
@@ -129,7 +117,7 @@ function renderBoard() {
           ${
             card.isEmoji
               ? `<span class="emoji-card">${card.content}</span>`
-              : `<img src="${card.content}" alt="card" onerror="this.outerHTML='<span class=\\'emoji-card\\'>${FALLBACK_EMOJIS[i % 8]}</span>'"/>`
+              : `<img src="${card.content}" alt="card" onerror="this.outerHTML='<span class=&quot;emoji-card&quot;>${FALLBACK_EMOJIS[card.pairIndex]}</span>'"/>`
           }
         </div>
       </div>
@@ -169,12 +157,12 @@ function flipCard(index) {
   if (first.content === second.content) {
     first.matched = true;
     second.matched = true;
-    playCorrectSound();
+    try { playCorrectSound(); } catch (e) {}
 
     resetTurn();
     checkWin();
   } else {
-    playWrongSound();
+    try { playWrongSound(); } catch (e) {}
 
     setTimeout(() => {
       first.flipped = false;
@@ -187,7 +175,7 @@ function flipCard(index) {
 }
 
 function updateCardDOM(index) {
-  const el = document.querySelector(`[data-index="${index}"]`);
+  const el = document.querySelector(`.memory-card[data-index="${index}"]`);
   if (!el) return;
 
   const card = cards[index];

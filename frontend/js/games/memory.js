@@ -10,14 +10,14 @@ const statusNode = document.getElementById("memoryStatus");
 
 // ✅ FIXED IMAGE PATHS
 const MEMORY_IMAGES = [
-  "/public/assets/memory-game/image1.jpg",
-  "/public/assets/memory-game/image2.jpg",
-  "/public/assets/memory-game/image3.jpg",
-  "/public/assets/memory-game/image4.jpg",
-  "/public/assets/memory-game/image5.jpg",
-  "/public/assets/memory-game/image6.jpg",
-  "/public/assets/memory-game/image7.jpg",
-  "/public/assets/memory-game/image8.jpg"
+  "/assets/memory/image1.jpg",
+  "/assets/memory/image2.jpg",
+  "/assets/memory/image3.jpg",
+  "/assets/memory/image4.jpg",
+  "/assets/memory/image5.jpg",
+  "/assets/memory/image6.jpg",
+  "/assets/memory/image7.jpg",
+  "/assets/memory/image8.jpg"
 ];
 
 const FALLBACK_EMOJIS = ["🚀", "🎸", "👾", "🌟", "🍔", "🏆", "🔥", "💎"];

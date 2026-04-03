@@ -75,12 +75,34 @@ function openFlashcardViewer(deck) {
         </div>
         <div style="display: flex; gap: 12px; margin-top: 24px; justify-content: space-between;">
           <button class="btn-outline prev-card" style="flex:1;" ${currentIndex === 0 ? "disabled" : ""}>Previous</button>
+          <button class="btn-outline edit-card" style="flex:1;">Edit Card</button>
           <button class="btn next-card" style="flex:1;" ${currentIndex === deck.flashcards.length - 1 ? "disabled" : ""}>Next</button>
         </div>
       </div>
     `;
     overlay.querySelector(".close-modal").onclick = () => overlay.remove();
     overlay.querySelector(".prev-card").onclick = () => { if (currentIndex > 0) { currentIndex--; flipped = false; render(); } };
+    overlay.querySelector(".edit-card").onclick = async () => {
+      const newFront = prompt("Edit Question:", card.front);
+      if (newFront === null) return;
+      const newBack = prompt("Edit Answer:", card.back);
+      if (newBack === null) return;
+      
+      card.front = newFront.trim() || card.front;
+      card.back = newBack.trim() || card.back;
+      
+      const localDecks = getFlashDecks();
+      const localIdx = localDecks.findIndex(d => d.id === deck.id);
+      if (localIdx !== -1) {
+        localDecks[localIdx].flashcards = deck.flashcards;
+        saveFlashDecks(localDecks);
+      }
+      
+      if (isLoggedIn() && deck._id) {
+        await cloudRequest(`/data/flash-decks/${deck._id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ flashcards: deck.flashcards }) });
+      }
+      render();
+    };
     overlay.querySelector(".next-card").onclick = () => { if (currentIndex < deck.flashcards.length - 1) { currentIndex++; flipped = false; render(); } };
     overlay.querySelector(".flash-scene").onclick = () => { flipped = !flipped; render(); };
   }
@@ -142,6 +164,7 @@ function renderDashboard(data) {
                   </div>
                   <div style="display: flex; gap: 8px;">
                     <button class="btn-outline open-deck-btn" style="flex: 1;" data-index="${i}">Study Deck</button>
+                    <button class="btn-outline edit-deck-btn" style="flex: 0 0 auto;" data-index="${i}">Rename</button>
                     <button class="btn-outline delete-deck-btn" style="flex: 0 0 auto; color: var(--danger); border-color: var(--danger);" data-index="${i}">Delete</button>
                   </div>
                 </div>
@@ -172,6 +195,29 @@ function renderDashboard(data) {
     btn.addEventListener("click", () => {
       const deck = flashDecks[btn.dataset.index];
       if (deck) openFlashcardViewer(deck);
+    });
+  });
+
+  document.querySelectorAll(".edit-deck-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const index = btn.dataset.index;
+      const deck = flashDecks[index];
+      if (!deck) return;
+
+      const newTitle = prompt("Enter a new title for this deck:", deck.title);
+      if (!newTitle || newTitle.trim() === "" || newTitle.trim() === deck.title) return;
+
+      deck.title = newTitle.trim();
+      const localDecks = getFlashDecks();
+      const localIdx = localDecks.findIndex(d => d.id === deck.id);
+      if (localIdx !== -1) {
+        localDecks[localIdx].title = deck.title;
+        saveFlashDecks(localDecks);
+      }
+      if (isLoggedIn() && deck._id) {
+        await cloudRequest(`/data/flash-decks/${deck._id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: deck.title }) });
+      }
+      init();
     });
   });
 

@@ -404,19 +404,37 @@ function renderBoard() {
   const leaderboardMarkup = cloudLeaderboard.length
     ? `
       <section class="card scoreboard-table-wrap">
-        <h3>Leaderboard</h3>
-        <div class="scoreboard-table">
-          ${cloudLeaderboard.map((player) => `
-            <div class="attempt-row">
-              <span>#${player.rank} ${player.name}</span>
-              <span>${player.leaderboardScore} pts</span>
-              <span>${player.totalXp} XP | Streak ${player.currentStreak}</span>
+        <div class="table-header-block">
+          <h3>Global Leaderboard</h3>
+          <p>Top players ranked by total points and XP.</p>
+        </div>
+        <div class="modern-table">
+          <div class="modern-table-header">
+            <div class="col-rank">Rank</div>
+            <div class="col-player">Player</div>
+            <div class="col-score">Score</div>
+            <div class="col-meta">Stats</div>
+          </div>
+          ${cloudLeaderboard.map((player, idx) => `
+            <div class="modern-table-row fade-in" style="animation-delay: ${idx * 0.05}s">
+              <div class="col-rank">
+                <span class="rank-badge ${player.rank <= 3 ? 'top-3' : ''}">#${player.rank}</span>
+              </div>
+              <div class="col-player">
+                <strong>${player.name}</strong>
+              </div>
+              <div class="col-score">
+                <span class="score-pill">${player.leaderboardScore} pts</span>
+              </div>
+              <div class="col-meta">
+                ${player.totalXp} XP <span class="streak-icon" title="Streak">🔥 ${player.currentStreak}</span>
+              </div>
             </div>
           `).join("")}
         </div>
       </section>
     `
-    : "";
+    : `<div class="card empty-state"><h3>No Leaderboard Data</h3><p>Be the first to get on the board!</p></div>`;
 
   if (!entries.length) {
     scoreboardContent.innerHTML = `
@@ -478,24 +496,29 @@ function renderBoard() {
       <div class="card">
         <h3>Quick Stats</h3>
         <div class="evaluation-stats">
-          <div class="card"><p>Total XP</p><h4>${cloudProfile?.totalXp ?? game.totalXp}</h4></div>
-          <div class="card"><p>Total Points</p><h4>${cloudProfile?.totalPoints ?? 0}</h4></div>
-          <div class="card"><p>Level</p><h4>${game.level}</h4></div>
-          <div class="card"><p>Total Quizzes</p><h4>${entries.length}</h4></div>
-          <div class="card"><p>Current Streak</p><h4>${cloudProfile?.currentStreak ?? streak}</h4></div>
-          <div class="card"><p>Best Score</p><h4>${best}%</h4></div>
-          <div class="card"><p>Average</p><h4>${avg}%</h4></div>
+          <div class="stat-box"><p>Total XP</p><h4>${cloudProfile?.totalXp ?? game.totalXp}</h4></div>
+          <div class="stat-box"><p>Total Points</p><h4>${cloudProfile?.totalPoints ?? 0}</h4></div>
+          <div class="stat-box"><p>Level</p><h4>${game.level}</h4></div>
+          <div class="stat-box"><p>Total Quizzes</p><h4>${entries.length}</h4></div>
+          <div class="stat-box"><p>Current Streak</p><h4>${cloudProfile?.currentStreak ?? streak}</h4></div>
+          <div class="stat-box"><p>Best Score</p><h4>${best}%</h4></div>
+          <div class="stat-box"><p>Average</p><h4>${avg}%</h4></div>
         </div>
       </div>
     </section>
     <section class="card scoreboard-table-wrap">
-      <h3>Recent Attempts</h3>
-      <div class="scoreboard-table">
+      <div class="table-header-block">
+        <h3>Recent Attempts</h3>
+      </div>
+      <div class="modern-table">
         ${recent.map((e) => `
-          <div class="attempt-row">
-            <span>${formatShortDate(e.createdAt)}</span>
-            <span>${e.score}/${e.total} (${e.percentage}%)</span>
-            <span>${(e.settings?.difficulty || "moderate").toUpperCase()} | ${(e.settings?.questionMode || "mcq").toUpperCase()} | ${(e.settings?.outputLanguage || "English").toUpperCase()} | +${getAttemptXp(e)} XP</span>
+          <div class="modern-table-row">
+            <div class="col-date">${formatShortDate(e.createdAt)}</div>
+            <div class="col-score"><strong>${e.score}/${e.total}</strong> (${e.percentage}%)</div>
+            <div class="col-details">
+              <span class="settings-pill">${(e.settings?.difficulty || "mod").toUpperCase()}</span>
+              <span class="settings-pill">+${getAttemptXp(e)} XP</span>
+            </div>
           </div>
         `).join("")}
       </div>

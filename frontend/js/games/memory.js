@@ -8,13 +8,18 @@ const timeNode = document.getElementById("timeCount");
 const restartBtn = document.getElementById("restartGameBtn");
 const statusNode = document.getElementById("memoryStatus");
 
-// ✅ LOAD IMAGES FROM frontend/assets
-const imageModules = import.meta.glob(
-  "../../assets/memory-game/*.{jpg,jpeg,png,webp}",
-  { eager: true, import: "default" }
-);
-
-const MEMORY_IMAGES = Object.values(imageModules);
+// ✅ STATIC PATHS FOR VERCEL
+// Files placed in /public/assets/ will correctly resolve to /assets/... in production
+const MEMORY_IMAGES = [
+  "/assets/memory-game/1.png",
+  "/assets/memory-game/2.png",
+  "/assets/memory-game/3.png",
+  "/assets/memory-game/4.png",
+  "/assets/memory-game/5.png",
+  "/assets/memory-game/6.png",
+  "/assets/memory-game/7.png",
+  "/assets/memory-game/8.png"
+];
 const FALLBACK_EMOJIS = ["🚀", "🎸", "👾", "🌟", "🍔", "🏆", "🔥", "💎"];
 
 // STATE
@@ -56,8 +61,10 @@ function createCards() {
   let selected = [];
   let useEmojis = false;
 
-  if (MEMORY_IMAGES.length < 8) {
-    console.warn("⚠️ Not enough images loaded via Vite. Falling back to emojis to ensure game works.");
+  // If images fail to load or aren't provided, use emojis to prevent crashes
+  const missingImages = MEMORY_IMAGES.some(img => !img);
+  
+  if (missingImages) {
     selected = shuffle(FALLBACK_EMOJIS).slice(0, 8);
     useEmojis = true;
   } else {
@@ -122,7 +129,7 @@ function renderBoard() {
           ${
             card.isEmoji
               ? `<span class="emoji-card">${card.content}</span>`
-              : `<img src="${card.content}" alt="card"/>`
+              : `<img src="${card.content}" alt="card" onerror="this.outerHTML='<span class=\\'emoji-card\\'>${FALLBACK_EMOJIS[i % 8]}</span>'"/>`
           }
         </div>
       </div>

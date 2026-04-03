@@ -1,7 +1,15 @@
-const correctAudio = new Audio(new URL("../../assets/correct.mp3", import.meta.url).href);
-const wrongAudio = new Audio(new URL("../../assets/wrong.mp3", import.meta.url).href);
+let correctAudio = null;
+let wrongAudio = null;
+
+try {
+  correctAudio = new Audio("/assets/correct.mp3");
+  wrongAudio = new Audio("/assets/wrong.mp3");
+} catch (e) {
+  console.warn("Audio initialization failed", e);
+}
 
 function play(audio) {
+  if (!audio) return;
   audio.currentTime = 0;
   audio.play().catch(() => {});
 }

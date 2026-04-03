@@ -11,14 +11,14 @@ const statusNode = document.getElementById("memoryStatus");
 // ✅ STATIC PATHS FOR VERCEL
 // Files placed in /public/assets/ will correctly resolve to /assets/... in production
 const MEMORY_IMAGES = [
-  "/assets/memory-game/1.png",
-  "/assets/memory-game/2.png",
-  "/assets/memory-game/3.png",
-  "/assets/memory-game/4.png",
-  "/assets/memory-game/5.png",
-  "/assets/memory-game/6.png",
-  "/assets/memory-game/7.png",
-  "/assets/memory-game/8.png"
+  "/public/assets/memory-game/image1.jpg",
+  "/public/assets/memory-game/image2.jpg",
+  "/public/assets/memory-game/image3.jpg",
+  "/public/assets/memory-game/image4.jpg",
+  "/public/assets/memory-game/image5.jpg",
+  "/public/assets/memory-game/image6.jpg",
+  "/public/assets/memory-game/image7.jpg",
+  "/public/assets/memory-game/image8.jpg",
 ];
 const FALLBACK_EMOJIS = ["🚀", "🎸", "👾", "🌟", "🍔", "🏆", "🔥", "💎"];
 
@@ -117,7 +117,7 @@ function renderBoard() {
           ${
             card.isEmoji
               ? `<span class="emoji-card">${card.content}</span>`
-              : `<img src="${card.content}" alt="card" onerror="this.outerHTML='<span class=&quot;emoji-card&quot;>${FALLBACK_EMOJIS[card.pairIndex]}</span>'"/>`
+              : `<img src="${card.content}" alt="card" class="memory-card-img" data-pair="${card.pairIndex}"/>`
           }
         </div>
       </div>
@@ -127,6 +127,16 @@ function renderBoard() {
 
   document.querySelectorAll(".memory-card").forEach((el) => {
     el.addEventListener("click", () => flipCard(+el.dataset.index));
+  });
+
+  // Securely handle 404 image failures without violating Vercel CSP restrictions
+  document.querySelectorAll(".memory-card-img").forEach((img) => {
+    img.addEventListener("error", function () {
+      const fallback = document.createElement("span");
+      fallback.className = "emoji-card";
+      fallback.textContent = FALLBACK_EMOJIS[this.dataset.pair];
+      this.replaceWith(fallback);
+    });
   });
 }
 

@@ -9,6 +9,48 @@ export const MINI_GAME_BASE = "quizzy-mini-games-v1";
 export const SESSION_ACTIVITY_BASE = "quizzy-session-activity-v1";
 const MAX_HISTORY_ITEMS = 20;
 
+export function spawnFloatingXP(amount, x, y) {
+  if (!amount) return;
+  
+  // Inject the animation CSS once
+  if (!document.getElementById("floating-xp-styles")) {
+    const style = document.createElement("style");
+    style.id = "floating-xp-styles";
+    style.textContent = `
+      .floating-xp {
+        position: fixed;
+        pointer-events: none;
+        z-index: 9999;
+        color: #10b981; /* Emerald Green */
+        font-size: 2.5rem;
+        font-weight: 900;
+        text-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        animation: floatUpXP 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      }
+      .floating-xp .xp-label {
+        font-size: 1.2rem;
+        color: #34d399;
+      }
+      @keyframes floatUpXP {
+        0% { opacity: 0; transform: translate(-50%, 0) scale(0.5); }
+        15% { opacity: 1; transform: translate(-50%, -20px) scale(1.2); }
+        100% { opacity: 0; transform: translate(-50%, -100px) scale(1); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  const el = document.createElement("div");
+  el.className = "floating-xp";
+  el.innerHTML = `+${amount} <span class="xp-label">XP</span>`;
+  
+  el.style.left = x !== undefined ? `${x}px` : "50%";
+  el.style.top = y !== undefined ? `${y}px` : "50%";
+  
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1200);
+}
+
 export function getSession() {
   try {
     const raw = localStorage.getItem(SESSION_KEY);
@@ -192,8 +234,8 @@ export async function recordMemoryWin({ moves, seconds }) {
     memoryBestMoves: previous.memoryBestMoves ? Math.min(previous.memoryBestMoves, moves) : moves,
     memoryBestTime: previous.memoryBestTime ? Math.min(previous.memoryBestTime, seconds) : seconds
   });
-  await postMiniGameUpdate("memory", { moves, seconds });
-  return saved;
+  const serverResponse = await postMiniGameUpdate("memory", { moves, seconds });
+  return serverResponse || { saved };
 }
 
 export async function recordReactionAttempt(reaction) {
@@ -204,8 +246,8 @@ export async function recordReactionAttempt(reaction) {
     reactionRuns: previous.reactionRuns + 1,
     reactionBest: previous.reactionBest ? Math.min(previous.reactionBest, reaction) : reaction
   });
-  await postMiniGameUpdate("reaction", { reaction });
-  return saved;
+  const serverResponse = await postMiniGameUpdate("reaction", { reaction });
+  return serverResponse || { saved };
 }
 
 export async function recordRecallAttempt(level) {
@@ -216,8 +258,8 @@ export async function recordRecallAttempt(level) {
     recallRuns: previous.recallRuns + 1,
     recallBestLevel: Math.max(previous.recallBestLevel, level)
   });
-  await postMiniGameUpdate("recall", { level });
-  return saved;
+  const serverResponse = await postMiniGameUpdate("recall", { level });
+  return serverResponse || { saved };
 }
 
 export function normalizeQuestion(question) {

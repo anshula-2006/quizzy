@@ -1,5 +1,5 @@
 import { playCorrectSound, playWrongSound } from "./audio.js";
-import { isLoggedIn, recordReactionAttempt } from "../shared.js";
+import { isLoggedIn, recordReactionAttempt, spawnFloatingXP } from "../shared.js";
 
 const stage = document.getElementById("reactionStage");
 const statusNode = document.getElementById("reactionStatus");
@@ -13,9 +13,11 @@ let ready = false;
 let bestTime = null;
 
 function renderStatus(title, copy = "", result = "") {
+  if (!statusNode) return;
+
   if (result) {
     statusNode.innerHTML = `
-      <div class="reaction-result">
+      <div class="reaction-result fade-in">
         <div class="reaction-time">${result}</div>
         <p class="reaction-note">${copy}</p>
       </div>
@@ -24,7 +26,7 @@ function renderStatus(title, copy = "", result = "") {
   }
 
   statusNode.innerHTML = `
-    <div class="reaction-stage-inner">
+    <div class="reaction-stage-inner fade-in">
       <div class="reaction-label">${title}</div>
       ${copy ? `<p class="reaction-caption">${copy}</p>` : ""}
     </div>
@@ -32,38 +34,52 @@ function renderStatus(title, copy = "", result = "") {
 }
 
 function resetStage() {
-  stage.className = "reaction-stage";
+  if (!stage) return;
+  stage.className = "reaction-stage idle";
   ready = false;
   waiting = false;
   startedAt = 0;
-  renderStatus("Wait...", "Press start to begin a round.");
+  renderStatus("Reaction Tap", "Press start to begin a round.");
+  if (startBtn) {
+    startBtn.style.display = "inline-block";
+    startBtn.textContent = "Start Game";
+  }
 }
 
 function beginRound() {
   clearTimeout(timeoutId);
-  resetStage();
+  if (startBtn) startBtn.style.display = "none";
   waiting = true;
-  stage.classList.add("waiting");
-  renderStatus("Wait...", "Do not click until the screen changes.");
+  ready = false;
+  if (stage) stage.className = "reaction-stage waiting";
+  renderStatus("Wait for Green...", "Do not click until the screen changes.");
 
   const delay = 2000 + Math.floor(Math.random() * 3000);
   timeoutId = window.setTimeout(() => {
     waiting = false;
     ready = true;
     startedAt = performance.now();
-    stage.classList.remove("waiting");
-    stage.classList.add("ready");
-    renderStatus("Tap", "Click immediately.");
+    if (stage) stage.className = "reaction-stage ready";
+    renderStatus("TAP NOW!", "Click as fast as you can!");
   }, delay);
 }
 
 startBtn?.addEventListener("click", beginRound);
 
-stage?.addEventListener("click", () => {
+stage?.addEventListener("click", async (e) => {
+  if (stage.classList.contains('idle')) return; // Ignore early pre-game clicks
+
   if (waiting) {
     clearTimeout(timeoutId);
-    resetStage();
-    renderStatus("Too early", "Wait for the green signal before tapping.");
+    waiting = false;
+    ready = false;
+    if (stage) stage.className = "reaction-stage error";
+    renderStatus("Too early!", "Wait for the green signal before tapping.");
+    playWrongSound();
+    if (startBtn) {
+      startBtn.style.display = "inline-block";
+      startBtn.textContent = "Try Again";
+    }
     return;
   }
 
@@ -71,24 +87,29 @@ stage?.addEventListener("click", () => {
 
   const reaction = Math.round(performance.now() - startedAt);
   ready = false;
-  stage.classList.remove("ready");
-  renderStatus(`${reaction} ms`, "Solid response time.", `${reaction} ms`);
-  recordReactionAttempt(reaction);
+  if (stage) stage.className = "reaction-stage result";
+  
+  renderStatus(`${reaction} ms`, "Saving...", `${reaction} ms`);
+  const res = await recordReactionAttempt(reaction);
+  if (res?.gamification?.xpEarned) {
+    spawnFloatingXP(res.gamification.xpEarned, e.clientX, e.clientY);
+  }
 
   if (bestTime == null || reaction < bestTime) {
     playCorrectSound();
     bestTime = reaction;
-    bestNode.textContent = `${bestTime} ms`;
-    if (!isLoggedIn()) {
-      renderStatus(`${reaction} ms`, "Log in to save your best reaction time.", `${reaction} ms`);
-    }
-    return;
+    if (bestNode) bestNode.textContent = `${bestTime} ms`;
+    renderStatus(`${reaction} ms`, isLoggedIn() ? "New Best Time!" : "Log in to save your best time.", `${reaction} ms`);
+  } else {
+    playCorrectSound();
+    renderStatus(`${reaction} ms`, isLoggedIn() ? "Solid response time." : "Log in to save your history.", `${reaction} ms`);
   }
 
-  playWrongSound();
-  if (!isLoggedIn()) {
-    renderStatus(`${reaction} ms`, "Log in to save your reaction history.", `${reaction} ms`);
+  if (startBtn) {
+    startBtn.style.display = "inline-block";
+    startBtn.textContent = "Play Again";
   }
 });
 
+// INIT
 resetStage();

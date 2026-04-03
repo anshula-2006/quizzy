@@ -1,5 +1,5 @@
 import { playCorrectSound, playWrongSound } from "./audio.js";
-import { isLoggedIn, recordMemoryWin } from "../shared.js";
+import { isLoggedIn, recordMemoryWin, spawnFloatingXP } from "../shared.js";
 
 // DOM
 const board = document.getElementById("memoryBoard");
@@ -15,6 +15,7 @@ const imageModules = import.meta.glob(
 );
 
 const MEMORY_IMAGES = Object.values(imageModules);
+const FALLBACK_EMOJIS = ["🚀", "🎸", "👾", "🌟", "🍔", "🏆", "🔥", "💎"];
 
 // STATE
 let cards = [];
@@ -24,6 +25,7 @@ let lockBoard = false;
 let moves = 0;
 let seconds = 0;
 let timerId = null;
+let gameState = "START"; // START, PLAYING, OVER
 
 // UTIL
 function shuffle(arr) {
@@ -33,7 +35,7 @@ function shuffle(arr) {
 function setStatus(msg, tone = "") {
   if (!statusNode) return;
   statusNode.textContent = msg;
-  statusNode.className = `arcade-feedback ${tone}`;
+  statusNode.className = `arcade-feedback fade-in ${tone}`;
 }
 
 function updateStats() {
@@ -51,27 +53,47 @@ function startTimer() {
 
 // GAME SETUP
 function createCards() {
-  if (MEMORY_IMAGES.length === 0) {
-    console.log("❌ No images loaded:", imageModules);
-    setStatus("Images failed to load 💀 Check path.", "bad");
-    return [];
+  let selected = [];
+  let useEmojis = false;
+
+  if (MEMORY_IMAGES.length < 8) {
+    console.warn("⚠️ Not enough images loaded via Vite. Falling back to emojis to ensure game works.");
+    selected = shuffle(FALLBACK_EMOJIS).slice(0, 8);
+    useEmojis = true;
+  } else {
+    selected = shuffle(MEMORY_IMAGES).slice(0, 8);
   }
 
-  const selected = shuffle(MEMORY_IMAGES).slice(0, 8);
+  const deck = shuffle([...selected, ...selected]);
 
-  return shuffle(
-    [...selected, ...selected].map((img, i) => ({
-      id: i,
-      image: img,
-      flipped: false,
-      matched: false,
-    }))
-  );
+  return deck.map((content, i) => ({
+    id: i,
+    content,
+    isEmoji: useEmojis,
+    flipped: false,
+    matched: false,
+  }));
+}
+
+function initGame() {
+  gameState = "START";
+  setStatus("Ready to play? Click Start!", "info");
+  if (board) {
+    board.innerHTML = `
+      <div class="game-start-screen">
+        <h2>Memory Match</h2>
+        <p>Find all the matching pairs as quickly as possible!</p>
+        <button id="startGameBtn" class="arcade-btn primary">Start Game</button>
+      </div>
+    `;
+    document.getElementById("startGameBtn")?.addEventListener("click", resetGame);
+  }
 }
 
 function resetGame() {
   if (!board) return;
 
+  gameState = "PLAYING";
   clearInterval(timerId);
 
   cards = createCards();
@@ -82,22 +104,26 @@ function resetGame() {
   seconds = 0;
 
   updateStats();
-  setStatus("Game started. Match the pairs 🔥");
+  setStatus("Game started. Match the pairs 🔥", "info");
   startTimer();
-  render();
+  renderBoard();
 }
 
 // RENDER
-function render() {
+function renderBoard() {
   if (!board) return;
 
   board.innerHTML = cards
     .map(
       (card, i) => `
-      <div class="memory-card ${card.flipped || card.matched ? "flip" : ""}" data-index="${i}">
+      <div class="memory-card" data-index="${i}">
         <div class="front">?</div>
         <div class="back">
-          <img src="${card.image}" alt="card"/>
+          ${
+            card.isEmoji
+              ? `<span class="emoji-card">${card.content}</span>`
+              : `<img src="${card.content}" alt="card"/>`
+          }
         </div>
       </div>
     `
@@ -111,12 +137,14 @@ function render() {
 
 // GAME LOGIC
 function flipCard(index) {
+  if (gameState !== "PLAYING") return;
   const card = cards[index];
 
+  // Prevent clicking matched, flipped, or clicking when board is locked
   if (!card || lockBoard || card.flipped || card.matched) return;
 
   card.flipped = true;
-  updateCard(index);
+  updateCardDOM(index);
 
   if (firstPick === null) {
     firstPick = index;
@@ -124,13 +152,14 @@ function flipCard(index) {
   }
 
   secondPick = index;
+  lockBoard = true; // Lock board explicitly
   moves++;
   updateStats();
 
   const first = cards[firstPick];
   const second = cards[secondPick];
 
-  if (first.image === second.image) {
+  if (first.content === second.content) {
     first.matched = true;
     second.matched = true;
     playCorrectSound();
@@ -138,24 +167,24 @@ function flipCard(index) {
     resetTurn();
     checkWin();
   } else {
-    lockBoard = true;
     playWrongSound();
 
     setTimeout(() => {
       first.flipped = false;
       second.flipped = false;
-      updateCard(firstPick);
-      updateCard(secondPick);
+      updateCardDOM(firstPick);
+      updateCardDOM(secondPick);
       resetTurn();
-    }, 800);
+    }, 1000);
   }
 }
 
-function updateCard(index) {
+function updateCardDOM(index) {
   const el = document.querySelector(`[data-index="${index}"]`);
   if (!el) return;
 
-  el.classList.toggle("flip", cards[index].flipped || cards[index].matched);
+  const card = cards[index];
+  el.classList.toggle("flip", card.flipped || card.matched);
 }
 
 function resetTurn() {
@@ -164,14 +193,35 @@ function resetTurn() {
   lockBoard = false;
 }
 
-function checkWin() {
+async function checkWin() {
   if (cards.every((c) => c.matched)) {
+    gameState = "OVER";
     clearInterval(timerId);
 
-    setStatus(`🎉 Completed in ${moves} moves & ${seconds}s`, "good");
+    setStatus(`🎉 Completed in ${moves} moves & ${seconds}s. Saving...`, "good");
+
+    setTimeout(() => {
+      if (board) {
+        board.innerHTML = `
+          <div class="game-over-screen">
+            <h2>Victory! 🎉</h2>
+            <p>Moves: ${moves}</p>
+            <p>Time: ${seconds}s</p>
+            <button id="playAgainBtn" class="arcade-btn primary">Play Again</button>
+          </div>
+        `;
+        document.getElementById("playAgainBtn")?.addEventListener("click", resetGame);
+      }
+    }, 800);
 
     if (isLoggedIn()) {
-      recordMemoryWin({ moves, seconds });
+      const res = await recordMemoryWin({ moves, seconds });
+      if (res?.gamification?.xpEarned) {
+        spawnFloatingXP(res.gamification.xpEarned);
+      }
+      setStatus(`🎉 Completed in ${moves} moves & ${seconds}s`, "good");
+    } else {
+      setStatus(`🎉 Completed in ${moves} moves & ${seconds}s`, "good");
     }
   }
 }
@@ -180,4 +230,4 @@ function checkWin() {
 restartBtn?.addEventListener("click", resetGame);
 
 // INIT
-resetGame();
+initGame();

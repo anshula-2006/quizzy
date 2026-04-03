@@ -1,5 +1,6 @@
 import API_BASE from "./js/config.js";
 import auth from "./auth.js";
+import { spawnFloatingXP } from "./js/shared.js";
 
 const input = document.getElementById("inputText");
 const urlInput = document.getElementById("urlInput");
@@ -745,7 +746,8 @@ function awardBonusXp(amount, reason, rewardId = "") {
 
   const nextTotal = getBonusXp() + safeAmount;
   saveBonusXp(nextTotal);
-  showToast(`+${safeAmount} XP: ${reason}`, "xp");
+  spawnFloatingXP(safeAmount);
+  showToast(reason, "success");
 }
 
 function getChallengeDeck(entries, gameStats) {

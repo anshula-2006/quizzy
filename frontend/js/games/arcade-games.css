@@ -1,0 +1,142 @@
+/* Arcade Games Modern UI/UX */
+.fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Memory Match */
+#memoryBoard {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  perspective: 1000px;
+  min-height: 400px;
+  position: relative;
+}
+
+.memory-card {
+  width: 100%;
+  aspect-ratio: 3/4;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.4, 0.2, 0.2, 1);
+  cursor: pointer;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.memory-card:not(.flip):hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+.memory-card.flip {
+  transform: rotateY(180deg);
+}
+
+.memory-card .front,
+.memory-card .back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.memory-card .front {
+  background: linear-gradient(135deg, #6366f1, #3b82f6);
+  color: white;
+}
+
+.memory-card .back {
+  background: #ffffff;
+  transform: rotateY(180deg);
+  border: 2px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.memory-card .back img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.emoji-card {
+  font-size: 3rem;
+}
+
+.game-start-screen,
+.game-over-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.9);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  z-index: 10;
+  text-align: center;
+  padding: 24px;
+  backdrop-filter: blur(4px);
+}
+
+.game-start-screen h2, .game-over-screen h2 {
+  font-size: 2.5rem;
+  margin-bottom: 12px;
+  font-weight: 900;
+}
+
+.arcade-btn.primary {
+  margin-top: 20px;
+  padding: 12px 32px;
+  background: linear-gradient(to right, #8b5cf6, #06b6d4);
+  color: white;
+  border: none;
+  border-radius: 9999px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.arcade-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(6, 182, 212, 0.4);
+}
+
+/* Reaction Tap */
+.reaction-stage {
+  width: 100%;
+  height: 300px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.1s;
+  user-select: none;
+  text-align: center;
+  color: white;
+  font-weight: bold;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.reaction-stage.idle { background: #334155; }
+.reaction-stage.waiting { background: #f59e0b; } /* Orange/Yellow */
+.reaction-stage.ready { background: #10b981; } /* Green */
+.reaction-stage.error { background: #ef4444; } /* Red */
+.reaction-stage.result { background: #3b82f6; } /* Blue */

@@ -94,11 +94,23 @@ export async function addFlashDeck(deck) {
 
   const session = getSession();
   if (session?.token) {
-    fetch(`${API_BASE}/data/flash-decks`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.token}` },
-      body: JSON.stringify(deck)
-    }).catch(() => {});
+    try {
+      const response = await fetch(`${API_BASE}/data/flash-decks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.token}` },
+        body: JSON.stringify(deck)
+      });
+      const data = await response.json();
+      if (response.ok && data.flashDeck) {
+        // Replace the local deck with the MongoDB document so it has the correct _id for deletions
+        const updatedDecks = getFlashDecks();
+        const idx = updatedDecks.findIndex((d) => d.id === deck.id);
+        if (idx !== -1) {
+          updatedDecks[idx] = data.flashDeck;
+          saveFlashDecks(updatedDecks);
+        }
+      }
+    } catch (e) {}
   }
 }
 

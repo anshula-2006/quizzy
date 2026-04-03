@@ -4,37 +4,52 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Memory Match | Mini Arcade</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="../arcade.css" />
 </head>
+
 <body class="arcade-body">
   <div class="arcade-shell">
     <div class="arcade-frame">
+
       <header class="arcade-header">
         <div>
           <div class="arcade-mark">Mini Arcade</div>
           <h1 class="arcade-title">Memory Match</h1>
-          <p class="arcade-subtitle">Match the visual pairs with as few moves as possible.</p>
+          <p class="arcade-subtitle">
+            Match the visual pairs with as few moves as possible.
+          </p>
         </div>
         <a class="arcade-back" href="../arcade.html">Back to Arcade</a>
       </header>
 
       <main class="arcade-panel arcade-game-wrap">
+
         <section class="arcade-game-head">
           <div class="arcade-kpis">
-            <div class="arcade-kpi"><span>Moves</span><strong id="movesCount">0</strong></div>
-            <div class="arcade-kpi"><span>Time</span><strong id="timeCount">0s</strong></div>
+            <div class="arcade-kpi">
+              <span>Moves</span>
+              <strong id="movesCount">0</strong>
+            </div>
+            <div class="arcade-kpi">
+              <span>Time</span>
+              <strong id="timeCount">0s</strong>
+            </div>
           </div>
+
           <div class="arcade-actions">
-            <button id="restartGameBtn" class="arcade-btn-secondary" type="button">Restart</button>
+            <button id="restartGameBtn" class="arcade-btn-secondary">
+              Restart
+            </button>
           </div>
         </section>
 
-        <p id="memoryStatus" class="arcade-feedback">Loading image deck...</p>
+        <p id="memoryStatus" class="arcade-feedback">Ready to play 🚀</p>
+
         <div id="memoryBoard" class="memory-grid"></div>
+
       </main>
+
     </div>
   </div>
 

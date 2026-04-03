@@ -8,18 +8,18 @@ const timeNode = document.getElementById("timeCount");
 const restartBtn = document.getElementById("restartGameBtn");
 const statusNode = document.getElementById("memoryStatus");
 
-// ✅ STATIC PATHS FOR VERCEL
-// Files placed in /public/assets/ will correctly resolve to /assets/... in production
+// ✅ FIXED IMAGE PATHS
 const MEMORY_IMAGES = [
-  "/public/assets/memory-game/image1.jpg",
-  "/public/assets/memory-game/image2.jpg",
-  "/public/assets/memory-game/image3.jpg",
-  "/public/assets/memory-game/image4.jpg",
-  "/public/assets/memory-game/image5.jpg",
-  "/public/assets/memory-game/image6.jpg",
-  "/public/assets/memory-game/image7.jpg",
-  "/public/assets/memory-game/image8.jpg",
+  "/assets/memory-game/image1.jpg",
+  "/assets/memory-game/image2.jpg",
+  "/assets/memory-game/image3.jpg",
+  "/assets/memory-game/image4.jpg",
+  "/assets/memory-game/image5.jpg",
+  "/assets/memory-game/image6.jpg",
+  "/assets/memory-game/image7.jpg",
+  "/assets/memory-game/image8.jpg",
 ];
+
 const FALLBACK_EMOJIS = ["🚀", "🎸", "👾", "🌟", "🍔", "🏆", "🔥", "💎"];
 
 // STATE
@@ -30,7 +30,7 @@ let lockBoard = false;
 let moves = 0;
 let seconds = 0;
 let timerId = null;
-let gameState = "START"; // START, PLAYING, OVER
+let gameState = "START";
 
 // UTIL
 function shuffle(arr) {
@@ -40,7 +40,7 @@ function shuffle(arr) {
 function setStatus(msg, tone = "") {
   if (!statusNode) return;
   statusNode.textContent = msg;
-  statusNode.className = `arcade-feedback fade-in ${tone}`;
+  statusNode.className = `arcade-feedback ${tone}`;
 }
 
 function updateStats() {
@@ -62,34 +62,15 @@ function createCards() {
 
   const deck = [];
   selected.forEach((content, pairIndex) => {
-    // Store pairIndex so fallback emojis always visually match for identical image paths
-    deck.push({ content, pairIndex, isEmoji: false, flipped: false, matched: false });
-    deck.push({ content, pairIndex, isEmoji: false, flipped: false, matched: false });
+    deck.push({ content, pairIndex, flipped: false, matched: false });
+    deck.push({ content, pairIndex, flipped: false, matched: false });
   });
 
   return shuffle(deck).map((card, id) => ({ ...card, id }));
 }
 
-function initGame() {
-  gameState = "START";
-  setStatus("Ready to play? Click Start!", "info");
-  if (board) {
-    board.innerHTML = `
-      <div class="game-start-screen">
-        <h2>Memory Match</h2>
-        <p>Find all the matching pairs as quickly as possible!</p>
-        <button id="startGameBtn" class="arcade-btn primary">Start Game</button>
-      </div>
-    `;
-    document.getElementById("startGameBtn")?.addEventListener("click", resetGame);
-  }
-}
-
 function resetGame() {
-  if (!board) return;
-
   gameState = "PLAYING";
-  clearInterval(timerId);
 
   cards = createCards();
   firstPick = null;
@@ -99,26 +80,23 @@ function resetGame() {
   seconds = 0;
 
   updateStats();
-  setStatus("Game started. Match the pairs 🔥", "info");
+  setStatus("Game started 🔥");
+
   startTimer();
   renderBoard();
 }
 
-// RENDER
+// RENDER (FIXED STRUCTURE)
 function renderBoard() {
-  if (!board) return;
-
   board.innerHTML = cards
     .map(
       (card, i) => `
-      <div class="memory-card" data-index="${i}">
-        <div class="front">?</div>
-        <div class="back">
-          ${
-            card.isEmoji
-              ? `<span class="emoji-card">${card.content}</span>`
-              : `<img src="${card.content}" alt="card" class="memory-card-img" data-pair="${card.pairIndex}"/>`
-          }
+      <div class="memory-card ${card.flipped ? "is-flipped" : ""} ${card.matched ? "is-matched" : ""}" data-index="${i}">
+        <div class="memory-card-shell">
+          <div class="memory-card-face memory-card-front">?</div>
+          <div class="memory-card-face memory-card-back">
+            <img src="${card.content}" class="memory-card-img" data-pair="${card.pairIndex}" />
+          </div>
         </div>
       </div>
     `
@@ -129,7 +107,7 @@ function renderBoard() {
     el.addEventListener("click", () => flipCard(+el.dataset.index));
   });
 
-  // Securely handle 404 image failures without violating Vercel CSP restrictions
+  // fallback
   document.querySelectorAll(".memory-card-img").forEach((img) => {
     img.addEventListener("error", function () {
       const fallback = document.createElement("span");
@@ -143,9 +121,8 @@ function renderBoard() {
 // GAME LOGIC
 function flipCard(index) {
   if (gameState !== "PLAYING") return;
-  const card = cards[index];
 
-  // Prevent clicking matched, flipped, or clicking when board is locked
+  const card = cards[index];
   if (!card || lockBoard || card.flipped || card.matched) return;
 
   card.flipped = true;
@@ -157,7 +134,8 @@ function flipCard(index) {
   }
 
   secondPick = index;
-  lockBoard = true; // Lock board explicitly
+  lockBoard = true;
+
   moves++;
   updateStats();
 
@@ -167,12 +145,13 @@ function flipCard(index) {
   if (first.content === second.content) {
     first.matched = true;
     second.matched = true;
-    try { playCorrectSound(); } catch (e) {}
+
+    try { playCorrectSound(); } catch {}
 
     resetTurn();
     checkWin();
   } else {
-    try { playWrongSound(); } catch (e) {}
+    try { playWrongSound(); } catch {}
 
     setTimeout(() => {
       first.flipped = false;
@@ -180,7 +159,7 @@ function flipCard(index) {
       updateCardDOM(firstPick);
       updateCardDOM(secondPick);
       resetTurn();
-    }, 1000);
+    }, 800);
   }
 }
 
@@ -189,7 +168,9 @@ function updateCardDOM(index) {
   if (!el) return;
 
   const card = cards[index];
-  el.classList.toggle("flip", card.flipped || card.matched);
+
+  el.classList.toggle("is-flipped", card.flipped);
+  el.classList.toggle("is-matched", card.matched);
 }
 
 function resetTurn() {
@@ -198,35 +179,20 @@ function resetTurn() {
   lockBoard = false;
 }
 
+// WIN + XP (ALREADY CONNECTED)
 async function checkWin() {
   if (cards.every((c) => c.matched)) {
     gameState = "OVER";
     clearInterval(timerId);
 
-    setStatus(`🎉 Completed in ${moves} moves & ${seconds}s. Saving...`, "good");
-
-    setTimeout(() => {
-      if (board) {
-        board.innerHTML = `
-          <div class="game-over-screen">
-            <h2>Victory! 🎉</h2>
-            <p>Moves: ${moves}</p>
-            <p>Time: ${seconds}s</p>
-            <button id="playAgainBtn" class="arcade-btn primary">Play Again</button>
-          </div>
-        `;
-        document.getElementById("playAgainBtn")?.addEventListener("click", resetGame);
-      }
-    }, 800);
+    setStatus(`🎉 Completed in ${moves} moves & ${seconds}s`);
 
     if (isLoggedIn()) {
       const res = await recordMemoryWin({ moves, seconds });
+
       if (res?.gamification?.xpEarned) {
         spawnFloatingXP(res.gamification.xpEarned);
       }
-      setStatus(`🎉 Completed in ${moves} moves & ${seconds}s`, "good");
-    } else {
-      setStatus(`🎉 Completed in ${moves} moves & ${seconds}s`, "good");
     }
   }
 }
@@ -235,4 +201,4 @@ async function checkWin() {
 restartBtn?.addEventListener("click", resetGame);
 
 // INIT
-initGame();
+resetGame();

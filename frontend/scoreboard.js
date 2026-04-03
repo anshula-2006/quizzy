@@ -418,7 +418,7 @@ function renderBoard() {
           ${cloudLeaderboard.map((player, idx) => `
             <div class="modern-table-row fade-in" style="animation-delay: ${idx * 0.05}s">
               <div class="col-rank">
-                <span class="rank-badge ${player.rank <= 3 ? 'top-3' : ''}">#${player.rank}</span>
+                <span class="rank-badge ${player.rank === 1 ? 'rank-1' : player.rank === 2 ? 'rank-2' : player.rank === 3 ? 'rank-3' : 'rank-other'}">#${player.rank}</span>
               </div>
               <div class="col-player">
                 <strong>${player.name}</strong>

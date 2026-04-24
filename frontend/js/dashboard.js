@@ -1,4 +1,5 @@
 import API_BASE from "./config.js";
+import auth from "../auth.js";
 import { getSavedQuizHistory, getFlashDecks, getMiniGameStats, saveFlashDecks } from "./shared.js";
 
 const root = document.getElementById("dashboardRoot");
@@ -125,6 +126,7 @@ function renderDashboard(data) {
       <div class="button-row" style="margin-top:20px;">
         <button id="clearHistoryBtn" class="btn-outline" type="button">Clear Quiz History</button>
         <button id="clearDashboardBtn" class="btn-outline" type="button">Clear Dashboard</button>
+        <button id="deleteUserBtn" class="btn-outline" type="button" style="color: var(--danger); border-color: var(--danger);">Delete User</button>
       </div>
 
       <div class="field-stack" style="margin-top:24px;">
@@ -249,10 +251,28 @@ function renderDashboard(data) {
   });
 
   document.getElementById("clearDashboardBtn")?.addEventListener("click", async () => {
+    if (!confirm("This will clear your quiz history, flashcards, mini-game stats, and dashboard progress. Continue?")) return;
     const result = await cloudRequest("/data/dashboard", { method: "DELETE" });
     if (!result.ok) return;
     const refreshed = await cloudRequest("/data/bootstrap");
     if (refreshed.ok) renderDashboard(refreshed.data);
+  });
+
+  document.getElementById("deleteUserBtn")?.addEventListener("click", async () => {
+    const confirmation = prompt('Type DELETE to permanently remove your account:');
+    if (confirmation === null) return;
+
+    const password = prompt("Enter your password to confirm account deletion:");
+    if (password === null) return;
+
+    const result = await auth.deleteAccount({ password, confirmation });
+    if (!result.ok) {
+      alert(result.error || "Unable to delete account.");
+      return;
+    }
+
+    alert("Your account has been deleted.");
+    window.location.href = "./register.html";
   });
 }
 

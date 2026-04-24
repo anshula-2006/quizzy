@@ -1,4 +1,7 @@
 import bcrypt from "bcryptjs";
+import { FlashDeck } from "../models/FlashDeck.js";
+import { QuizAttempt } from "../models/QuizAttempt.js";
+import { SavedQuestion } from "../models/SavedQuestion.js";
 import { User } from "../models/User.js";
 import { signAuthToken } from "../middleware/auth.js";
 import { AppError } from "../utils/AppError.js";
@@ -81,4 +84,32 @@ export async function logoutAll(req, res) {
   req.user.tokenVersion = (req.user.tokenVersion || 0) + 1;
   await req.user.save();
   res.json({ message: "Logged out from all devices" });
+}
+
+export async function deleteAccount(req, res) {
+  const confirmation = String(req.body?.confirmation || "").trim().toUpperCase();
+  const password = String(req.body?.password || "").trim();
+
+  if (confirmation !== "DELETE") {
+    throw new AppError('Type "DELETE" to confirm account deletion', 400);
+  }
+
+  if (!password) {
+    throw new AppError("Password is required to delete your account", 400);
+  }
+
+  const isMatch = await bcrypt.compare(password, req.user.passwordHash);
+  if (!isMatch) {
+    throw new AppError("Password is incorrect", 401);
+  }
+
+  await Promise.all([
+    QuizAttempt.deleteMany({ user: req.user._id }),
+    SavedQuestion.deleteMany({ user: req.user._id }),
+    FlashDeck.deleteMany({ user: req.user._id })
+  ]);
+
+  await User.deleteOne({ _id: req.user._id });
+
+  res.json({ message: "Account deleted successfully" });
 }

@@ -96,6 +96,21 @@ const QuizzyAuth = {
     return result.ok ? { ok: true } : result;
   },
 
+  async deleteAccount({ password, confirmation }) {
+    const session = getSession();
+    if (!session?.token) return { ok: false, error: "No session" };
+    const result = await request("/auth/delete-account", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.token}`
+      },
+      body: JSON.stringify({ password, confirmation })
+    });
+    clearSession();
+    return result;
+  },
+
   getSession() {
     const session = getSession();
     return session?.user || null;

@@ -16,6 +16,7 @@ const BONUS_XP_BASE = "quizzy-bonus-xp-v1";
 const CHALLENGE_BASE = "quizzy-challenges-v1";
 const MINI_GAME_BASE = "quizzy-mini-games-v1";
 const SESSION_ACTIVITY_BASE = "quizzy-session-activity-v1";
+const THEME_KEY = "quizzy-theme";
 const MAX_HISTORY_ITEMS = 20;
 let cloudProfile = null;
 let cloudLeaderboard = [];
@@ -351,7 +352,33 @@ function renderAuthNav() {
 }
 
 function setThemeIcon() {
-  toggle.textContent = document.body.classList.contains("dark") ? "Sun" : "Moon";
+  if (!toggle) return;
+  const isDark = document.body.classList.contains("dark");
+  toggle.innerHTML = isDark
+    ? `<span class="theme-toggle-icon" aria-hidden="true">☀</span><span class="theme-toggle-label">Light mode</span>`
+    : `<span class="theme-toggle-icon" aria-hidden="true">☾</span><span class="theme-toggle-label">Dark mode</span>`;
+  toggle.setAttribute("aria-label", isDark ? "Switch to light mode" : "Switch to dark mode");
+}
+
+function applySavedTheme() {
+  let useDark = true;
+  try {
+    const savedTheme = localStorage.getItem(THEME_KEY);
+    if (savedTheme === "light") useDark = false;
+    if (savedTheme === "dark") useDark = true;
+  } catch {
+    useDark = true;
+  }
+
+  document.body.classList.toggle("dark", useDark);
+}
+
+function persistTheme(isDark) {
+  try {
+    localStorage.setItem(THEME_KEY, isDark ? "dark" : "light");
+  } catch {
+    // Ignore storage write failures.
+  }
 }
 
 function renderProgressExtras(entries) {
@@ -621,6 +648,7 @@ logoutBtn?.addEventListener("click", () => auth?.logout());
 
 toggle.onclick = () => {
   document.body.classList.toggle("dark");
+  persistTheme(document.body.classList.contains("dark"));
   setThemeIcon();
 };
 
@@ -631,5 +659,6 @@ async function bootstrap() {
   renderBoard();
 }
 
+applySavedTheme();
 setThemeIcon();
 bootstrap();

@@ -374,6 +374,32 @@ a {
   font-weight: 700;
 }
 
+#themeToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 146px;
+  white-space: nowrap;
+}
+
+.theme-toggle-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  line-height: 1;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.theme-toggle-label {
+  font-size: 0.92rem;
+  letter-spacing: 0.01em;
+}
+
 #themeToggle,
 .ghost {
   background: var(--surface-strong);
@@ -761,6 +787,14 @@ textarea:focus,
   background: var(--surface-muted);
   color: var(--text);
   text-align: left;
+  font-weight: 700;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.review-q-btn:hover {
+  transform: translateY(-1px);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-sm);
 }
 
 .review-q-btn.good {
@@ -779,6 +813,19 @@ textarea:focus,
   border-radius: 18px;
   border: 1px solid var(--border);
   background: var(--surface-muted);
+}
+
+.review-detail strong,
+.analysis-card strong,
+.table-header-block h3,
+.scoreboard-grid h3,
+.scoreboard-table-wrap h3 {
+  color: var(--text);
+}
+
+.review-detail {
+  min-height: 176px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .explain-image-wrap {
@@ -1272,6 +1319,12 @@ textarea:focus,
 .spark-col span {
   color: var(--muted);
   font-size: 0.78rem;
+}
+
+.review-detail p + p,
+.analysis-card p + p,
+.scoreboard-head p + p {
+  margin-top: 8px;
 }
 
 .scoreboard-table {
@@ -1837,6 +1890,7 @@ footer {
   border-radius: 20px;
   border: 1px solid var(--border);
   background: var(--surface-muted);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .stat-box p {
@@ -1920,6 +1974,118 @@ footer {
   .scoreboard-head-actions .ghost {
     width: 100%;
   }
+}
+
+body:not(.dark) {
+  background:
+    radial-gradient(circle at 10% 8%, rgba(55, 93, 251, 0.14), transparent 24%),
+    radial-gradient(circle at 88% 10%, rgba(99, 102, 241, 0.12), transparent 20%),
+    linear-gradient(180deg, #f8fbff 0%, var(--bg) 34%, var(--bg-soft) 100%);
+}
+
+body:not(.dark) .bg {
+  background:
+    radial-gradient(circle at 14% 14%, rgba(55, 93, 251, 0.12), transparent 20%),
+    radial-gradient(circle at 86% 12%, rgba(79, 70, 229, 0.1), transparent 18%),
+    radial-gradient(circle at 72% 90%, rgba(14, 165, 233, 0.08), transparent 18%);
+}
+
+body:not(.dark) .app-sidebar {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.9)),
+    var(--surface);
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.65);
+}
+
+body:not(.dark) .sidebar-link,
+body:not(.dark) .nav-link,
+body:not(.dark) .ghost,
+body:not(.dark) #themeToggle {
+  border-radius: 999px;
+}
+
+body:not(.dark) .sidebar-link,
+body:not(.dark) .nav-link {
+  background: rgba(255, 255, 255, 0.58);
+  border-color: rgba(15, 23, 42, 0.05);
+}
+
+body:not(.dark) .sidebar-link:hover,
+body:not(.dark) .nav-link:hover,
+body:not(.dark) .ghost:hover,
+body:not(.dark) #themeToggle:hover {
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 12px 24px rgba(148, 163, 184, 0.14);
+}
+
+body:not(.dark) .theme-toggle-icon {
+  background: rgba(55, 93, 251, 0.1);
+  color: var(--primary-strong);
+}
+
+body:not(.dark) .card,
+body:not(.dark) .scoreboard-head,
+body:not(.dark) .scoreboard-table-wrap,
+body:not(.dark) .badge-card,
+body:not(.dark) .challenge-card,
+body:not(.dark) .mini-game-panel,
+body:not(.dark) .badge-popup-card,
+body:not(.dark) .loader {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.92)),
+    var(--surface);
+  box-shadow: 0 18px 40px rgba(148, 163, 184, 0.18);
+}
+
+body:not(.dark) .scoreboard-head {
+  background:
+    radial-gradient(circle at top right, rgba(55, 93, 251, 0.16), transparent 34%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(243, 246, 255, 0.88)),
+    var(--surface);
+}
+
+body:not(.dark) .scoreboard-grid > .card:first-child,
+body:not(.dark) .scoreboard-table-wrap,
+body:not(.dark) .badge-cabinet,
+body:not(.dark) .mini-games-shell {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(246, 249, 255, 0.92)),
+    var(--surface);
+}
+
+body:not(.dark) .modern-table-row,
+body:not(.dark) .analysis-card,
+body:not(.dark) .stat-box,
+body:not(.dark) .evaluation-stats .card,
+body:not(.dark) .attempt-row,
+body:not(.dark) .review-detail,
+body:not(.dark) .latest-attempt,
+body:not(.dark) .recent-attempts {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.88));
+}
+
+body:not(.dark) .modern-table-row:hover {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(240, 245, 255, 0.96));
+}
+
+body:not(.dark) .settings-pill,
+body:not(.dark) .streak-icon,
+body:not(.dark) .rank-badge,
+body:not(.dark) .review-q-btn {
+  background: rgba(255, 255, 255, 0.82);
+}
+
+body:not(.dark) .review-detail,
+body:not(.dark) .analysis-card,
+body:not(.dark) .stat-box {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+body:not(.dark) .badge-icon {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.92));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 body.dark {
@@ -2012,4 +2178,15 @@ body.dark .ghost,
 body.dark #themeToggle {
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.05);
+}
+
+body.dark .theme-toggle-icon {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f8fafc;
+}
+
+body.dark .review-detail,
+body.dark .analysis-card,
+body.dark .stat-box {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }

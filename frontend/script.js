@@ -526,14 +526,27 @@ function getHistory() {
   try {
     const raw = localStorage.getItem(historyKey());
     const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
+    return Array.isArray(parsed) ? parsed.map(normalizeAttemptEntry) : [];
   } catch {
     return [];
   }
 }
 
+function normalizeAttemptEntry(entry) {
+  if (!entry || typeof entry !== "object") return entry;
+  const evaluatedAnswers = Array.isArray(entry.evaluatedAnswers) ? entry.evaluatedAnswers : [];
+  const currentAnswers = Array.isArray(entry.answers) ? entry.answers : [];
+  const answers = evaluatedAnswers.length ? evaluatedAnswers : currentAnswers;
+
+  return {
+    ...entry,
+    answers
+  };
+}
+
 function saveHistory(entries) {
-  localStorage.setItem(historyKey(), JSON.stringify(entries.slice(0, MAX_HISTORY_ITEMS)));
+  const normalized = (Array.isArray(entries) ? entries : []).map(normalizeAttemptEntry);
+  localStorage.setItem(historyKey(), JSON.stringify(normalized.slice(0, MAX_HISTORY_ITEMS)));
 }
 
 function addHistoryEntry(entry) {

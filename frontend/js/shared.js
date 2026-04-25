@@ -186,7 +186,17 @@ export function clearQuizFlow() {
 
 export function getSavedQuizHistory() {
   const parsed = readJson(historyKey(), []);
-  return Array.isArray(parsed) ? parsed : [];
+  return Array.isArray(parsed) ? parsed.map(normalizeAttemptEntry) : [];
+}
+
+function normalizeAttemptEntry(entry) {
+  if (!entry || typeof entry !== "object") return entry;
+  const evaluatedAnswers = Array.isArray(entry.evaluatedAnswers) ? entry.evaluatedAnswers : [];
+  const currentAnswers = Array.isArray(entry.answers) ? entry.answers : [];
+  return {
+    ...entry,
+    answers: evaluatedAnswers.length ? evaluatedAnswers : currentAnswers
+  };
 }
 
 export function markSessionActivity(activity) {
@@ -215,7 +225,7 @@ export function saveQuizAttemptLocal(quizState, resultState) {
     meta: quizState.meta || {}
   };
 
-  const next = [entry, ...getSavedQuizHistory()].slice(0, MAX_HISTORY_ITEMS);
+  const next = [normalizeAttemptEntry(entry), ...getSavedQuizHistory()].slice(0, MAX_HISTORY_ITEMS);
   const saved = writeJson(historyKey(), next);
   if (saved) markSessionActivity({ quizDone: true });
   return saved;

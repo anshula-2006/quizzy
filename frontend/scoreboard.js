@@ -164,14 +164,27 @@ function getHistory() {
   try {
     const raw = localStorage.getItem(historyKey());
     const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
+    return Array.isArray(parsed) ? parsed.map(normalizeAttemptEntry) : [];
   } catch {
     return [];
   }
 }
 
+function normalizeAttemptEntry(entry) {
+  if (!entry || typeof entry !== "object") return entry;
+  const evaluatedAnswers = Array.isArray(entry.evaluatedAnswers) ? entry.evaluatedAnswers : [];
+  const currentAnswers = Array.isArray(entry.answers) ? entry.answers : [];
+  const answers = evaluatedAnswers.length ? evaluatedAnswers : currentAnswers;
+
+  return {
+    ...entry,
+    answers
+  };
+}
+
 function saveHistory(entries) {
-  localStorage.setItem(historyKey(), JSON.stringify(entries.slice(0, MAX_HISTORY_ITEMS)));
+  const normalized = (Array.isArray(entries) ? entries : []).map(normalizeAttemptEntry);
+  localStorage.setItem(historyKey(), JSON.stringify(normalized.slice(0, MAX_HISTORY_ITEMS)));
 }
 
 function getFlashDecks() {
@@ -401,6 +414,7 @@ function renderProgressExtras(entries) {
 
 function renderBoard() {
   const entries = getHistory();
+  const latestAnswers = Array.isArray(entries[0]?.answers) ? entries[0].answers : [];
   const leaderboardMarkup = cloudLeaderboard.length
     ? `
       <section class="card scoreboard-table-wrap">
@@ -523,9 +537,69 @@ function renderBoard() {
         `).join("")}
       </div>
     </section>
+    <section class="scoreboard-grid">
+      <div class="card">
+        <div class="table-header-block">
+          <h3>Question Review</h3>
+          <p>Explanation and answer breakdown from your latest attempt.</p>
+        </div>
+        <div class="review-rail">
+          ${latestAnswers.length
+            ? latestAnswers.map((answer, index) => `
+              <button class="review-q-btn ${answer.isCorrect ? "good" : "bad"}" data-review-index="${index}" type="button">
+                Q${index + 1}
+              </button>
+            `).join("")
+            : `<p class="cabinet-note">No question review is available for this attempt yet.</p>`}
+        </div>
+        <div id="reviewDetail" class="review-detail">
+          ${latestAnswers.length ? "Select a question to view the explanation." : "Question explanations will appear here after you complete a quiz."}
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-header-block">
+          <h3>Latest Attempt</h3>
+          <p>${entries[0]?.sourceType === "pdf" ? "PDF" : "Quiz"} review snapshot.</p>
+        </div>
+        <div class="evaluation-stats">
+          <div class="stat-box"><p>Score</p><h4>${entries[0]?.score || 0}/${entries[0]?.total || 0}</h4></div>
+          <div class="stat-box"><p>Accuracy</p><h4>${entries[0]?.percentage || 0}%</h4></div>
+          <div class="stat-box"><p>Reviewed</p><h4>${latestAnswers.length}</h4></div>
+          <div class="stat-box"><p>Wrong</p><h4>${latestAnswers.filter((answer) => !answer?.isCorrect).length}</h4></div>
+        </div>
+      </div>
+    </section>
     ${leaderboardMarkup}
     ${renderProgressExtras(entries)}
   `;
+
+  const detailNode = document.getElementById("reviewDetail");
+  const renderReviewDetail = (idx) => {
+    const item = latestAnswers[idx];
+    if (!item || !detailNode) return;
+    const selectedText = item.selected || "Not answered";
+    const correctText = item.correct || "-";
+    const explanation = item.explanation || item.wrongExplanation || "No explanation saved.";
+    const imageBlock = item.image && /^https:\/\/upload\.wikimedia\.org\/.+\.(png|jpg)$/i.test(item.image)
+      ? `<div class="explain-image-wrap"><img class="explain-image" src="${item.image}" alt="Review visual" loading="lazy" onerror="this.closest('.explain-image-wrap')?.remove()" /></div>`
+      : "";
+
+    detailNode.innerHTML = `
+      <p><strong>${item.question || `Question ${idx + 1}`}</strong></p>
+      <p>Your answer: ${selectedText}</p>
+      <p>Correct answer: ${correctText}</p>
+      <p>${explanation}</p>
+      ${imageBlock}
+    `;
+  };
+
+  document.querySelectorAll(".review-q-btn").forEach((btnNode) => {
+    btnNode.addEventListener("click", () => {
+      renderReviewDetail(Number(btnNode.dataset.reviewIndex || 0));
+    });
+  });
+
+  if (latestAnswers.length) renderReviewDetail(0);
 }
 
 async function clearHistory() {

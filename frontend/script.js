@@ -526,27 +526,14 @@ function getHistory() {
   try {
     const raw = localStorage.getItem(historyKey());
     const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed.map(normalizeAttemptEntry) : [];
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
   }
 }
 
-function normalizeAttemptEntry(entry) {
-  if (!entry || typeof entry !== "object") return entry;
-  const evaluatedAnswers = Array.isArray(entry.evaluatedAnswers) ? entry.evaluatedAnswers : [];
-  const currentAnswers = Array.isArray(entry.answers) ? entry.answers : [];
-  const answers = evaluatedAnswers.length ? evaluatedAnswers : currentAnswers;
-
-  return {
-    ...entry,
-    answers
-  };
-}
-
 function saveHistory(entries) {
-  const normalized = (Array.isArray(entries) ? entries : []).map(normalizeAttemptEntry);
-  localStorage.setItem(historyKey(), JSON.stringify(normalized.slice(0, MAX_HISTORY_ITEMS)));
+  localStorage.setItem(historyKey(), JSON.stringify(entries.slice(0, MAX_HISTORY_ITEMS)));
 }
 
 function addHistoryEntry(entry) {
@@ -2194,8 +2181,6 @@ btn.onclick = async () => {
       createdAt: new Date().toISOString(),
       sourceType: contentPayload.sourceType,
       sourceInput: contentPayload.sourceInput,
-      sourceTopic: contentPayload.topic || "",
-      sourceText: contentPayload.text || "",
       settings
     };
     lastQuizRequestBase = {
@@ -2209,9 +2194,10 @@ btn.onclick = async () => {
   } catch (err) {
     loader.classList.add("hidden");
     quiz.innerHTML = `
-      <div class="card quiz-card">
-        <h2>Could not generate quiz</h2>
-        <p>${err.message}</p>
+      <div class="fade-in-up mx-auto w-full max-w-3xl rounded-[36px] border border-dashed border-white/20 bg-white/5 p-10 text-center text-white shadow-lg">
+        <span class="inline-flex rounded-full bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-white/80">Coming Soon</span>
+        <h2 class="mt-5 text-2xl font-black sm:text-3xl">Future Enhancement</h2>
+        <p class="mt-3 text-base leading-7 text-white/65">Quiz generation is temporarily unavailable. Please try again later.</p>
       </div>
     `;
   } finally {
@@ -2382,9 +2368,10 @@ flashcardsBtn?.addEventListener("click", async () => {
   } catch (err) {
     flashcardsBoard.innerHTML = `
       <div class="evaluation-wrap">
-        <div class="card">
-          <h3>Could not generate flashcards</h3>
-          <p>${err.message}</p>
+        <div class="rounded-[28px] border border-dashed border-white/20 bg-white/5 p-8 text-center text-white shadow-lg">
+          <span class="inline-flex rounded-full bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-white/80">Coming Soon</span>
+          <h3 class="mt-4 text-2xl font-black">Future Enhancement</h3>
+          <p class="mt-3 text-sm leading-6 text-white/65">Flashcard generation is temporarily unavailable. Please try again later.</p>
         </div>
       </div>
     `;
@@ -2651,8 +2638,6 @@ function buildHistoryEntry() {
     createdAt: currentAttemptMeta?.createdAt || new Date().toISOString(),
     sourceType: currentAttemptMeta?.sourceType || "text",
     sourceInput: currentAttemptMeta?.sourceInput || "",
-    sourceTopic: currentAttemptMeta?.sourceTopic || "",
-    sourceText: currentAttemptMeta?.sourceText || "",
     settings: currentAttemptMeta?.settings || getSettings(),
     score,
     total,

@@ -88,6 +88,8 @@ export async function evaluateQuizAttempt({ user, quizId, answers = [], sourceTy
   const evaluatedAttempt = {
     sourceType: sourceType || quizSession.sourceType || "text",
     sourceInput: sourceInput || quizSession.sourceInput || "",
+    sourceTopic: quizSession.topic || "",
+    sourceText: quizSession.extractedText || "",
     settings: { ...quizSession.settings, ...settings },
     answers,
     evaluatedAnswers,
@@ -104,6 +106,8 @@ export async function evaluateQuizAttempt({ user, quizId, answers = [], sourceTy
     quizSession: quizSession._id,
     sourceType: evaluatedAttempt.sourceType,
     sourceInput: evaluatedAttempt.sourceInput,
+    sourceTopic: evaluatedAttempt.sourceTopic,
+    sourceText: evaluatedAttempt.sourceText,
     settings: evaluatedAttempt.settings,
     answers,
     evaluatedAnswers,

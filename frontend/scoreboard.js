@@ -11,6 +11,7 @@ const refreshBoardBtn = document.getElementById("refreshBoardBtn");
 const clearBoardBtn = document.getElementById("clearBoardBtn");
 
 const HISTORY_BASE = "quizzy-history-v2";
+const SAVED_BASE = "quizzy-saved-v1";
 const FLASH_BASE = "quizzy-flash-v1";
 const BONUS_XP_BASE = "quizzy-bonus-xp-v1";
 const CHALLENGE_BASE = "quizzy-challenges-v1";
@@ -18,8 +19,11 @@ const MINI_GAME_BASE = "quizzy-mini-games-v1";
 const SESSION_ACTIVITY_BASE = "quizzy-session-activity-v1";
 const THEME_KEY = "quizzy-theme";
 const MAX_HISTORY_ITEMS = 20;
+const MAX_SAVED_ITEMS = 60;
+const MAX_FLASH_DECKS = 25;
 let cloudProfile = null;
 let cloudLeaderboard = [];
+let activeReviewAttemptIndex = 0;
 
 function getAttemptXp(entry) {
   if (!entry) return 0;
@@ -131,6 +135,10 @@ function flashKey() {
   return `${FLASH_BASE}-${getScopeId()}`;
 }
 
+function savedKey() {
+  return `${SAVED_BASE}-${getScopeId()}`;
+}
+
 function bonusXpKey() {
   return `${BONUS_XP_BASE}-${getScopeId()}`;
 }
@@ -196,6 +204,47 @@ function getFlashDecks() {
   } catch {
     return [];
   }
+}
+
+function saveFlashDecks(items) {
+  localStorage.setItem(flashKey(), JSON.stringify((Array.isArray(items) ? items : []).slice(0, MAX_FLASH_DECKS)));
+}
+
+function getSavedQuestions() {
+  try {
+    const raw = localStorage.getItem(savedKey());
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveSavedQuestions(items) {
+  localStorage.setItem(savedKey(), JSON.stringify((Array.isArray(items) ? items : []).slice(0, MAX_SAVED_ITEMS)));
+}
+
+function addSavedQuestion(item) {
+  if (!item?.question) return false;
+  const list = getSavedQuestions();
+  const exists = list.some((saved) => saved.question === item.question && saved.correct === item.correct);
+  if (exists) return false;
+  list.unshift({
+    question: item.question,
+    correct: item.correct || "",
+    explanation: item.explanation || "",
+    image: item.image || null,
+    createdAt: new Date().toISOString()
+  });
+  saveSavedQuestions(list);
+  if (isLoggedIn()) {
+    cloudRequest("/data/saved-questions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(item)
+    });
+  }
+  return true;
 }
 
 function getBonusXp() {
@@ -329,9 +378,13 @@ async function syncFromCloud() {
   const result = await cloudRequest("/data/bootstrap");
   if (!result.ok) return;
   const attempts = Array.isArray(result.data?.attempts) ? result.data.attempts : [];
+  const savedQuestions = Array.isArray(result.data?.savedQuestions) ? result.data.savedQuestions : [];
+  const flashDecks = Array.isArray(result.data?.flashDecks) ? result.data.flashDecks : [];
   cloudProfile = result.data?.profile || null;
   cloudLeaderboard = Array.isArray(result.data?.leaderboard) ? result.data.leaderboard : [];
   saveHistory(attempts);
+  saveSavedQuestions(savedQuestions);
+  saveFlashDecks(flashDecks);
   if (result.data?.miniGameStats) saveMiniGameStats(result.data.miniGameStats);
 }
 
@@ -358,6 +411,196 @@ function setThemeIcon() {
     ? `<span class="theme-toggle-icon" aria-hidden="true">☀</span><span class="theme-toggle-label">Light mode</span>`
     : `<span class="theme-toggle-icon" aria-hidden="true">☾</span><span class="theme-toggle-label">Dark mode</span>`;
   toggle.setAttribute("aria-label", isDark ? "Switch to light mode" : "Switch to dark mode");
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function downloadTextFile(filename, content, mimeType = "text/plain;charset=utf-8") {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function slugifyFilePart(value, fallback = "review") {
+  const cleaned = String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 40);
+  return cleaned || fallback;
+}
+
+function buildAttemptReviewText(entry) {
+  const answers = Array.isArray(entry?.answers) ? entry.answers : [];
+  const lines = [
+    `Quizzy Review Export`,
+    `Date: ${formatShortDate(entry?.createdAt)}`,
+    `Source: ${entry?.sourceType || "quiz"}`,
+    `Score: ${entry?.score || 0}/${entry?.total || 0} (${entry?.percentage || 0}%)`,
+    ``
+  ];
+
+  answers.forEach((item, index) => {
+    lines.push(`Q${index + 1}. ${item?.question || "Untitled question"}`);
+    lines.push(`Your answer: ${item?.selected || "Not answered"}`);
+    lines.push(`Correct answer: ${item?.correct || "-"}`);
+    lines.push(`Explanation: ${item?.explanation || item?.wrongExplanation || "No explanation saved."}`);
+    lines.push(``);
+  });
+
+  return lines.join("\n");
+}
+
+function getAttemptSourceStatus(entry) {
+  const sourceType = String(entry?.sourceType || "").toLowerCase();
+  const sourceText = String(entry?.sourceText || "").trim();
+  const sourceTopic = String(entry?.sourceTopic || "").trim();
+  const sourceInput = String(entry?.sourceInput || "").trim();
+
+  if (sourceText.length >= 20) {
+    return {
+      level: "ready",
+      label: "Source ready",
+      message: sourceType === "pdf"
+        ? "The original extracted PDF text is available, so flashcards can be generated from the source material."
+        : "The original source text is available, so flashcards can be generated directly from the source material."
+    };
+  }
+
+  if (sourceType === "topic" && sourceInput) {
+    return {
+      level: "ready",
+      label: "Topic ready",
+      message: "This attempt was topic-based, so flashcards can be regenerated from the saved topic prompt."
+    };
+  }
+
+  if (sourceType === "url" && sourceInput) {
+    return {
+      level: "limited",
+      label: "URL refetch",
+      message: "This attempt only kept the original URL, so the scoreboard has to re-fetch the page. It will work unless the page changed, moved, or now blocks access."
+    };
+  }
+
+  if (sourceType === "pdf") {
+    return {
+      level: "missing",
+      label: "Source missing",
+      message: "This PDF attempt does not have the original extracted text anymore. That usually means it was created before source snapshots were saved, or its temporary quiz session expired after 6 hours. In that case the reviewer should understand the PDF itself is not available to rebuild source-based flashcards from this attempt alone."
+    };
+  }
+
+  if (sourceInput || sourceTopic) {
+    return {
+      level: "limited",
+      label: "Partial source",
+      message: "This attempt kept only part of the original source, so regeneration may be limited."
+    };
+  }
+
+  return {
+    level: "missing",
+    label: "Source missing",
+    message: "This attempt was saved without enough original source data, so source-based flashcards cannot be regenerated from it."
+  };
+}
+
+async function buildFlashcardPayloadFromAttempt(entry) {
+  const settings = entry?.settings || {};
+  const outputLanguage = settings.outputLanguage || "English";
+  const learnerMode = settings.learnerMode || "student";
+  const difficulty = settings.difficulty || "moderate";
+  const sourceText = String(entry?.sourceText || "").trim();
+  const sourceTopic = String(entry?.sourceTopic || "").trim();
+  const sourceInput = String(entry?.sourceInput || "").trim();
+  const sourceType = String(entry?.sourceType || "").trim().toLowerCase();
+
+  if (sourceText.length >= 20) {
+    return {
+      text: sourceText,
+      topic: sourceTopic || sourceInput || "Study material",
+      difficulty,
+      learnerMode,
+      outputLanguage
+    };
+  }
+
+  if (sourceType === "topic" && sourceInput) {
+    return {
+      topic: sourceInput,
+      difficulty,
+      learnerMode,
+      outputLanguage
+    };
+  }
+
+  if (sourceType === "url" && sourceInput) {
+    const response = await fetch(`${API_BASE}/extract-content`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: sourceInput })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || "Could not re-read the original URL.");
+    return {
+      text: data.text || "",
+      topic: sourceInput,
+      difficulty,
+      learnerMode,
+      outputLanguage
+    };
+  }
+
+  if (sourceType === "pdf") {
+    throw new Error("This PDF attempt no longer has the original extracted text. It was likely created before source snapshots were saved, or its temporary quiz session expired after 6 hours. Re-upload the PDF from Generate Quiz to rebuild source-based flashcards.");
+  }
+
+  if (sourceInput.length >= 20) {
+    return {
+      text: sourceInput,
+      topic: sourceTopic || "Study material",
+      difficulty,
+      learnerMode,
+      outputLanguage
+    };
+  }
+
+  throw new Error("This attempt does not have enough original source data to generate full flashcards.");
+}
+
+async function generateFlashcardsFromAttemptSource(entry) {
+  const payload = await buildFlashcardPayloadFromAttempt(entry);
+  const response = await fetch(`${API_BASE}/generate-flashcards`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "Failed to generate flashcards from the original source.");
+  const cards = Array.isArray(data?.flashcards) ? data.flashcards : [];
+  if (!cards.length) throw new Error("No flashcards were returned from the source material.");
+
+  return {
+    id: Date.now(),
+    createdAt: new Date().toISOString(),
+    sourceType: entry?.sourceType || "text",
+    title: (entry?.sourceTopic || entry?.sourceInput || "Study Deck").slice(0, 90),
+    flashcards: cards
+  };
 }
 
 function applySavedTheme() {
@@ -441,7 +684,12 @@ function renderProgressExtras(entries) {
 
 function renderBoard() {
   const entries = getHistory();
-  const latestAnswers = Array.isArray(entries[0]?.answers) ? entries[0].answers : [];
+  activeReviewAttemptIndex = Math.max(0, Math.min(activeReviewAttemptIndex, Math.max(0, entries.length - 1)));
+  const reviewEntry = entries[activeReviewAttemptIndex] || entries[0] || null;
+  const reviewAnswers = Array.isArray(reviewEntry?.answers) ? reviewEntry.answers : [];
+  const sourceStatus = getAttemptSourceStatus(reviewEntry);
+  const flashDecks = getFlashDecks();
+  const savedQuestions = getSavedQuestions();
   const leaderboardMarkup = cloudLeaderboard.length
     ? `
       <section class="card scoreboard-table-wrap">
@@ -568,11 +816,19 @@ function renderBoard() {
       <div class="card">
         <div class="table-header-block">
           <h3>Question Review</h3>
-          <p>Explanation and answer breakdown from your latest attempt.</p>
+          <p>Explanation and answer breakdown from any saved attempt.</p>
+        </div>
+        <div class="attempt-review-rail">
+          ${entries.slice(0, 10).map((entry, index) => `
+            <button class="attempt-review-btn ${index === activeReviewAttemptIndex ? "active" : ""}" data-attempt-index="${index}" type="button">
+              <span>${formatShortDate(entry.createdAt)}</span>
+              <strong>${entry.percentage || 0}%</strong>
+            </button>
+          `).join("")}
         </div>
         <div class="review-rail">
-          ${latestAnswers.length
-            ? latestAnswers.map((answer, index) => `
+          ${reviewAnswers.length
+            ? reviewAnswers.map((answer, index) => `
               <button class="review-q-btn ${answer.isCorrect ? "good" : "bad"}" data-review-index="${index}" type="button">
                 Q${index + 1}
               </button>
@@ -580,19 +836,45 @@ function renderBoard() {
             : `<p class="cabinet-note">No question review is available for this attempt yet.</p>`}
         </div>
         <div id="reviewDetail" class="review-detail">
-          ${latestAnswers.length ? "Select a question to view the explanation." : "Question explanations will appear here after you complete a quiz."}
+          ${reviewAnswers.length ? "Select a question to view the explanation." : "Question explanations will appear here after you complete a quiz."}
         </div>
       </div>
       <div class="card">
         <div class="table-header-block">
-          <h3>Latest Attempt</h3>
-          <p>${entries[0]?.sourceType === "pdf" ? "PDF" : "Quiz"} review snapshot.</p>
+          <h3>Review Tools</h3>
+          <p>${reviewEntry?.sourceType === "pdf" ? "PDF" : "Quiz"} study actions for the selected attempt.</p>
+        </div>
+        <div class="source-status-card ${sourceStatus.level}">
+          <strong>${sourceStatus.label}</strong>
+          <p>${sourceStatus.message}</p>
+        </div>
+        <div class="scoreboard-tool-actions">
+          <button id="saveAttemptQuestionsBtn" class="ghost" type="button" ${reviewAnswers.length ? "" : "disabled"}>Save Questions</button>
+          <button id="generateAttemptFlashcardsBtn" class="ghost" type="button" ${reviewEntry ? "" : "disabled"}>Generate Flashcards</button>
+          <button id="downloadReviewBtn" class="ghost" type="button" ${reviewAnswers.length ? "" : "disabled"}>Download Review</button>
+          <button id="downloadFlashcardsBtn" class="ghost" type="button" ${flashDecks.length ? "" : "disabled"}>Download Flashcards</button>
         </div>
         <div class="evaluation-stats">
-          <div class="stat-box"><p>Score</p><h4>${entries[0]?.score || 0}/${entries[0]?.total || 0}</h4></div>
-          <div class="stat-box"><p>Accuracy</p><h4>${entries[0]?.percentage || 0}%</h4></div>
-          <div class="stat-box"><p>Reviewed</p><h4>${latestAnswers.length}</h4></div>
-          <div class="stat-box"><p>Wrong</p><h4>${latestAnswers.filter((answer) => !answer?.isCorrect).length}</h4></div>
+          <div class="stat-box"><p>Score</p><h4>${reviewEntry?.score || 0}/${reviewEntry?.total || 0}</h4></div>
+          <div class="stat-box"><p>Accuracy</p><h4>${reviewEntry?.percentage || 0}%</h4></div>
+          <div class="stat-box"><p>Reviewed</p><h4>${reviewAnswers.length}</h4></div>
+          <div class="stat-box"><p>Wrong</p><h4>${reviewAnswers.filter((answer) => !answer?.isCorrect).length}</h4></div>
+          <div class="stat-box"><p>Saved Questions</p><h4>${savedQuestions.length}</h4></div>
+          <div class="stat-box"><p>Flash Decks</p><h4>${flashDecks.length}</h4></div>
+        </div>
+        <div class="table-header-block">
+          <h3>Saved Study Library</h3>
+          <p>Quick access to the questions and flashcards you have built from attempts.</p>
+        </div>
+        <div class="scoreboard-library">
+          <div class="library-card">
+            <strong>Saved Questions</strong>
+            <p>${savedQuestions.length ? `${savedQuestions.length} question(s) ready for revision.` : "No saved questions yet."}</p>
+          </div>
+          <div class="library-card">
+            <strong>Flashcard Decks</strong>
+            <p>${flashDecks.length ? `${flashDecks[0]?.title || "Latest deck"} available for study.` : "No flashcard deck generated yet."}</p>
+          </div>
         </div>
       </div>
     </section>
@@ -602,17 +884,18 @@ function renderBoard() {
 
   const detailNode = document.getElementById("reviewDetail");
   const renderReviewDetail = (idx) => {
-    const item = latestAnswers[idx];
+    const item = reviewAnswers[idx];
     if (!item || !detailNode) return;
-    const selectedText = item.selected || "Not answered";
-    const correctText = item.correct || "-";
-    const explanation = item.explanation || item.wrongExplanation || "No explanation saved.";
+    const selectedText = escapeHtml(item.selected || "Not answered");
+    const correctText = escapeHtml(item.correct || "-");
+    const explanation = escapeHtml(item.explanation || item.wrongExplanation || "No explanation saved.");
+    const questionText = escapeHtml(item.question || `Question ${idx + 1}`);
     const imageBlock = item.image && /^https:\/\/upload\.wikimedia\.org\/.+\.(png|jpg)$/i.test(item.image)
       ? `<div class="explain-image-wrap"><img class="explain-image" src="${item.image}" alt="Review visual" loading="lazy" onerror="this.closest('.explain-image-wrap')?.remove()" /></div>`
       : "";
 
     detailNode.innerHTML = `
-      <p><strong>${item.question || `Question ${idx + 1}`}</strong></p>
+      <p><strong>${questionText}</strong></p>
       <p>Your answer: ${selectedText}</p>
       <p>Correct answer: ${correctText}</p>
       <p>${explanation}</p>
@@ -620,13 +903,92 @@ function renderBoard() {
     `;
   };
 
+  document.querySelectorAll(".attempt-review-btn").forEach((btnNode) => {
+    btnNode.addEventListener("click", () => {
+      activeReviewAttemptIndex = Number(btnNode.dataset.attemptIndex || 0);
+      renderBoard();
+    });
+  });
+
   document.querySelectorAll(".review-q-btn").forEach((btnNode) => {
     btnNode.addEventListener("click", () => {
       renderReviewDetail(Number(btnNode.dataset.reviewIndex || 0));
     });
   });
 
-  if (latestAnswers.length) renderReviewDetail(0);
+  document.getElementById("saveAttemptQuestionsBtn")?.addEventListener("click", () => {
+    let savedCount = 0;
+    reviewAnswers.forEach((item) => {
+      const didSave = addSavedQuestion({
+        question: item.question || "",
+        correct: item.correct || "",
+        explanation: item.explanation || item.wrongExplanation || "",
+        image: item.image || null
+      });
+      if (didSave) savedCount += 1;
+    });
+    renderBoard();
+    const refreshedDetailNode = document.getElementById("reviewDetail");
+    if (refreshedDetailNode) {
+      refreshedDetailNode.insertAdjacentHTML("afterbegin", `<p><strong>${savedCount ? `Saved ${savedCount} question(s).` : "Questions were already saved."}</strong></p>`);
+    }
+  });
+
+  document.getElementById("generateAttemptFlashcardsBtn")?.addEventListener("click", () => {
+    if (!reviewEntry) return;
+    const button = document.getElementById("generateAttemptFlashcardsBtn");
+    if (button) {
+      button.disabled = true;
+      button.textContent = "Generating...";
+    }
+
+    generateFlashcardsFromAttemptSource(reviewEntry)
+      .then((deck) => {
+        const decks = getFlashDecks();
+        decks.unshift(deck);
+        saveFlashDecks(decks);
+        if (isLoggedIn()) {
+          cloudRequest("/data/flash-decks", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(deck)
+          });
+        }
+        renderBoard();
+        const refreshedDetailNode = document.getElementById("reviewDetail");
+        if (refreshedDetailNode) {
+          refreshedDetailNode.insertAdjacentHTML("afterbegin", `<p><strong>Flashcards generated from the original source.</strong></p>`);
+        }
+      })
+      .catch((error) => {
+        const refreshedDetailNode = document.getElementById("reviewDetail");
+        if (refreshedDetailNode) {
+          refreshedDetailNode.insertAdjacentHTML("afterbegin", `<p><strong>${escapeHtml(error.message || "Could not generate flashcards.")}</strong></p>`);
+        }
+      })
+      .finally(() => {
+        const refreshedButton = document.getElementById("generateAttemptFlashcardsBtn");
+        if (refreshedButton) {
+          refreshedButton.disabled = false;
+          refreshedButton.textContent = "Generate Flashcards";
+        }
+      });
+  });
+
+  document.getElementById("downloadReviewBtn")?.addEventListener("click", () => {
+    if (!reviewEntry) return;
+    const filePart = slugifyFilePart(reviewEntry.sourceInput || reviewEntry.sourceType || "review", "review");
+    downloadTextFile(`quizzy-review-${filePart}.txt`, buildAttemptReviewText(reviewEntry));
+  });
+
+  document.getElementById("downloadFlashcardsBtn")?.addEventListener("click", () => {
+    const latestDeck = getFlashDecks()[0];
+    if (!latestDeck) return;
+    const filePart = slugifyFilePart(latestDeck.title || "flashcards", "flashcards");
+    downloadTextFile(`quizzy-flashcards-${filePart}.json`, JSON.stringify(latestDeck, null, 2), "application/json;charset=utf-8");
+  });
+
+  if (reviewAnswers.length) renderReviewDetail(0);
 }
 
 async function clearHistory() {

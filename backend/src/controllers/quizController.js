@@ -81,14 +81,30 @@ export async function generateFlashcardsController(req, res) {
 
 export async function bootstrapUserData(req, res) {
   const [attempts, savedQuestions, flashDecks, leaderboard] = await Promise.all([
-    QuizAttempt.find({ user: req.user._id }).sort({ createdAt: -1 }).limit(50).lean(),
+    QuizAttempt.find({ user: req.user._id })
+      .populate({ path: "quizSession", select: "topic extractedText" })
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .lean(),
     SavedQuestion.find({ user: req.user._id }).sort({ createdAt: -1 }).limit(100).lean(),
     FlashDeck.find({ user: req.user._id }).sort({ createdAt: -1 }).limit(30).lean(),
     User.find().sort({ "stats.leaderboardScore": -1, "stats.totalXp": -1, createdAt: 1 }).limit(10).select("name email stats").lean()
   ]);
 
   res.json({
-    attempts: attempts.map(toClientDoc),
+    attempts: attempts.map((attempt) => {
+      const session = attempt?.quizSession && typeof attempt.quizSession === "object" ? attempt.quizSession : null;
+      const clientAttempt = toClientDoc({
+        ...attempt,
+        quizSession: session?._id || attempt.quizSession || null
+      });
+
+      return {
+        ...clientAttempt,
+        sourceTopic: String(attempt?.sourceTopic || session?.topic || "").trim(),
+        sourceText: String(attempt?.sourceText || session?.extractedText || "").trim()
+      };
+    }),
     savedQuestions: savedQuestions.map(toClientDoc),
     flashDecks: flashDecks.map(toClientDoc),
     miniGameStats: req.user?.stats?.miniGameStats || {},

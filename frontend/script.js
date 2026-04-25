@@ -2194,6 +2194,8 @@ btn.onclick = async () => {
       createdAt: new Date().toISOString(),
       sourceType: contentPayload.sourceType,
       sourceInput: contentPayload.sourceInput,
+      sourceTopic: contentPayload.topic || "",
+      sourceText: contentPayload.text || "",
       settings
     };
     lastQuizRequestBase = {
@@ -2649,6 +2651,8 @@ function buildHistoryEntry() {
     createdAt: currentAttemptMeta?.createdAt || new Date().toISOString(),
     sourceType: currentAttemptMeta?.sourceType || "text",
     sourceInput: currentAttemptMeta?.sourceInput || "",
+    sourceTopic: currentAttemptMeta?.sourceTopic || "",
+    sourceText: currentAttemptMeta?.sourceText || "",
     settings: currentAttemptMeta?.settings || getSettings(),
     score,
     total,

@@ -6,6 +6,8 @@ const quizAttemptSchema = new mongoose.Schema(
     quizSession: { type: mongoose.Schema.Types.ObjectId, ref: "QuizSession", default: null, index: true },
     sourceType: { type: String, default: "text" },
     sourceInput: { type: String, default: "" },
+    sourceTopic: { type: String, default: "" },
+    sourceText: { type: String, default: "" },
     settings: { type: mongoose.Schema.Types.Mixed, default: {} },
     answers: { type: [mongoose.Schema.Types.Mixed], default: [] },
     evaluatedAnswers: { type: [mongoose.Schema.Types.Mixed], default: [] },

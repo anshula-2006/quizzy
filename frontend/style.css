@@ -780,6 +780,51 @@ textarea:focus,
   gap: 10px;
 }
 
+.attempt-review-rail,
+.scoreboard-tool-actions,
+.scoreboard-library {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.attempt-review-rail {
+  margin-bottom: 16px;
+}
+
+.attempt-review-btn {
+  min-width: 138px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--surface-muted);
+  color: var(--text);
+  display: grid;
+  gap: 4px;
+  text-align: left;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.attempt-review-btn span {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.attempt-review-btn strong {
+  font-size: 1rem;
+}
+
+.attempt-review-btn:hover,
+.attempt-review-btn.active {
+  transform: translateY(-1px);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.attempt-review-btn.active {
+  background: linear-gradient(135deg, var(--primary-soft), var(--surface-muted));
+}
+
 .review-q-btn {
   padding: 12px 14px;
   border-radius: 14px;
@@ -826,6 +871,62 @@ textarea:focus,
 .review-detail {
   min-height: 176px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.scoreboard-tool-actions .ghost {
+  min-width: 180px;
+}
+
+.source-status-card {
+  margin-bottom: 14px;
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: var(--surface-muted);
+}
+
+.source-status-card strong {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.source-status-card p {
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.source-status-card.ready {
+  background: color-mix(in srgb, var(--success-soft) 70%, var(--surface-muted) 30%);
+}
+
+.source-status-card.limited {
+  background: color-mix(in srgb, var(--warning-soft) 72%, var(--surface-muted) 28%);
+}
+
+.source-status-card.missing {
+  background: color-mix(in srgb, var(--danger-soft) 72%, var(--surface-muted) 28%);
+}
+
+.scoreboard-library {
+  margin-top: 8px;
+}
+
+.library-card {
+  flex: 1 1 220px;
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: var(--surface-muted);
+}
+
+.library-card strong {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.library-card p {
+  color: var(--muted);
+  line-height: 1.6;
 }
 
 .explain-image-wrap {
@@ -2079,7 +2180,10 @@ body:not(.dark) .review-q-btn {
 
 body:not(.dark) .review-detail,
 body:not(.dark) .analysis-card,
-body:not(.dark) .stat-box {
+body:not(.dark) .stat-box,
+body:not(.dark) .library-card,
+body:not(.dark) .attempt-review-btn,
+body:not(.dark) .source-status-card {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
 }
 
@@ -2187,6 +2291,9 @@ body.dark .theme-toggle-icon {
 
 body.dark .review-detail,
 body.dark .analysis-card,
-body.dark .stat-box {
+body.dark .stat-box,
+body.dark .library-card,
+body.dark .attempt-review-btn,
+body.dark .source-status-card {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }

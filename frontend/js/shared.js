@@ -233,6 +233,7 @@ export function saveQuizAttemptLocal(quizState, resultState) {
 export function getMiniGameStats() {
   const parsed = readJson(miniGameKey(), {});
   return {
+    ...(parsed || {}),
     memoryWins: Math.max(0, Number(parsed?.memoryWins || 0)),
     memoryBestMoves: Math.max(0, Number(parsed?.memoryBestMoves || 0)),
     memoryBestTime: Math.max(0, Number(parsed?.memoryBestTime || 0)),
@@ -244,7 +245,8 @@ export function getMiniGameStats() {
 }
 
 function saveMiniGameStats(stats) {
-  const saved = writeJson(miniGameKey(), stats);
+  const previous = readJson(miniGameKey(), {});
+  const saved = writeJson(miniGameKey(), { ...previous, ...stats });
   if (saved) markSessionActivity({ miniGameDone: true });
   return saved;
 }

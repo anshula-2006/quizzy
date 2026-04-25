@@ -432,6 +432,9 @@ async function loadCloudDataIntoLocal() {
   saveHistory(attempts);
   saveSavedQuestions(savedQuestions);
   saveFlashDecks(flashDecks);
+  if (result.data?.miniGameStats) {
+    saveMiniGameStats(result.data.miniGameStats);
+  }
 }
 
 async function bootstrapAuth() {
@@ -644,6 +647,7 @@ function getMiniGameStats() {
     const raw = localStorage.getItem(miniGameKey());
     const parsed = raw ? JSON.parse(raw) : null;
     return {
+      ...(parsed || {}),
       speedBest: Math.max(0, Number(parsed?.speedBest || 0)),
       speedRuns: Math.max(0, Number(parsed?.speedRuns || 0)),
       memoryWins: Math.max(0, Number(parsed?.memoryWins || 0)),
@@ -658,7 +662,9 @@ function getMiniGameStats() {
 }
 
 function saveMiniGameStats(stats) {
+  const previous = getMiniGameStats();
   localStorage.setItem(miniGameKey(), JSON.stringify({
+    ...previous,
     speedBest: Math.max(0, Number(stats?.speedBest || 0)),
     speedRuns: Math.max(0, Number(stats?.speedRuns || 0)),
     memoryWins: Math.max(0, Number(stats?.memoryWins || 0)),

@@ -1,6 +1,6 @@
 import API_BASE from "./config.js";
 import auth from "../auth.js";
-import { getSavedQuizHistory, getFlashDecks, getMiniGameStats, saveFlashDecks } from "./shared.js";
+import { getSavedQuizHistory, getFlashDecks, getMiniGameStats, saveFlashDecks, setMiniGameStats } from "./shared.js";
 
 const root = document.getElementById("dashboardRoot");
 const SESSION_KEY = "quizzy-session-v2";
@@ -215,6 +215,12 @@ async function init() {
   if (!result.ok) {
     renderDashboard({ attempts: getSavedQuizHistory(), flashDecks: getFlashDecks(), miniGameStats: getMiniGameStats() });
     return;
+  }
+  if (result.data?.miniGameStats) {
+    setMiniGameStats(result.data.miniGameStats);
+  }
+  if (result.data?.flashDecks) {
+    saveFlashDecks(result.data.flashDecks);
   }
   renderDashboard(result.data);
 }

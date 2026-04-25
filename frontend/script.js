@@ -2833,19 +2833,19 @@ function confetti() {
   }
 }
 
-input.addEventListener("input", () => {
+input?.addEventListener("input", () => {
   validateActiveSourceInput(true);
   updateGenerateButtonState();
 });
-urlInput.addEventListener("input", () => {
+urlInput?.addEventListener("input", () => {
   validateActiveSourceInput(true);
   updateGenerateButtonState();
 });
-pdfInput.addEventListener("change", () => {
+pdfInput?.addEventListener("change", () => {
   validateActiveSourceInput(true);
   updateGenerateButtonState();
 });
-sourceBtns.forEach((node) => node.addEventListener("click", () => setActiveSource(node.dataset.source)));
+sourceBtns?.forEach((node) => node.addEventListener("click", () => setActiveSource(node.dataset.source)));
 logoutBtn?.addEventListener("click", () => auth?.logout());
 
 toggle.onclick = () => {

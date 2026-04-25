@@ -67,7 +67,7 @@ export function isLoggedIn() {
 }
 
 function getScopeId() {
-  return getSession()?.user?.email || null;
+  return getSession()?.user?.email || "guest";
 }
 
 export function getFlashDecks() {
@@ -116,17 +116,17 @@ export async function addFlashDeck(deck) {
 
 function historyKey() {
   const scopeId = getScopeId();
-  return scopeId ? `${HISTORY_BASE}-${scopeId}` : "";
+  return `${HISTORY_BASE}-${scopeId}`;
 }
 
 function miniGameKey() {
   const scopeId = getScopeId();
-  return scopeId ? `${MINI_GAME_BASE}-${scopeId}` : "";
+  return `${MINI_GAME_BASE}-${scopeId}`;
 }
 
 function sessionActivityKey() {
   const scopeId = getScopeId();
-  return scopeId ? `${SESSION_ACTIVITY_BASE}-${scopeId}` : "";
+  return `${SESSION_ACTIVITY_BASE}-${scopeId}`;
 }
 
 function readJson(key, fallback) {
@@ -200,7 +200,6 @@ function normalizeAttemptEntry(entry) {
 }
 
 export function markSessionActivity(activity) {
-  if (!isLoggedIn()) return false;
   const key = sessionActivityKey();
   const previous = readJson(key, { quizDone: false, flashcardsDone: false, miniGameDone: false });
   return writeJson(key, {
@@ -251,7 +250,6 @@ function saveMiniGameStats(stats) {
 }
 
 export function setMiniGameStats(stats) {
-  if (!isLoggedIn()) return false;
   return saveMiniGameStats({
     memoryWins: Math.max(0, Number(stats?.memoryWins || 0)),
     memoryBestMoves: Math.max(0, Number(stats?.memoryBestMoves || 0)),
@@ -281,7 +279,6 @@ async function postMiniGameUpdate(type, payload) {
 }
 
 export async function recordMemoryWin({ moves, seconds }) {
-  if (!isLoggedIn()) return false;
   const previous = getMiniGameStats();
   const saved = saveMiniGameStats({
     ...previous,
@@ -289,30 +286,31 @@ export async function recordMemoryWin({ moves, seconds }) {
     memoryBestMoves: previous.memoryBestMoves ? Math.min(previous.memoryBestMoves, moves) : moves,
     memoryBestTime: previous.memoryBestTime ? Math.min(previous.memoryBestTime, seconds) : seconds
   });
+  if (!isLoggedIn()) return { saved };
   const serverResponse = await postMiniGameUpdate("memory", { moves, seconds });
   return serverResponse || { saved };
 }
 
 export async function recordReactionAttempt(reaction) {
-  if (!isLoggedIn()) return false;
   const previous = getMiniGameStats();
   const saved = saveMiniGameStats({
     ...previous,
     reactionRuns: previous.reactionRuns + 1,
     reactionBest: previous.reactionBest ? Math.min(previous.reactionBest, reaction) : reaction
   });
+  if (!isLoggedIn()) return { saved };
   const serverResponse = await postMiniGameUpdate("reaction", { reaction });
   return serverResponse || { saved };
 }
 
 export async function recordRecallAttempt(level) {
-  if (!isLoggedIn()) return false;
   const previous = getMiniGameStats();
   const saved = saveMiniGameStats({
     ...previous,
     recallRuns: previous.recallRuns + 1,
     recallBestLevel: Math.max(previous.recallBestLevel, level)
   });
+  if (!isLoggedIn()) return { saved };
   const serverResponse = await postMiniGameUpdate("recall", { level });
   return serverResponse || { saved };
 }

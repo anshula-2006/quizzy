@@ -519,3 +519,51 @@ export function feedbackText(percentage) {
   if (percentage >= 60) return "Good momentum. One more round will feel even better.";
   return "You've got this. Try again and level up.";
 }
+
+export async function syncGuestDataToCloud() {
+  const session = getSession();
+  if (!session?.token) return;
+
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${session.token}`
+  };
+
+  // 1. Sync Guest Flashcards
+  try {
+    const guestDecksRaw = localStorage.getItem(`${FLASH_BASE}-guest`);
+    const guestDecks = guestDecksRaw ? JSON.parse(guestDecksRaw) : [];
+    
+    for (const deck of guestDecks) {
+      await fetch(`${API_BASE}/data/flash-decks`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(deck)
+      });
+    }
+    localStorage.removeItem(`${FLASH_BASE}-guest`);
+  } catch (e) {
+    console.error("Failed to sync guest flashcards", e);
+  }
+
+  // 2. Sync Guest Mini-Game Stats
+  try {
+    const guestStatsRaw = localStorage.getItem(`${MINI_GAME_BASE}-guest`);
+    const guestStats = guestStatsRaw ? JSON.parse(guestStatsRaw) : null;
+    
+    if (guestStats) {
+      if (guestStats.memoryWins > 0) {
+        await fetch(`${API_BASE}/data/mini-games`, { method: "POST", headers, body: JSON.stringify({ type: "memory", moves: guestStats.memoryBestMoves || 10, seconds: guestStats.memoryBestTime || 30 }) });
+      }
+      if (guestStats.reactionRuns > 0) {
+        await fetch(`${API_BASE}/data/mini-games`, { method: "POST", headers, body: JSON.stringify({ type: "reaction", reaction: guestStats.reactionBest || 500 }) });
+      }
+      if (guestStats.recallRuns > 0) {
+        await fetch(`${API_BASE}/data/mini-games`, { method: "POST", headers, body: JSON.stringify({ type: "recall", level: guestStats.recallBestLevel || 1 }) });
+      }
+      localStorage.removeItem(`${MINI_GAME_BASE}-guest`);
+    }
+  } catch (e) {
+    console.error("Failed to sync guest mini-games", e);
+  }
+}

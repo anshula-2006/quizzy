@@ -2157,53 +2157,55 @@ async function loadMoreQuestions() {
   }
 }
 
-btn.onclick = async () => {
-  loader.classList.remove("hidden");
-  btn.disabled = true;
-  if (flashcardsBtn) flashcardsBtn.disabled = true;
+if (btn) {
+  btn.onclick = async () => {
+    loader.classList.remove("hidden");
+    btn.disabled = true;
+    if (flashcardsBtn) flashcardsBtn.disabled = true;
 
-  try {
-    const settings = getSettings();
-    const contentPayload = await buildContentPayload();
-    const requestBase = { ...contentPayload, ...settings };
-    const requestPayload = { ...requestBase, questionCount: QUIZ_BATCH_SIZE };
-    const quizPayload = await requestQuizQuestions(requestPayload);
-    const cleaned = quizPayload.questions;
+    try {
+      const settings = getSettings();
+      const contentPayload = await buildContentPayload();
+      const requestBase = { ...contentPayload, ...settings };
+      const requestPayload = { ...requestBase, questionCount: QUIZ_BATCH_SIZE };
+      const quizPayload = await requestQuizQuestions(requestPayload);
+      const cleaned = quizPayload.questions;
 
-    questions = cleaned;
-    activeQuizId = quizPayload.quizId;
-    index = 0;
-    score = 0;
-    answered = {};
-    choices = {};
-    attemptAnswers = Array.from({ length: questions.length }, () => null);
-    currentAttemptMeta = {
-      createdAt: new Date().toISOString(),
-      sourceType: contentPayload.sourceType,
-      sourceInput: contentPayload.sourceInput,
-      settings
-    };
-    lastQuizRequestBase = {
-      ...requestBase,
-      preferFull: contentPayload.sourceType === "pdf"
-    };
+      questions = cleaned;
+      activeQuizId = quizPayload.quizId;
+      index = 0;
+      score = 0;
+      answered = {};
+      choices = {};
+      attemptAnswers = Array.from({ length: questions.length }, () => null);
+      currentAttemptMeta = {
+        createdAt: new Date().toISOString(),
+        sourceType: contentPayload.sourceType,
+        sourceInput: contentPayload.sourceInput,
+        settings
+      };
+      lastQuizRequestBase = {
+        ...requestBase,
+        preferFull: contentPayload.sourceType === "pdf"
+      };
 
-    loader.classList.add("hidden");
-    quiz.scrollIntoView({ behavior: "smooth" });
-    showQuestion();
-  } catch (err) {
-    loader.classList.add("hidden");
-    quiz.innerHTML = `
-      <div class="fade-in-up mx-auto w-full max-w-3xl rounded-[36px] border border-dashed border-white/20 bg-white/5 p-10 text-center text-white shadow-lg">
-        <span class="inline-flex rounded-full bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-white/80">Coming Soon</span>
-        <h2 class="mt-5 text-2xl font-black sm:text-3xl">Future Enhancement</h2>
-        <p class="mt-3 text-base leading-7 text-white/65">Quiz generation is temporarily unavailable. Please try again later.</p>
-      </div>
-    `;
-  } finally {
-    updateGenerateButtonState();
-  }
-};
+      loader.classList.add("hidden");
+      quiz.scrollIntoView({ behavior: "smooth" });
+      showQuestion();
+    } catch (err) {
+      loader.classList.add("hidden");
+      quiz.innerHTML = `
+        <div class="fade-in-up mx-auto w-full max-w-3xl rounded-[36px] border border-dashed border-rose-400/20 bg-white/5 p-10 text-center text-white shadow-lg">
+          <span class="inline-flex rounded-full bg-rose-400/20 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-rose-200">Error</span>
+          <h2 class="mt-5 text-2xl font-black sm:text-3xl">Try again next time</h2>
+          <p class="mt-3 text-base leading-7 text-white/65">Quiz generation encountered an issue. Please try again later.</p>
+        </div>
+      `;
+    } finally {
+      updateGenerateButtonState();
+    }
+  };
+}
 
 function normalizeFlashcards(payload) {
   const cards = Array.isArray(payload?.flashcards) ? payload.flashcards : [];

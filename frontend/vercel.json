@@ -1,5 +1,28 @@
 {
-  "framework": "vite",
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist"
+  "rewrites": [
+    {
+      "source": "/auth/:path*",
+      "destination": "https://quizzy-3lt0.onrender.com/auth/:path*"
+    },
+    {
+      "source": "/data/:path*",
+      "destination": "https://quizzy-3lt0.onrender.com/data/:path*"
+    },
+    {
+      "source": "/extract-content",
+      "destination": "https://quizzy-3lt0.onrender.com/extract-content"
+    },
+    {
+      "source": "/generate-quiz",
+      "destination": "https://quizzy-3lt0.onrender.com/generate-quiz"
+    },
+    {
+      "source": "/generate-flashcards",
+      "destination": "https://quizzy-3lt0.onrender.com/generate-flashcards"
+    },
+    {
+      "source": "/submit-quiz",
+      "destination": "https://quizzy-3lt0.onrender.com/submit-quiz"
+    }
+  ]
 }

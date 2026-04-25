@@ -72,7 +72,7 @@ form?.addEventListener("submit", async (event) => {
     window.location.href = "./quiz.html";
   } catch (error) {
     errorNode.hidden = false;
-    errorNode.textContent = "Try again next time";
+     errorNode.textContent = "Try again next time";
   }
 });
 
@@ -111,7 +111,8 @@ flashcardsBtn?.addEventListener("click", async (event) => {
     };
 
     await addFlashDeck(deck);
-    window.location.href = "./dashboard.html";
+    localStorage.setItem('quizzy-active-deck', JSON.stringify(deck));
+    window.location.href = "./flashcards.html";
 
   } catch (error) {
     errorNode.hidden = false;

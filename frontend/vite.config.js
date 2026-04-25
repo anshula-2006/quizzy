@@ -13,6 +13,7 @@ export default defineConfig({
         generate: resolve(rootDir, "generate.html"),
         quiz: resolve(rootDir, "quiz.html"),
         result: resolve(rootDir, "result.html"),
+        flashcards: resolve(rootDir, "flashcards.html"),
         arcade: resolve(rootDir, "arcade.html"),
         dashboard: resolve(rootDir, "dashboard.html"),
         memory: resolve(rootDir, "games/memory.html"),

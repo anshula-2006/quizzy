@@ -1,4 +1,4 @@
-import { getFlashDecks } from "./shared.js";
+import { getFlashDecks } from "./js/shared.js";
 
 const root = document.getElementById("flashcardsRoot");
 

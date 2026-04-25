@@ -2560,9 +2560,9 @@ function reveal(q, choice, isReview) {
   const isCorrect = attemptAnswers[index]?.isCorrect;
   if (isCorrect && !isReview) {
     score++;
-    correctSound.play();
+    correctSound.play().catch(() => {});
   } else if (!isCorrect && !isReview) {
-    wrongSound.play();
+    wrongSound.play().catch(() => {});
     if (!isShort && choice) {
       const chosen = document.querySelector(`.option[data-o="${choice}"]`);
       chosen?.classList.add("wrong");

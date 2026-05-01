@@ -72,7 +72,7 @@ form?.addEventListener("submit", async (event) => {
     window.location.href = "./quiz.html";
   } catch (error) {
     errorNode.hidden = false;
-     errorNode.textContent = "Try again next time";
+    errorNode.textContent = error.message || "An error occurred during generation.";
   }
 });
 
@@ -116,7 +116,7 @@ flashcardsBtn?.addEventListener("click", async (event) => {
 
   } catch (error) {
     errorNode.hidden = false;
-    errorNode.textContent = "Coming Soon / Future Enhancement";
+    errorNode.textContent = error.message || "Failed to generate flashcards.";
     flashcardsBtn.innerHTML = originalHTML;
     flashcardsBtn.disabled = false;
   }

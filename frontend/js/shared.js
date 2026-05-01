@@ -89,9 +89,15 @@ async function apiRequest(path, options = {}) {
 }
 
 function postJson(path, payload) {
+  const session = getSession();
+  const headers = { "Content-Type": "application/json" };
+  if (session?.token) {
+    headers["Authorization"] = `Bearer ${session.token}`;
+  }
+
   return apiRequest(path, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify(payload)
   });
 }

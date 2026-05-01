@@ -15,53 +15,31 @@
       }
     })();
   </script>
-  <link rel="stylesheet" href="style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./app.css" />
 </head>
-<body class="dark">
-  <div class="bg"></div>
-
-  <div class="app-shell">
-    <aside class="app-sidebar">
-      <div class="sidebar-brand">
-        <div class="logo logo-compact">
-          <span class="logo-icon" aria-hidden="true">
-            <svg viewBox="0 0 64 64" role="img" focusable="false">
-              <path d="M20 30c-5 0-9 4-9 9s4 9 9 9h12c7 0 12-5 12-12 0-6-4-10-9-11" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M38 16l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" fill="currentColor"/>
-            </svg>
-          </span>
-          Quiz<span>zy</span>
-        </div>
-        <p>Track streaks, rank, and progress with a cleaner snapshot of how your study sessions are going.</p>
-      </div>
-
-      <nav class="sidebar-nav">
-        <a class="sidebar-link" href="./index.html">Home</a>
-        <a class="sidebar-link" href="./generate.html">Generate Quiz</a>
-        <a class="sidebar-link" href="./dashboard.html">Dashboard</a>
-        <a class="sidebar-link" href="./arcade.html">Mini Arcade</a>
-        <a class="sidebar-link active" href="./scoreboard.html">Leaderboard</a>
-      </nav>
-    </aside>
-
-    <div class="app-main">
-      <header class="app-topbar">
-        <div>
-          <p class="eyebrow">Rankings</p>
-          <h1>Leaderboard</h1>
-        </div>
-        <div class="topbar-actions">
-          <a class="nav-link" href="./index.html">Back Home</a>
-          <span id="authUser" class="auth-user hidden"></span>
+<body>
+  <div class="page-shell">
+    <div class="page-container">
+      <header class="panel top-nav">
+        <a class="brand" href="./index.html"><span class="brand-badge">Q</span><span>Quizzy</span></a>
+        <nav class="nav-links">
+          <a class="nav-link" href="./index.html">Home</a>
+          <a class="nav-link" href="./generate.html">Generate</a>
+          <a class="nav-link" href="./flashcards.html">Flashcards</a>
+          <a class="nav-link" href="./dashboard.html">Dashboard</a>
+          <a class="nav-link" href="./arcade.html">Arcade</a>
+          <a class="nav-link is-active" href="./scoreboard.html">Leaderboard</a>
+        </nav>
+        <div class="nav-actions" style="display:flex; gap:1rem; align-items:center;">
+          <span id="authUser" class="hidden"></span>
           <a id="loginLink" class="nav-link" href="./login.html">Login</a>
           <a id="registerLink" class="nav-link" href="./register.html">Register</a>
-          <button id="logoutBtn" class="ghost hidden" type="button">Logout</button>
-          <button id="themeToggle" aria-label="Toggle theme"></button>
+          <button id="logoutBtn" class="btn-outline hidden" type="button">Logout</button>
+          <button id="themeToggle" aria-label="Toggle theme" style="background:none; color:white; border:none; cursor:pointer;">☾</button>
         </div>
       </header>
 
-      <main class="scoreboard-shell shell-scoreboard">
+      <main class="panel flow-card page-fade">
         <section class="card scoreboard-head">
           <div>
             <p class="eyebrow">Quizzy</p>

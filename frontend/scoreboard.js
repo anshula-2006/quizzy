@@ -1,6 +1,5 @@
 import API_BASE from "./js/config.js";
 import auth from "./auth.js";
-import { fetchPermanentLeaderboard } from "./js/shared.js";
 
 const authUser = document.getElementById("authUser");
 const loginLink = document.getElementById("loginLink");
@@ -375,11 +374,6 @@ async function cloudRequest(path, options = {}) {
 }
 
 async function syncFromCloud() {
-  const permanentLeaderboard = await fetchPermanentLeaderboard();
-  if (permanentLeaderboard.length) {
-    cloudLeaderboard = permanentLeaderboard;
-  }
-
   if (!isLoggedIn()) return;
   const result = await cloudRequest("/data/bootstrap");
   if (!result.ok) return;
@@ -387,8 +381,7 @@ async function syncFromCloud() {
   const savedQuestions = Array.isArray(result.data?.savedQuestions) ? result.data.savedQuestions : [];
   const flashDecks = Array.isArray(result.data?.flashDecks) ? result.data.flashDecks : [];
   cloudProfile = result.data?.profile || null;
-  const authLeaderboard = Array.isArray(result.data?.leaderboard) ? result.data.leaderboard : [];
-  cloudLeaderboard = authLeaderboard.length ? authLeaderboard : cloudLeaderboard;
+  cloudLeaderboard = Array.isArray(result.data?.leaderboard) ? result.data.leaderboard : [];
   saveHistory(attempts);
   saveSavedQuestions(savedQuestions);
   saveFlashDecks(flashDecks);
@@ -409,11 +402,6 @@ function renderAuthNav() {
   logoutBtn?.classList.remove("hidden");
   loginLink?.classList.add("hidden");
   registerLink?.classList.add("hidden");
-}
-
-function getCurrentUsername() {
-  const session = auth?.getSession?.();
-  return session?.name || session?.email || "guest";
 }
 
 function setThemeIcon() {
@@ -699,24 +687,15 @@ function renderBoard() {
   activeReviewAttemptIndex = Math.max(0, Math.min(activeReviewAttemptIndex, Math.max(0, entries.length - 1)));
   const reviewEntry = entries[activeReviewAttemptIndex] || entries[0] || null;
   const reviewAnswers = Array.isArray(reviewEntry?.answers) ? reviewEntry.answers : [];
+  const sourceStatus = getAttemptSourceStatus(reviewEntry);
   const flashDecks = getFlashDecks();
-  const currentUsername = getCurrentUsername();
+  const savedQuestions = getSavedQuestions();
   const leaderboardMarkup = cloudLeaderboard.length
     ? `
-      <section class="card scoreboard-table-wrap leaderboard-focus-card">
+      <section class="card scoreboard-table-wrap">
         <div class="table-header-block">
           <h3>Global Leaderboard</h3>
-          <p>Ranked by points, XP, and current streak.</p>
-        </div>
-        <div class="podium-row">
-          ${cloudLeaderboard.slice(0, 3).map((player) => `
-            <article class="podium-card rank-${player.rank} ${player.name === currentUsername || player.username === currentUsername ? "is-current" : ""}">
-              <span class="rank-badge rank-${player.rank}">#${player.rank}</span>
-              <strong>${escapeHtml(player.name)}</strong>
-              <span>${player.leaderboardScore} pts</span>
-              <small>${player.totalXp} XP - ${player.currentStreak || 0} streak</small>
-            </article>
-          `).join("")}
+          <p>Top players ranked by total points and XP.</p>
         </div>
         <div class="modern-table">
           <div class="modern-table-header">
@@ -725,13 +704,15 @@ function renderBoard() {
             <div class="col-score">Score</div>
             <div class="col-meta">Stats</div>
           </div>
-          ${cloudLeaderboard.slice(0, 8).map((player, idx) => `
-            <div class="modern-table-row fade-in ${player.name === currentUsername || player.username === currentUsername ? "is-current" : ""}" style="animation-delay: ${idx * 0.05}s">
+          ${cloudLeaderboard.map((player, idx) => {
+            const rank = player.rank || (idx + 1);
+            return `
+            <div class="modern-table-row fade-in" style="animation-delay: ${idx * 0.05}s">
               <div class="col-rank">
-                <span class="rank-badge ${player.rank === 1 ? 'rank-1' : player.rank === 2 ? 'rank-2' : player.rank === 3 ? 'rank-3' : 'rank-other'}">#${player.rank}</span>
+                <span class="rank-badge ${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other'}">#${rank}</span>
               </div>
               <div class="col-player">
-                <strong>${escapeHtml(player.name)}</strong>
+                <strong>${player.name}</strong>
               </div>
               <div class="col-score">
                 <span class="score-pill">${player.leaderboardScore} pts</span>
@@ -740,7 +721,7 @@ function renderBoard() {
                 ${player.totalXp} XP <span class="streak-icon" title="Streak">🔥 ${player.currentStreak}</span>
               </div>
             </div>
-          `).join("")}
+          `}).join("")}
         </div>
       </section>
     `
@@ -748,9 +729,13 @@ function renderBoard() {
 
   if (!entries.length) {
     scoreboardContent.innerHTML = `
+      <div class="card evaluation-empty">
+        <h3>No Data Yet</h3>
+        <p>${isLoggedIn() ? "Take at least one quiz from the home page to populate your scoreboard." : "Log in or register first, then your quiz and arcade progress will start saving here."}</p>
+      </div>
       ${cloudProfile ? `<div class="card"><h3>Cloud Profile</h3><p>Total Points: ${cloudProfile.totalPoints || 0} | Total XP: ${cloudProfile.totalXp || 0} | Best Streak: ${cloudProfile.bestStreak || 0}</p></div>` : ""}
       ${leaderboardMarkup}
-      <div class="card empty-state"><h3>No local attempts yet</h3><p>${isLoggedIn() ? "Take one quiz to add your personal summary here." : "Log in or register to sync leaderboard progress."}</p></div>
+      ${renderProgressExtras(entries)}
     `;
     return;
   }
@@ -760,32 +745,143 @@ function renderBoard() {
   const best = Math.max(...entries.map((e) => e.percentage || 0));
   const trend = getTrend(entries);
   const streak = getStreak(entries);
-  const recent = entries.slice(0, 4);
+  const chartData = entries.slice(0, 10).reverse();
+  const recent = entries.slice(0, 12);
   const game = getGamification(entries);
 
   scoreboardContent.innerHTML = `
-    <section class="card score-summary-strip">
-      <article><span>Latest</span><strong>${latest}%</strong><small>${getBandLabel(latest)}</small></article>
-      <article><span>Average</span><strong>${avg}%</strong><small>${trend.label}</small></article>
-      <article><span>Best</span><strong>${best}%</strong><small>${entries.length} quizzes</small></article>
-      <article><span>XP</span><strong>${cloudProfile?.totalXp ?? game.totalXp}</strong><small>Level ${game.level}</small></article>
-      <article><span>Streak</span><strong>${cloudProfile?.currentStreak ?? streak}</strong><small>current</small></article>
+    <section class="scoreboard-grid">
+      <div class="card">
+        <div class="score-hero">
+          <div class="score-ring" style="--p:${latest}">
+            <strong>${latest}%</strong>
+            <span>Latest</span>
+          </div>
+          <div class="score-meta">
+            <div class="meta-chip">${getBandLabel(latest)}</div>
+            <div class="meta-chip muted">Avg ${avg}%</div>
+            <div class="meta-chip muted">Best ${best}%</div>
+            <div class="meta-chip muted">Lvl ${game.level}</div>
+            <div class="meta-chip ${trend.delta > 0 ? "up" : trend.delta < 0 ? "down" : "flat"}">${trend.label}</div>
+          </div>
+        </div>
+        <div class="score-spark">
+          ${chartData.map((e, i) => `
+            <div class="spark-col" title="Attempt ${i + 1}: ${e.percentage}%">
+              <div class="spark-bar" style="height:${Math.max(12, Math.min(100, e.percentage || 0))}%"></div>
+              <span>${e.percentage}%</span>
+            </div>
+          `).join("")}
+        </div>
+        <div class="analysis-card">
+          <strong>Feedback</strong>
+          <p>${getFeedback(entries)}</p>
+        </div>
+        <div class="analysis-card">
+          <strong>Gamification</strong>
+          <p>${game.totalXp} XP earned. Level ${game.level} with ${game.progress}% progress to the next level.</p>
+          <div class="xp-progress"><span style="width:${game.progress}%"></span></div>
+          <p>${game.badges.length ? game.badges.map((badge) => badge.label).join(" | ") : "No badges unlocked yet."}</p>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Quick Stats</h3>
+        <div class="evaluation-stats">
+          <div class="stat-box"><p>Total XP</p><h4>${cloudProfile?.totalXp ?? game.totalXp}</h4></div>
+          <div class="stat-box"><p>Total Points</p><h4>${cloudProfile?.totalPoints ?? 0}</h4></div>
+          <div class="stat-box"><p>Level</p><h4>${game.level}</h4></div>
+          <div class="stat-box"><p>Total Quizzes</p><h4>${entries.length}</h4></div>
+          <div class="stat-box"><p>Current Streak</p><h4>${cloudProfile?.currentStreak ?? streak}</h4></div>
+          <div class="stat-box"><p>Best Score</p><h4>${best}%</h4></div>
+          <div class="stat-box"><p>Average</p><h4>${avg}%</h4></div>
+        </div>
+      </div>
     </section>
-    ${leaderboardMarkup}
-    <section class="card recent-compact-card">
+    <section class="card scoreboard-table-wrap">
       <div class="table-header-block">
         <h3>Recent Attempts</h3>
       </div>
-      <div class="recent-attempt-grid">
+      <div class="modern-table">
         ${recent.map((e) => `
-          <article>
-            <strong>${e.percentage}%</strong>
-            <span>${e.score}/${e.total}</span>
-            <small>${formatShortDate(e.createdAt)} - ${(e.settings?.difficulty || "mod").toUpperCase()}</small>
-          </article>
+          <div class="modern-table-row">
+            <div class="col-date">${formatShortDate(e.createdAt)}</div>
+            <div class="col-score"><strong>${e.score}/${e.total}</strong> (${e.percentage}%)</div>
+            <div class="col-details">
+              <span class="settings-pill">${(e.settings?.difficulty || "mod").toUpperCase()}</span>
+              <span class="settings-pill">+${getAttemptXp(e)} XP</span>
+            </div>
+          </div>
         `).join("")}
       </div>
     </section>
+    <section class="scoreboard-grid">
+      <div class="card">
+        <div class="table-header-block">
+          <h3>Question Review</h3>
+          <p>Explanation and answer breakdown from any saved attempt.</p>
+        </div>
+        <div class="attempt-review-rail">
+          ${entries.slice(0, 10).map((entry, index) => `
+            <button class="attempt-review-btn ${index === activeReviewAttemptIndex ? "active" : ""}" data-attempt-index="${index}" type="button">
+              <span>${formatShortDate(entry.createdAt)}</span>
+              <strong>${entry.percentage || 0}%</strong>
+            </button>
+          `).join("")}
+        </div>
+        <div class="review-rail">
+          ${reviewAnswers.length
+            ? reviewAnswers.map((answer, index) => `
+              <button class="review-q-btn ${answer.isCorrect ? "good" : "bad"}" data-review-index="${index}" type="button">
+                Q${index + 1}
+              </button>
+            `).join("")
+            : `<p class="cabinet-note">No question review is available for this attempt yet.</p>`}
+        </div>
+        <div id="reviewDetail" class="review-detail">
+          ${reviewAnswers.length ? "Select a question to view the explanation." : "Question explanations will appear here after you complete a quiz."}
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-header-block">
+          <h3>Review Tools</h3>
+          <p>${reviewEntry?.sourceType === "pdf" ? "PDF" : "Quiz"} study actions for the selected attempt.</p>
+        </div>
+        <div class="source-status-card ${sourceStatus.level}">
+          <strong>${sourceStatus.label}</strong>
+          <p>${sourceStatus.message}</p>
+        </div>
+        <div class="scoreboard-tool-actions">
+          <button id="saveAttemptQuestionsBtn" class="ghost" type="button" ${reviewAnswers.length ? "" : "disabled"}>Save Questions</button>
+          <button id="generateAttemptFlashcardsBtn" class="ghost" type="button" ${reviewEntry ? "" : "disabled"}>Generate Flashcards</button>
+          <button id="downloadReviewBtn" class="ghost" type="button" ${reviewAnswers.length ? "" : "disabled"}>Download Review</button>
+          <button id="downloadFlashcardsBtn" class="ghost" type="button" ${flashDecks.length ? "" : "disabled"}>Download Flashcards</button>
+        </div>
+        <div class="evaluation-stats">
+          <div class="stat-box"><p>Score</p><h4>${reviewEntry?.score || 0}/${reviewEntry?.total || 0}</h4></div>
+          <div class="stat-box"><p>Accuracy</p><h4>${reviewEntry?.percentage || 0}%</h4></div>
+          <div class="stat-box"><p>Reviewed</p><h4>${reviewAnswers.length}</h4></div>
+          <div class="stat-box"><p>Wrong</p><h4>${reviewAnswers.filter((answer) => !answer?.isCorrect).length}</h4></div>
+          <div class="stat-box"><p>Saved Questions</p><h4>${savedQuestions.length}</h4></div>
+          <div class="stat-box"><p>Flash Decks</p><h4>${flashDecks.length}</h4></div>
+        </div>
+        <div class="table-header-block">
+          <h3>Saved Study Library</h3>
+          <p>Quick access to the questions and flashcards you have built from attempts.</p>
+        </div>
+        <div class="scoreboard-library">
+          <div class="library-card">
+            <strong>Saved Questions</strong>
+            <p>${savedQuestions.length ? `${savedQuestions.length} question(s) ready for revision.` : "No saved questions yet."}</p>
+          </div>
+          <div class="library-card">
+            <strong>Flashcard Decks</strong>
+            <p>${flashDecks.length ? `${flashDecks[0]?.title || "Latest deck"} available for study.` : "No flashcard deck generated yet."}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    ${leaderboardMarkup}
+    ${renderProgressExtras(entries)}
   `;
 
   const detailNode = document.getElementById("reviewDetail");

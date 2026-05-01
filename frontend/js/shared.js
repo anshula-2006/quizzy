@@ -71,6 +71,31 @@ function getScopeId() {
   return session?.user?.email || session?.email || "guest";
 }
 
+function getDisplayUsername() {
+  const session = getSession();
+  return session?.user?.name || session?.user?.email || session?.email || "guest";
+}
+
+async function apiRequest(path, options = {}) {
+  if (!API_BASE && window.location.protocol === "file:") return null;
+  try {
+    const response = await fetch(`${API_BASE}${path}`, options);
+    const data = await response.json().catch(() => null);
+    if (!response.ok) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+function postJson(path, payload) {
+  return apiRequest(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+}
+
 export function getFlashDecks() {
   const scopeId = getScopeId() || "guest";
   try {
@@ -92,6 +117,16 @@ export async function addFlashDeck(deck) {
   decks.unshift(deck);
   saveFlashDecks(decks);
   markSessionActivity({ flashcardsDone: true });
+
+  const simpleCards = (Array.isArray(deck.flashcards) ? deck.flashcards : [])
+    .map((card) => ({
+      question: card.question || card.front || card.prompt || "",
+      answer: card.answer || card.back || card.response || ""
+    }))
+    .filter((card) => card.question && card.answer);
+  if (simpleCards.length) {
+    postJson("/api/flashcards", { username: getDisplayUsername(), flashcards: simpleCards });
+  }
 
   const session = getSession();
   if (session?.token) {
@@ -232,7 +267,49 @@ export function saveQuizAttemptLocal(quizState, resultState) {
   const next = [normalizeAttemptEntry(entry), ...getSavedQuizHistory()].slice(0, MAX_HISTORY_ITEMS);
   const saved = writeJson(historyKey(), next);
   if (saved) markSessionActivity({ quizDone: true });
+  if (saved) {
+    const username = getDisplayUsername();
+    const title = quizState.meta?.sourceInput || quizState.meta?.sourceTopic || quizState.settings?.topic || "Quiz";
+    postJson("/api/save-score", {
+      username,
+      score: Number(resultState.percentage || 0),
+      streak: next.filter((item) => Number(item.percentage || 0) >= 70).length
+    });
+    postJson("/api/save-quiz", {
+      username,
+      quizTitle: title,
+      score: Number(resultState.percentage || 0),
+      date: entry.createdAt
+    });
+    const totalScore = next.reduce((sum, item) => sum + Number(item.percentage || 0), 0);
+    postJson("/api/save-stats", {
+      username,
+      totalScore,
+      totalQuizzes: next.length,
+      streak: next.filter((item) => Number(item.percentage || 0) >= 70).length,
+      accuracy: next.length ? Math.round(totalScore / next.length) : 0
+    });
+  }
   return saved;
+}
+
+export async function fetchPermanentLeaderboard() {
+  const data = await apiRequest("/api/leaderboard");
+  return Array.isArray(data) ? data : [];
+}
+
+export async function fetchPermanentStats(username = getDisplayUsername()) {
+  return apiRequest(`/api/stats/${encodeURIComponent(username)}`);
+}
+
+export async function fetchPermanentQuizHistory(username = getDisplayUsername()) {
+  const data = await apiRequest(`/api/quiz-history/${encodeURIComponent(username)}`);
+  return Array.isArray(data) ? data : [];
+}
+
+export async function fetchPermanentFlashcards(username = getDisplayUsername()) {
+  const data = await apiRequest(`/api/flashcards/${encodeURIComponent(username)}`);
+  return Array.isArray(data) ? data : [];
 }
 
 export function getMiniGameStats() {

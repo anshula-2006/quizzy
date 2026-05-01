@@ -6,6 +6,7 @@ import authRoutes from "./routes/authRoutes.js";
 import dataRoutes from "./routes/dataRoutes.js";
 import gamificationRoutes from "./routes/gamificationRoutes.js";
 import quizRoutes from "./routes/quizRoutes.js";
+import simpleDataRoutes from "./routes/simpleDataRoutes.js";
 import { requireAuth } from "./middleware/auth.js";
 import { upload } from "./services/contentExtractionService.js";
 import { asyncHandler } from "./utils/asyncHandler.js";
@@ -21,6 +22,7 @@ app.get("/", (req, res) => {
 
 app.use("/auth", authRoutes);
 app.use("/data", dataRoutes);
+app.use("/api", simpleDataRoutes);
 app.use("/api/quizzes", quizRoutes);
 app.use("/api/gamification", gamificationRoutes);
 

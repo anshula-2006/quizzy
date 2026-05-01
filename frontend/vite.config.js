@@ -39,6 +39,10 @@ export default defineConfig({
         target: proxyTarget,
         changeOrigin: true
       },
+      "/api": {
+        target: proxyTarget,
+        changeOrigin: true
+      },
       "/generate-quiz": {
         target: proxyTarget,
         changeOrigin: true

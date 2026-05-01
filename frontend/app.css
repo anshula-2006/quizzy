@@ -1407,3 +1407,76 @@ html {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* Strict Quizzy design system */
+:root,
+body.dark {
+  --bg: #0B1220;
+  --bg-deep: #070c16;
+  --panel: #111827;
+  --panel-strong: #111827;
+  --panel-soft: rgba(255, 255, 255, 0.04);
+  --text: #E5E7EB;
+  --muted: #9CA3AF;
+  --line: rgba(255,255,255,0.08);
+  --line-strong: rgba(255,255,255,0.12);
+  --purple: #7C3AED;
+  --cyan: #06B6D4;
+  --green: #22C55E;
+  --red: #F87171;
+  --amber: #F59E0B;
+  --shadow: 0 16px 36px rgba(0, 0, 0, 0.26);
+  --shadow-soft: 0 10px 24px rgba(0, 0, 0, 0.2);
+  --eyebrow: #22C55E;
+  --label: #E5E7EB;
+  --input-bg: rgba(255,255,255,0.04);
+  --input-placeholder: rgba(229, 231, 235, 0.42);
+}
+
+body,
+body:not(.dark) {
+  color: var(--text);
+  background:
+    radial-gradient(circle at 12% 8%, rgba(124, 58, 237, 0.18), transparent 28%),
+    radial-gradient(circle at 88% 10%, rgba(6, 182, 212, 0.12), transparent 24%),
+    linear-gradient(180deg, var(--bg), var(--bg-deep));
+}
+
+.panel,
+body:not(.dark) .panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.btn,
+body:not(.dark) .nav-link.is-active,
+body:not(.dark) .nav-link:hover {
+  background: linear-gradient(135deg, #7C3AED, #06B6D4);
+}
+
+.top-nav,
+body:not(.dark) .top-nav,
+.global-auth-bar,
+body:not(.dark) .global-auth-bar {
+  background: rgba(17, 24, 39, 0.78);
+  border-color: var(--line);
+  backdrop-filter: blur(18px);
+}
+
+.setting-card,
+.source-card,
+.stat-card,
+.answer-option,
+.feedback-box,
+.dash-stat-card,
+.achievement-chip,
+.deck-count {
+  background: rgba(255,255,255,0.04);
+  border-color: var(--line);
+}
+
+.achievement-chip.is-unlocked {
+  border-color: rgba(34, 197, 94, 0.38);
+  background: rgba(34, 197, 94, 0.1);
+}

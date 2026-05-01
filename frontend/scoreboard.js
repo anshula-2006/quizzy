@@ -1,5 +1,6 @@
 import API_BASE from "./js/config.js";
 import auth from "./auth.js";
+import { fetchPermanentLeaderboard } from "./js/shared.js";
 
 const authUser = document.getElementById("authUser");
 const loginLink = document.getElementById("loginLink");
@@ -374,6 +375,11 @@ async function cloudRequest(path, options = {}) {
 }
 
 async function syncFromCloud() {
+  const permanentLeaderboard = await fetchPermanentLeaderboard();
+  if (permanentLeaderboard.length) {
+    cloudLeaderboard = permanentLeaderboard;
+  }
+
   if (!isLoggedIn()) return;
   const result = await cloudRequest("/data/bootstrap");
   if (!result.ok) return;
@@ -381,7 +387,8 @@ async function syncFromCloud() {
   const savedQuestions = Array.isArray(result.data?.savedQuestions) ? result.data.savedQuestions : [];
   const flashDecks = Array.isArray(result.data?.flashDecks) ? result.data.flashDecks : [];
   cloudProfile = result.data?.profile || null;
-  cloudLeaderboard = Array.isArray(result.data?.leaderboard) ? result.data.leaderboard : [];
+  const authLeaderboard = Array.isArray(result.data?.leaderboard) ? result.data.leaderboard : [];
+  cloudLeaderboard = authLeaderboard.length ? authLeaderboard : cloudLeaderboard;
   saveHistory(attempts);
   saveSavedQuestions(savedQuestions);
   saveFlashDecks(flashDecks);
@@ -402,6 +409,11 @@ function renderAuthNav() {
   logoutBtn?.classList.remove("hidden");
   loginLink?.classList.add("hidden");
   registerLink?.classList.add("hidden");
+}
+
+function getCurrentUsername() {
+  const session = auth?.getSession?.();
+  return session?.name || session?.email || "guest";
 }
 
 function setThemeIcon() {
@@ -688,6 +700,7 @@ function renderBoard() {
   const reviewEntry = entries[activeReviewAttemptIndex] || entries[0] || null;
   const reviewAnswers = Array.isArray(reviewEntry?.answers) ? reviewEntry.answers : [];
   const flashDecks = getFlashDecks();
+  const currentUsername = getCurrentUsername();
   const leaderboardMarkup = cloudLeaderboard.length
     ? `
       <section class="card scoreboard-table-wrap leaderboard-focus-card">
@@ -697,7 +710,7 @@ function renderBoard() {
         </div>
         <div class="podium-row">
           ${cloudLeaderboard.slice(0, 3).map((player) => `
-            <article class="podium-card rank-${player.rank}">
+            <article class="podium-card rank-${player.rank} ${player.name === currentUsername || player.username === currentUsername ? "is-current" : ""}">
               <span class="rank-badge rank-${player.rank}">#${player.rank}</span>
               <strong>${escapeHtml(player.name)}</strong>
               <span>${player.leaderboardScore} pts</span>
@@ -713,7 +726,7 @@ function renderBoard() {
             <div class="col-meta">Stats</div>
           </div>
           ${cloudLeaderboard.slice(0, 8).map((player, idx) => `
-            <div class="modern-table-row fade-in" style="animation-delay: ${idx * 0.05}s">
+            <div class="modern-table-row fade-in ${player.name === currentUsername || player.username === currentUsername ? "is-current" : ""}" style="animation-delay: ${idx * 0.05}s">
               <div class="col-rank">
                 <span class="rank-badge ${player.rank === 1 ? 'rank-1' : player.rank === 2 ? 'rank-2' : player.rank === 3 ? 'rank-3' : 'rank-other'}">#${player.rank}</span>
               </div>

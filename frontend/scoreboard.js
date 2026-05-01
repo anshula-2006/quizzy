@@ -23,6 +23,8 @@ const MAX_FLASH_DECKS = 25;
 let cloudProfile = null;
 let cloudLeaderboard = [];
 let activeReviewAttemptIndex = 0;
+let currentLeaderboardPage = 1;
+const LEADERBOARD_PAGE_SIZE = 10;
 
 function getAttemptXp(entry) {
   if (!entry) return 0;
@@ -663,6 +665,9 @@ function renderBoard() {
   const sourceStatus = getAttemptSourceStatus(reviewEntry);
   const flashDecks = getFlashDecks();
   const savedQuestions = getSavedQuestions();
+  const totalLeaderboardPages = Math.ceil(cloudLeaderboard.length / LEADERBOARD_PAGE_SIZE) || 1;
+  const paginatedLeaderboard = cloudLeaderboard.slice((currentLeaderboardPage - 1) * LEADERBOARD_PAGE_SIZE, currentLeaderboardPage * LEADERBOARD_PAGE_SIZE);
+
   const leaderboardMarkup = cloudLeaderboard.length
     ? `
       <section class="card scoreboard-table-wrap">
@@ -677,8 +682,8 @@ function renderBoard() {
             <div class="col-score">Score</div>
             <div class="col-meta">Stats</div>
           </div>
-          ${cloudLeaderboard.map((player, idx) => {
-            const rank = player.rank || (idx + 1);
+          ${paginatedLeaderboard.map((player, idx) => {
+            const rank = player.rank || ((currentLeaderboardPage - 1) * LEADERBOARD_PAGE_SIZE + idx + 1);
             return `
             <div class="modern-table-row fade-in" style="animation-delay: ${idx * 0.05}s">
               <div class="col-rank">
@@ -696,6 +701,13 @@ function renderBoard() {
             </div>
           `}).join("")}
         </div>
+        ${totalLeaderboardPages > 1 ? `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px;">
+          <button class="ghost leaderboard-prev-btn" ${currentLeaderboardPage === 1 ? "disabled" : ""}>Previous</button>
+          <span class="helper-text">Page ${currentLeaderboardPage} of ${totalLeaderboardPages}</span>
+          <button class="ghost leaderboard-next-btn" ${currentLeaderboardPage === totalLeaderboardPages ? "disabled" : ""}>Next</button>
+        </div>
+        ` : ""}
       </section>
     `
     : `<div class="card empty-state"><h3>No Leaderboard Data</h3><p>Be the first to get on the board!</p></div>`;
@@ -877,6 +889,20 @@ function renderBoard() {
       ${imageBlock}
     `;
   };
+
+  document.querySelector(".leaderboard-prev-btn")?.addEventListener("click", () => {
+    if (currentLeaderboardPage > 1) {
+      currentLeaderboardPage -= 1;
+      renderBoard();
+    }
+  });
+
+  document.querySelector(".leaderboard-next-btn")?.addEventListener("click", () => {
+    if (currentLeaderboardPage < totalLeaderboardPages) {
+      currentLeaderboardPage += 1;
+      renderBoard();
+    }
+  });
 
   document.querySelectorAll(".attempt-review-btn").forEach((btnNode) => {
     btnNode.addEventListener("click", () => {

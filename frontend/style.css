@@ -2297,3 +2297,297 @@ body.dark .attempt-review-btn,
 body.dark .source-status-card {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
+
+/* Compact leaderboard pass */
+body.dark .app-shell,
+.app-shell {
+  grid-template-columns: 1fr;
+}
+
+.app-sidebar {
+  position: sticky;
+  top: 12px;
+  z-index: 50;
+  width: min(1180px, calc(100% - 32px));
+  height: auto;
+  margin: 12px auto 0;
+  padding: 10px 12px;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  box-shadow: var(--shadow-sm);
+}
+
+body.dark .app-sidebar {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sidebar-brand p {
+  display: none;
+}
+
+.logo {
+  font-size: 1.2rem;
+}
+
+.logo-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+}
+
+.sidebar-nav {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.sidebar-link,
+body.dark .sidebar-link {
+  min-height: 36px;
+  padding: 0 12px;
+  white-space: nowrap;
+  font-size: 0.86rem;
+}
+
+.app-main {
+  padding: 14px 20px 24px;
+}
+
+.app-topbar {
+  width: min(1180px, 100%);
+  align-items: center;
+  margin-bottom: 12px;
+  padding-top: 0;
+}
+
+.app-topbar h1 {
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  line-height: 1;
+}
+
+.topbar-actions {
+  gap: 8px;
+}
+
+.topbar-actions .nav-link,
+.topbar-actions .ghost,
+#themeToggle {
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: 0.84rem;
+}
+
+#themeToggle {
+  min-width: auto;
+}
+
+.theme-toggle-label {
+  display: none;
+}
+
+.scoreboard-shell,
+.scoreboard-content {
+  gap: 12px;
+}
+
+.shell-scoreboard {
+  width: min(1180px, 100%);
+  padding-bottom: 0;
+}
+
+.scoreboard-head {
+  padding: 18px;
+  border-radius: 20px;
+  align-items: center;
+}
+
+.scoreboard-head h2 {
+  margin-top: 4px;
+  font-size: clamp(1.35rem, 2.4vw, 1.9rem);
+}
+
+.scoreboard-head p {
+  max-width: 64ch;
+  line-height: 1.45;
+}
+
+.scoreboard-head-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.scoreboard-head-actions .ghost {
+  min-width: auto;
+  min-height: 38px;
+  padding: 0 12px;
+}
+
+.scoreboard-grid {
+  grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
+  gap: 12px;
+}
+
+.scoreboard-grid > .card,
+.scoreboard-table-wrap,
+.badge-cabinet,
+.mini-games-shell,
+.evaluation-empty,
+.empty-state {
+  border-radius: 20px;
+}
+
+.scoreboard-grid > .card,
+.scoreboard-table-wrap,
+.badge-cabinet,
+.mini-games-shell {
+  padding: 16px;
+}
+
+.score-hero {
+  grid-template-columns: auto minmax(0, 1fr);
+  justify-items: start;
+  gap: 14px;
+}
+
+.score-ring {
+  width: 132px;
+}
+
+.score-meta {
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.score-spark {
+  min-height: 104px;
+  gap: 8px;
+}
+
+.analysis-card,
+.stat-box {
+  padding: 14px;
+  border-radius: 16px;
+}
+
+.evaluation-stats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.stat-box h4,
+.evaluation-stats h4 {
+  margin-top: 4px;
+  font-size: 1.2rem;
+}
+
+.scoreboard-table-wrap > h3,
+.table-header-block {
+  margin-bottom: 10px;
+}
+
+.table-header-block {
+  padding: 0 0 10px;
+}
+
+.modern-table {
+  gap: 8px;
+}
+
+.modern-table-header,
+.modern-table-row {
+  grid-template-columns: 82px minmax(160px, 1.2fr) minmax(120px, 0.7fr) minmax(150px, 1fr);
+  gap: 10px;
+}
+
+.modern-table-row {
+  min-height: 58px;
+  padding: 10px 12px;
+  border-radius: 16px;
+}
+
+.rank-badge,
+.score-pill,
+.settings-pill,
+.streak-icon,
+.meta-chip {
+  min-height: 30px;
+  padding: 0 10px;
+  font-size: 0.78rem;
+}
+
+.attempt-review-rail,
+.review-rail,
+.scoreboard-tool-actions,
+.scoreboard-library,
+.cabinet-meta {
+  gap: 8px;
+}
+
+.attempt-review-btn {
+  min-width: 116px;
+  padding: 10px;
+  border-radius: 14px;
+}
+
+.review-detail {
+  min-height: 128px;
+}
+
+.badge-grid {
+  gap: 10px;
+}
+
+.badge-card {
+  padding: 12px;
+}
+
+.badge-icon {
+  width: 44px;
+  height: 44px;
+}
+
+@media (max-width: 1180px) {
+  .scoreboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .app-sidebar {
+    top: 8px;
+    width: calc(100% - 20px);
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .sidebar-nav {
+    justify-content: flex-start;
+  }
+
+  .app-main {
+    padding: 12px 10px 20px;
+  }
+
+  .app-topbar,
+  .scoreboard-head,
+  .score-hero {
+    align-items: flex-start;
+    grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+
+  .evaluation-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

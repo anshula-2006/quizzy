@@ -322,3 +322,86 @@ body {
     padding: 24px;
   }
 }
+
+/* Compact auth layout */
+body {
+  padding: 14px 20px;
+}
+
+.global-auth-bar {
+  position: sticky;
+  top: 10px;
+  z-index: 20;
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--auth-border);
+  border-radius: 999px;
+  background: var(--auth-panel);
+  backdrop-filter: blur(18px);
+}
+
+.auth-shell {
+  min-height: calc(100vh - 82px);
+  grid-template-columns: minmax(320px, 1fr) minmax(340px, 400px);
+  gap: 16px;
+}
+
+.auth-hero,
+.auth-card {
+  border-radius: 24px;
+}
+
+.auth-hero {
+  padding: 28px;
+  gap: 14px;
+}
+
+.auth-card {
+  padding: 24px;
+  gap: 16px;
+}
+
+.auth-hero h1 {
+  font-size: clamp(2.3rem, 4vw, 3.7rem);
+}
+
+.auth-hero p,
+.auth-card-head p,
+.auth-footer,
+.auth-feature-card span {
+  line-height: 1.5;
+}
+
+.auth-hero-grid {
+  gap: 10px;
+}
+
+.auth-feature-card {
+  padding: 14px;
+  border-radius: 16px;
+}
+
+.auth-field input,
+.auth-btn {
+  min-height: 46px;
+}
+
+@media (max-width: 760px) {
+  body {
+    padding: 10px;
+  }
+
+  .global-auth-bar {
+    align-items: flex-start;
+    border-radius: 20px;
+  }
+
+  .auth-shell {
+    min-height: auto;
+  }
+
+  .auth-hero,
+  .auth-card {
+    padding: 18px;
+  }
+}

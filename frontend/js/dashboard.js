@@ -42,30 +42,49 @@ function renderDashboard(data) {
   const attempts = Array.isArray(data?.attempts) ? data.attempts : [];
   const flashDecks = Array.isArray(data?.flashDecks) ? data.flashDecks : [];
   const mini = data?.miniGameStats || {};
-  const recent = attempts.slice(0, 8);
+  const recent = attempts.slice(0, 5);
+  const average = attempts.length
+    ? Math.round(attempts.reduce((sum, entry) => sum + Number(entry.percentage || 0), 0) / attempts.length)
+    : 0;
+  const best = attempts.length
+    ? Math.max(...attempts.map((entry) => Number(entry.percentage || 0)))
+    : 0;
+  const cardCount = flashDecks.reduce((sum, deck) => sum + (Array.isArray(deck.flashcards) ? deck.flashcards.length : 0), 0);
 
   root.innerHTML = `
-    <section class="panel flow-card">
-      <p class="eyebrow">Dashboard</p>
-      <h1 class="section-title">Your study snapshot</h1>
-      <p class="section-copy">Everything here is loaded from MongoDB Atlas for your account.</p>
-
-      <div class="button-row" style="margin-top:20px;">
-        <button id="clearHistoryBtn" class="btn-outline" type="button">Clear Quiz History</button>
-        <button id="clearDashboardBtn" class="btn-outline" type="button">Clear Dashboard</button>
-        <button id="deleteUserBtn" class="btn-outline" type="button" style="color: var(--danger); border-color: var(--danger);">Delete User</button>
+    <section class="panel flow-card dashboard-main-card">
+      <div class="dashboard-hero">
+        <div>
+          <p class="eyebrow">Dashboard</p>
+          <h1 class="section-title">Study snapshot</h1>
+          <p class="section-copy">Your quizzes, decks, and mini-game momentum in one compact view.</p>
+        </div>
+        <div class="dashboard-actions">
+          <a class="btn" href="./generate.html">New Quiz</a>
+          <a class="btn-outline" href="./flashcards.html">Study Decks</a>
+        </div>
       </div>
 
-      <div class="field-stack" style="margin-top:24px;">
-        <div class="setting-card">
-          <strong>Recent Quizzes</strong>
-          <div style="margin-top:10px;" class="field-stack">
+      <div class="dashboard-stat-grid">
+        <article class="dash-stat-card accent-blue"><span>Average</span><strong>${average}%</strong><small>${attempts.length || 0} attempts</small></article>
+        <article class="dash-stat-card accent-green"><span>Best Score</span><strong>${best}%</strong><small>Personal high</small></article>
+        <article class="dash-stat-card accent-purple"><span>Decks</span><strong>${flashDecks.length}</strong><small>${cardCount} cards saved</small></article>
+        <article class="dash-stat-card accent-amber"><span>Reaction Best</span><strong>${mini.reactionBest ? `${mini.reactionBest}` : "--"}</strong><small>${mini.reactionBest ? "milliseconds" : "No run yet"}</small></article>
+      </div>
+
+      <div class="dashboard-content-grid">
+        <div class="setting-card dashboard-list-card">
+          <div class="card-title-row">
+            <strong>Recent Quizzes</strong>
+            <span>${recent.length} shown</span>
+          </div>
+          <div class="dashboard-list">
             ${recent.length
               ? recent.map((entry) => `
-                <div class="answer-option">
-                  <div>
-                    <div class="eyebrow">Score</div>
-                    <div style="font-weight:800; font-size:1.2rem;">${Number(entry.percentage || 0)}%</div>
+                <div class="answer-option compact-row">
+                  <div class="score-tile">
+                    <span>Score</span>
+                    <strong>${Number(entry.percentage || 0)}%</strong>
                   </div>
                   <div>
                     <div class="helper-text">${formatDate(entry.createdAt)}</div>
@@ -78,23 +97,26 @@ function renderDashboard(data) {
           </div>
         </div>
 
-        <div class="setting-card">
-          <strong>Flashcard Decks</strong>
-          <div style="margin-top:10px;" class="field-stack">
+        <div class="setting-card dashboard-list-card">
+          <div class="card-title-row">
+            <strong>Flashcard Decks</strong>
+            <span>${flashDecks.length} total</span>
+          </div>
+          <div class="dashboard-list">
             ${flashDecks.length
-              ? flashDecks.map((deck, i) => `
-                <div class="answer-option" style="flex-direction: column; align-items: stretch; gap: 12px;">
-                  <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              ? flashDecks.slice(0, 4).map((deck, i) => `
+                <div class="answer-option deck-row">
+                  <div class="deck-row-head">
                     <div>
-                      <div class="eyebrow">Created ${formatDate(deck.createdAt)}</div>
-                      <div style="font-weight:800;">${deck.title || "Study Deck"}</div>
+                      <div class="helper-text">Created ${formatDate(deck.createdAt)}</div>
+                      <strong>${deck.title || "Study Deck"}</strong>
                     </div>
-                    <div class="helper-text" style="font-weight:bold; background: var(--bg-hover); padding: 4px 8px; border-radius: 6px;">${(deck.flashcards || []).length} cards</div>
+                    <span class="deck-count">${(deck.flashcards || []).length} cards</span>
                   </div>
-                  <div style="display: flex; gap: 8px;">
-                    <button class="btn-outline open-deck-btn" style="flex: 1;" data-index="${i}">Study Deck</button>
-                    <button class="btn-outline edit-deck-btn" style="flex: 0 0 auto;" data-index="${i}">Rename</button>
-                    <button class="btn-outline delete-deck-btn" style="flex: 0 0 auto; color: var(--danger); border-color: var(--danger);" data-index="${i}">Delete</button>
+                  <div class="deck-actions">
+                    <button class="btn-outline open-deck-btn" data-index="${i}">Study Deck</button>
+                    <button class="btn-outline edit-deck-btn" data-index="${i}">Rename</button>
+                    <button class="btn-outline delete-deck-btn danger-action" data-index="${i}">Delete</button>
                   </div>
                 </div>
               `).join("")
@@ -103,19 +125,30 @@ function renderDashboard(data) {
           </div>
         </div>
       </div>
+
+      <div class="dashboard-manage-row">
+        <span class="helper-text">Account controls</span>
+        <button id="clearHistoryBtn" class="btn-outline" type="button">Clear Quiz History</button>
+        <button id="clearDashboardBtn" class="btn-outline" type="button">Clear Dashboard</button>
+        <button id="deleteUserBtn" class="btn-outline danger-action" type="button">Delete User</button>
+      </div>
     </section>
 
-    <aside class="panel game-card">
+    <aside class="panel game-card dashboard-side-card">
       <p class="eyebrow">Mini-Games</p>
-      <h2 class="section-title" style="font-size:2.2rem;">Game stats</h2>
-      <div class="field-stack" style="margin-top:18px;">
-        <div class="setting-card"><strong>Memory Wins</strong><p class="helper-text">${Number(mini.memoryWins || 0)}</p></div>
-        <div class="setting-card"><strong>Best Moves</strong><p class="helper-text">${mini.memoryBestMoves || "--"}</p></div>
-        <div class="setting-card"><strong>Best Time</strong><p class="helper-text">${mini.memoryBestTime ? `${mini.memoryBestTime}s` : "--"}</p></div>
-        <div class="setting-card"><strong>Reaction Best</strong><p class="helper-text">${mini.reactionBest ? `${mini.reactionBest} ms` : "--"}</p></div>
-        <div class="setting-card"><strong>Reaction Runs</strong><p class="helper-text">${Number(mini.reactionRuns || 0)}</p></div>
-        <div class="setting-card"><strong>Recall Best</strong><p class="helper-text">${Number(mini.recallBestLevel || 0) || "--"}</p></div>
-        <div class="setting-card"><strong>Recall Runs</strong><p class="helper-text">${Number(mini.recallRuns || 0)}</p></div>
+      <h2 class="section-title">Game stats</h2>
+      <div class="mini-stat-grid">
+        <div class="setting-card"><span>Memory Wins</span><strong>${Number(mini.memoryWins || 0)}</strong></div>
+        <div class="setting-card"><span>Best Moves</span><strong>${mini.memoryBestMoves || "--"}</strong></div>
+        <div class="setting-card"><span>Best Time</span><strong>${mini.memoryBestTime ? `${mini.memoryBestTime}s` : "--"}</strong></div>
+        <div class="setting-card"><span>Reaction Best</span><strong>${mini.reactionBest ? `${mini.reactionBest} ms` : "--"}</strong></div>
+        <div class="setting-card"><span>Reaction Runs</span><strong>${Number(mini.reactionRuns || 0)}</strong></div>
+        <div class="setting-card"><span>Recall Best</span><strong>${Number(mini.recallBestLevel || 0) || "--"}</strong></div>
+        <div class="setting-card"><span>Recall Runs</span><strong>${Number(mini.recallRuns || 0)}</strong></div>
+      </div>
+      <div class="dashboard-quick-links">
+        <a class="btn" href="./arcade.html">Open Arcade</a>
+        <a class="btn-outline" href="./scoreboard.html">Leaderboard</a>
       </div>
     </aside>
   `;

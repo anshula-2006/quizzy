@@ -909,3 +909,436 @@ body:not(.dark) .nav-link:hover {
     padding: 12px 14px;
   }
 }
+
+/* Compact Quizzy UI pass */
+:root {
+  --radius-xl: 24px;
+  --radius-lg: 18px;
+  --radius-md: 14px;
+}
+
+html {
+  scroll-padding-top: 92px;
+}
+
+.page-shell {
+  padding: 14px 20px 24px;
+}
+
+.center-page {
+  place-items: start center;
+}
+
+.page-container {
+  width: min(1240px, 100%);
+}
+
+.top-nav {
+  position: sticky;
+  top: 12px;
+  z-index: 30;
+  margin-bottom: 16px !important;
+  padding: 10px 12px;
+  border-radius: 22px;
+}
+
+.brand-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+}
+
+.nav-links {
+  gap: 6px;
+}
+
+.nav-link {
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: 0.86rem;
+}
+
+.hero-card,
+.flow-card,
+.quiz-card,
+.result-card,
+.game-card {
+  padding: 24px;
+}
+
+.hero-home {
+  min-height: calc(100vh - 112px);
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.82fr);
+  gap: 22px;
+}
+
+.page-title {
+  margin-top: 8px;
+  font-size: clamp(3rem, 6vw, 5.2rem);
+}
+
+.page-subtitle {
+  margin-top: 12px;
+  line-height: 1.55;
+}
+
+.landing-actions {
+  margin-top: 24px;
+}
+
+.hero-orbit {
+  min-height: 350px;
+}
+
+.hero-orbit-ring {
+  width: min(100%, 320px);
+}
+
+.hero-orbit-core {
+  width: 132px;
+  height: 132px;
+}
+
+.hero-floating-card {
+  padding: 12px 14px;
+  min-width: 148px;
+}
+
+.split-grid {
+  gap: 16px;
+}
+
+.split-grid.two-col {
+  grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
+  align-items: start;
+}
+
+.section-title {
+  margin-top: 6px;
+  font-size: clamp(1.85rem, 2.8vw, 2.65rem);
+}
+
+.section-copy,
+.helper-text,
+.meta-copy {
+  line-height: 1.5;
+}
+
+.field-stack {
+  gap: 12px;
+}
+
+.source-grid,
+.settings-grid,
+.result-stats {
+  gap: 10px;
+}
+
+.source-card,
+.setting-card,
+.stat-card {
+  padding: 14px;
+}
+
+.source-card {
+  min-height: 92px;
+}
+
+.text-input,
+.answer-input {
+  min-height: 112px;
+}
+
+.text-input,
+.file-input,
+.select-input,
+.answer-input {
+  border-radius: 16px;
+  padding: 12px 14px;
+}
+
+.select-input,
+.file-input {
+  min-height: 46px;
+}
+
+.btn,
+.btn-outline {
+  min-height: 42px;
+  padding: 0 16px;
+  font-size: 0.9rem;
+}
+
+.button-row {
+  gap: 10px;
+}
+
+.game-card .section-title {
+  font-size: 1.8rem;
+}
+
+.question-panel {
+  padding: 20px;
+}
+
+.question-text {
+  margin-top: 12px;
+  font-size: clamp(1.55rem, 3vw, 2.35rem);
+}
+
+.answer-stack {
+  gap: 10px;
+}
+
+.answer-option {
+  padding: 12px 14px;
+  border-radius: 16px;
+}
+
+.answer-key {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+}
+
+.fc-board {
+  min-height: calc(100vh - 230px) !important;
+  padding: 0 !important;
+}
+
+.fc-container {
+  height: min(360px, calc(100vh - 300px)) !important;
+  max-width: 720px !important;
+}
+
+.fc-front,
+.fc-back {
+  padding: 2rem !important;
+  border-radius: 22px !important;
+  font-size: clamp(1.35rem, 2.4vw, 1.85rem) !important;
+}
+
+.fc-controls {
+  margin-top: 1.2rem !important;
+}
+
+.dashboard-main-card,
+.dashboard-side-card {
+  min-height: calc(100vh - 112px);
+}
+
+.dashboard-hero,
+.card-title-row,
+.deck-row-head,
+.dashboard-manage-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.dashboard-actions,
+.dashboard-quick-links,
+.deck-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dashboard-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.dash-stat-card {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--panel-soft);
+}
+
+.dash-stat-card span,
+.dash-stat-card small,
+.card-title-row span,
+.score-tile span,
+.mini-stat-grid span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dash-stat-card strong {
+  font-size: clamp(1.55rem, 2.6vw, 2.2rem);
+  line-height: 1;
+}
+
+.accent-blue {
+  background: linear-gradient(145deg, rgba(14, 165, 233, 0.18), var(--panel-soft));
+}
+
+.accent-green {
+  background: linear-gradient(145deg, rgba(34, 197, 94, 0.16), var(--panel-soft));
+}
+
+.accent-purple {
+  background: linear-gradient(145deg, rgba(124, 58, 237, 0.18), var(--panel-soft));
+}
+
+.accent-amber {
+  background: linear-gradient(145deg, rgba(245, 158, 11, 0.16), var(--panel-soft));
+}
+
+.dashboard-content-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.dashboard-list-card {
+  display: grid;
+  gap: 10px;
+  min-height: 0;
+}
+
+.dashboard-list {
+  display: grid;
+  gap: 8px;
+  max-height: 310px;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.compact-row {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr);
+}
+
+.score-tile {
+  display: grid;
+  gap: 2px;
+}
+
+.score-tile strong {
+  font-size: 1.25rem;
+}
+
+.deck-row {
+  display: grid;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.deck-row-head strong {
+  display: block;
+  margin-top: 2px;
+}
+
+.deck-count {
+  flex: 0 0 auto;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: var(--panel-soft);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.deck-actions .btn-outline {
+  min-height: 34px;
+  padding-inline: 12px;
+  font-size: 0.82rem;
+}
+
+.danger-action {
+  color: var(--red) !important;
+  border-color: color-mix(in srgb, var(--red) 52%, transparent) !important;
+}
+
+.dashboard-manage-row {
+  justify-content: flex-end;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.dashboard-side-card {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+}
+
+.mini-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.mini-stat-grid .setting-card {
+  display: grid;
+  gap: 8px;
+}
+
+.mini-stat-grid strong {
+  font-size: 1.35rem;
+}
+
+@media (max-width: 1100px) {
+  .split-grid.two-col,
+  .hero-home,
+  .dashboard-content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-main-card,
+  .dashboard-side-card {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 760px) {
+  .page-shell {
+    padding: 10px;
+  }
+
+  .top-nav {
+    top: 8px;
+    align-items: stretch;
+  }
+
+  .nav-links {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 2px;
+  }
+
+  .hero-card,
+  .flow-card,
+  .quiz-card,
+  .result-card,
+  .game-card {
+    padding: 18px;
+  }
+
+  .dashboard-hero,
+  .dashboard-manage-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .dashboard-stat-grid,
+  .mini-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .source-grid,
+  .settings-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

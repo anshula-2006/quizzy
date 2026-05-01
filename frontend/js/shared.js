@@ -63,11 +63,12 @@ export function getSession() {
 
 export function isLoggedIn() {
   const session = getSession();
-  return Boolean(session?.token && session?.user?.email);
+  return Boolean(session?.token && (session?.user?.email || session?.email));
 }
 
 function getScopeId() {
-  return getSession()?.user?.email || "guest";
+  const session = getSession();
+  return session?.user?.email || session?.email || "guest";
 }
 
 export function getFlashDecks() {
@@ -186,6 +187,10 @@ export function clearQuizFlow() {
 
 export function getSavedQuizHistory() {
   const parsed = readJson(historyKey(), []);
+  if ((!Array.isArray(parsed) || !parsed.length) && getScopeId() !== "guest") {
+    const guestParsed = readJson(`${HISTORY_BASE}-guest`, []);
+    return Array.isArray(guestParsed) ? guestParsed.map(normalizeAttemptEntry) : [];
+  }
   return Array.isArray(parsed) ? parsed.map(normalizeAttemptEntry) : [];
 }
 
@@ -210,7 +215,7 @@ export function markSessionActivity(activity) {
 }
 
 export function saveQuizAttemptLocal(quizState, resultState) {
-  if (!isLoggedIn() || !quizState || !resultState) return false;
+  if (!quizState || !resultState) return false;
 
   const entry = {
     createdAt: new Date().toISOString(),

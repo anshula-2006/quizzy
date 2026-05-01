@@ -38,11 +38,21 @@ function formatDate(value) {
   return dt.toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
+function getCurrentStreak(attempts) {
+  let streak = 0;
+  for (const entry of attempts) {
+    if (Number(entry.percentage || 0) < 70) break;
+    streak += 1;
+  }
+  return streak;
+}
+
 function renderDashboard(data) {
   const attempts = Array.isArray(data?.attempts) ? data.attempts : [];
   const flashDecks = Array.isArray(data?.flashDecks) ? data.flashDecks : [];
   const mini = data?.miniGameStats || {};
-  const recent = attempts.slice(0, 5);
+  const profile = data?.profile || {};
+  const recent = attempts.slice(0, 3);
   const average = attempts.length
     ? Math.round(attempts.reduce((sum, entry) => sum + Number(entry.percentage || 0), 0) / attempts.length)
     : 0;
@@ -50,6 +60,17 @@ function renderDashboard(data) {
     ? Math.max(...attempts.map((entry) => Number(entry.percentage || 0)))
     : 0;
   const cardCount = flashDecks.reduce((sum, deck) => sum + (Array.isArray(deck.flashcards) ? deck.flashcards.length : 0), 0);
+  const streak = getCurrentStreak(attempts);
+  const totalXp = Number(profile.totalXp ?? attempts.reduce((sum, entry) => sum + Math.round(Number(entry.percentage || 0)) + 20, 0));
+  const achievements = [
+    { label: "First Quiz", unlocked: attempts.length >= 1, detail: `${attempts.length} attempts` },
+    { label: "Hot Streak", unlocked: streak >= 3, detail: `${streak} in a row` },
+    { label: "Perfect Shot", unlocked: attempts.some((entry) => Number(entry.percentage || 0) === 100), detail: "100% score" },
+    { label: "Deck Builder", unlocked: flashDecks.length >= 1, detail: `${flashDecks.length} decks` },
+    { label: "Memory Win", unlocked: Number(mini.memoryWins || 0) >= 1, detail: `${Number(mini.memoryWins || 0)} wins` },
+    { label: "Speedster", unlocked: Number(mini.reactionBest || 0) > 0 && Number(mini.reactionBest || 0) <= 350, detail: mini.reactionBest ? `${mini.reactionBest} ms` : "No run" }
+  ];
+  const unlockedCount = achievements.filter((item) => item.unlocked).length;
 
   root.innerHTML = `
     <section class="panel flow-card dashboard-main-card">
@@ -68,8 +89,17 @@ function renderDashboard(data) {
       <div class="dashboard-stat-grid">
         <article class="dash-stat-card accent-blue"><span>Average</span><strong>${average}%</strong><small>${attempts.length || 0} attempts</small></article>
         <article class="dash-stat-card accent-green"><span>Best Score</span><strong>${best}%</strong><small>Personal high</small></article>
-        <article class="dash-stat-card accent-purple"><span>Decks</span><strong>${flashDecks.length}</strong><small>${cardCount} cards saved</small></article>
-        <article class="dash-stat-card accent-amber"><span>Reaction Best</span><strong>${mini.reactionBest ? `${mini.reactionBest}` : "--"}</strong><small>${mini.reactionBest ? "milliseconds" : "No run yet"}</small></article>
+        <article class="dash-stat-card accent-purple"><span>Total XP</span><strong>${totalXp}</strong><small>${unlockedCount}/${achievements.length} achievements</small></article>
+        <article class="dash-stat-card accent-amber"><span>Decks</span><strong>${flashDecks.length}</strong><small>${cardCount} cards saved</small></article>
+      </div>
+
+      <div class="achievement-strip">
+        ${achievements.map((item) => `
+          <article class="achievement-chip ${item.unlocked ? "is-unlocked" : "is-locked"}">
+            <strong>${item.label}</strong>
+            <span>${item.unlocked ? item.detail : "Locked"}</span>
+          </article>
+        `).join("")}
       </div>
 
       <div class="dashboard-content-grid">
@@ -104,7 +134,7 @@ function renderDashboard(data) {
           </div>
           <div class="dashboard-list">
             ${flashDecks.length
-              ? flashDecks.slice(0, 4).map((deck, i) => `
+              ? flashDecks.slice(0, 3).map((deck, i) => `
                 <div class="answer-option deck-row">
                   <div class="deck-row-head">
                     <div>

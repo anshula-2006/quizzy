@@ -76,10 +76,21 @@ function getDisplayUsername() {
   return session?.user?.name || session?.user?.email || session?.email || "guest";
 }
 
-async function apiRequest(path, options = {}) {
+export async function apiRequest(path, options = {}) {
   if (!API_BASE && window.location.protocol === "file:") return null;
+
+  // Securely intercept all API requests and attach the JWT
+  const session = getSession();
+  const headers = { 
+    "Content-Type": "application/json",
+    ...options.headers 
+  };
+  if (session?.token) {
+    headers["Authorization"] = `Bearer ${session.token}`;
+  }
+
   try {
-    const response = await fetch(`${API_BASE}${path}`, options);
+    const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
     const data = await response.json().catch(() => null);
     if (!response.ok) return null;
     return data;
@@ -88,16 +99,18 @@ async function apiRequest(path, options = {}) {
   }
 }
 
-function postJson(path, payload) {
-  const session = getSession();
-  const headers = { "Content-Type": "application/json" };
-  if (session?.token) {
-    headers["Authorization"] = `Bearer ${session.token}`;
-  }
+export function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
 
+function postJson(path, payload) {
   return apiRequest(path, {
     method: "POST",
-    headers,
     body: JSON.stringify(payload)
   });
 }

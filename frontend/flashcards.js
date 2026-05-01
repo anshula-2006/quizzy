@@ -31,13 +31,14 @@ function init() {
 
   function render() {
     const card = activeDeck.flashcards[currentIndex];
+    const safeFront = String(card.front).replace(/"/g, "&quot;");
     root.innerHTML = `
       <p class="eyebrow">Flashcards</p>
       <h1 class="section-title" style="text-align:center;">${activeDeck.title || "Study Deck"}</h1>
-      <p class="section-copy" style="text-align:center; margin-bottom: 2rem;">Hover your mouse over the card to reveal the answer.</p>
+      <p class="section-copy" style="text-align:center; margin-bottom: 2rem;">Hover or focus the card to reveal the answer.</p>
       
       <div class="fc-board">
-        <div class="fc-container">
+        <div class="fc-container" tabindex="0" role="button" aria-label="Flashcard: ${safeFront}. Focus to reveal answer.">
           <div class="fc-inner">
             <div class="fc-front">
               <span class="fc-badge">Question</span>

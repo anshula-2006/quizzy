@@ -9,16 +9,7 @@ function buildHref(file) {
 }
 
 function applySavedTheme() {
-  const saved = localStorage.getItem(THEME_KEY);
-  if (saved === "dark") document.body.classList.add("dark");
-  if (saved === "light") document.body.classList.remove("dark");
-}
-
-function toggleTheme() {
-  document.body.classList.toggle("dark");
-  localStorage.setItem(THEME_KEY, document.body.classList.contains("dark") ? "dark" : "light");
-  const toggle = document.getElementById("themeToggle");
-  if (toggle) toggle.textContent = document.body.classList.contains("dark") ? "Light" : "Dark";
+  document.body.classList.add("dark");
 }
 
 function renderAuthBar() {
@@ -34,7 +25,6 @@ function renderAuthBar() {
       ${user ? `<span class="global-auth-user">Hi, ${user.name}</span>` : ""}
       ${user ? "" : `<a class="global-auth-link" href="${buildHref("login.html")}">Login</a>`}
       ${user ? "" : `<a class="global-auth-link global-auth-link-strong" href="${buildHref("register.html")}">Register</a>`}
-      <button id="themeToggle" class="theme-toggle" type="button">Dark</button>
       ${user ? `<button class="global-auth-logout" type="button">Logout</button>` : ""}
     </div>
   `;
@@ -44,12 +34,6 @@ function renderAuthBar() {
   bar.querySelector(".global-auth-logout")?.addEventListener("click", () => {
     auth?.logout?.();
   });
-
-  const themeToggle = bar.querySelector("#themeToggle");
-  if (themeToggle) {
-    themeToggle.textContent = document.body.classList.contains("dark") ? "Light" : "Dark";
-    themeToggle.addEventListener("click", toggleTheme);
-  }
 }
 
 applySavedTheme();

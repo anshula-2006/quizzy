@@ -24,12 +24,12 @@
 
 body.dark {
   /* Dark Mode */
-  --bg-main: #0f172a;
-  --bg-card: #1e293b;
-  --bg-hover: #334155;
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --border-main: #334155;
+  --bg-main: #0B1220;
+  --bg-card: #111827;
+  --bg-hover: rgba(255, 255, 255, 0.04);
+  --text-main: #F1F5F9;
+  --text-muted: #9CA3AF;
+  --border-main: rgba(255, 255, 255, 0.08);
   
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
   --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.5);

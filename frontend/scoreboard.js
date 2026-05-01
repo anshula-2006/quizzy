@@ -5,7 +5,6 @@ const authUser = document.getElementById("authUser");
 const loginLink = document.getElementById("loginLink");
 const registerLink = document.getElementById("registerLink");
 const logoutBtn = document.getElementById("logoutBtn");
-const toggle = document.getElementById("themeToggle");
 const scoreboardContent = document.getElementById("scoreboardContent");
 const refreshBoardBtn = document.getElementById("refreshBoardBtn");
 const clearBoardBtn = document.getElementById("clearBoardBtn");
@@ -404,15 +403,6 @@ function renderAuthNav() {
   registerLink?.classList.add("hidden");
 }
 
-function setThemeIcon() {
-  if (!toggle) return;
-  const isDark = document.body.classList.contains("dark");
-  toggle.innerHTML = isDark
-    ? `<span class="theme-toggle-icon" aria-hidden="true">☀</span><span class="theme-toggle-label">Light mode</span>`
-    : `<span class="theme-toggle-icon" aria-hidden="true">☾</span><span class="theme-toggle-label">Dark mode</span>`;
-  toggle.setAttribute("aria-label", isDark ? "Switch to light mode" : "Switch to dark mode");
-}
-
 function escapeHtml(value) {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -604,24 +594,7 @@ async function generateFlashcardsFromAttemptSource(entry) {
 }
 
 function applySavedTheme() {
-  let useDark = true;
-  try {
-    const savedTheme = localStorage.getItem(THEME_KEY);
-    if (savedTheme === "light") useDark = false;
-    if (savedTheme === "dark") useDark = true;
-  } catch {
-    useDark = true;
-  }
-
-  document.body.classList.toggle("dark", useDark);
-}
-
-function persistTheme(isDark) {
-  try {
-    localStorage.setItem(THEME_KEY, isDark ? "dark" : "light");
-  } catch {
-    // Ignore storage write failures.
-  }
+  document.body.classList.add("dark");
 }
 
 function renderProgressExtras(entries) {
@@ -1010,12 +983,6 @@ refreshBoardBtn?.addEventListener("click", async () => {
 clearBoardBtn?.addEventListener("click", clearHistory);
 logoutBtn?.addEventListener("click", () => auth?.logout());
 
-toggle.onclick = () => {
-  document.body.classList.toggle("dark");
-  persistTheme(document.body.classList.contains("dark"));
-  setThemeIcon();
-};
-
 async function bootstrap() {
   if (auth) await auth.me();
   await syncFromCloud();
@@ -1024,5 +991,4 @@ async function bootstrap() {
 }
 
 applySavedTheme();
-setThemeIcon();
 bootstrap();

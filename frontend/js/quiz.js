@@ -183,8 +183,9 @@ function render() {
       button.addEventListener("click", () => saveAnswer(button.dataset.key));
     });
   } else {
+    const safeSelected = String(answer?.selected || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     answerStack.innerHTML = `
-      <textarea class="answer-input" id="shortAnswerInput" placeholder="Type your answer here..." ${answer ? "disabled" : ""}>${answer?.selected || ""}</textarea>
+      <textarea class="answer-input" id="shortAnswerInput" placeholder="Type your answer here..." ${answer ? "disabled" : ""}>${safeSelected}</textarea>
       <button class="btn" id="submitShortBtn" ${answer ? "disabled" : ""}>Lock Answer</button>
     `;
     document.getElementById("submitShortBtn")?.addEventListener("click", () => {

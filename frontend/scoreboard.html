@@ -6,13 +6,7 @@
   <title>Quizzy Leaderboard</title>
   <script>
     (() => {
-      try {
-        const savedTheme = localStorage.getItem("quizzy-theme");
-        const useDark = savedTheme ? savedTheme === "dark" : true;
-        if (useDark) document.documentElement.classList.add("dark-theme-init");
-      } catch {
-        document.documentElement.classList.add("dark-theme-init");
-      }
+      document.documentElement.classList.add("dark-theme-init");
     })();
   </script>
   <link rel="stylesheet" href="./app.css" />
@@ -35,7 +29,6 @@
           <a id="loginLink" class="nav-link" href="./login.html">Login</a>
           <a id="registerLink" class="nav-link" href="./register.html">Register</a>
           <button id="logoutBtn" class="btn-outline hidden" type="button">Logout</button>
-          <button id="themeToggle" aria-label="Toggle theme" style="background:none; color:white; border:none; cursor:pointer;">☾</button>
         </div>
       </header>
 

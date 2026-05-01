@@ -1,6 +1,6 @@
 import API_BASE from "./config.js";
 import auth from "../auth.js";
-import { getSavedQuizHistory, getFlashDecks, getMiniGameStats, saveFlashDecks, setMiniGameStats } from "./shared.js";
+import { getSavedQuizHistory, getFlashDecks, getMiniGameStats, saveFlashDecks, setMiniGameStats, apiRequest, escapeHtml } from "./shared.js";
 
 const root = document.getElementById("dashboardRoot");
 const SESSION_KEY = "quizzy-session-v2";
@@ -19,40 +19,17 @@ function isLoggedIn() {
   return Boolean(getAuthToken());
 }
 
-async function cloudRequest(path, options = {}) {
-  const token = getAuthToken();
-  if (!token) return { ok: false, error: "No session token" };
-  const headers = {
-    Authorization: `Bearer ${token}`,
-    ...(options.headers || {})
-  };
-  const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) return { ok: false, error: data.error || "Cloud request failed" };
-  return { ok: true, data };
-}
-
 function formatDate(value) {
   const dt = new Date(value);
   if (Number.isNaN(dt.getTime())) return "Unknown";
   return dt.toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
-function getCurrentStreak(attempts) {
-  let streak = 0;
-  for (const entry of attempts) {
-    if (Number(entry.percentage || 0) < 70) break;
-    streak += 1;
-  }
-  return streak;
-}
-
 function renderDashboard(data) {
   const attempts = Array.isArray(data?.attempts) ? data.attempts : [];
   const flashDecks = Array.isArray(data?.flashDecks) ? data.flashDecks : [];
   const mini = data?.miniGameStats || {};
-  const profile = data?.profile || {};
-  const recent = attempts.slice(0, 3);
+  const recent = attempts.slice(0, 5);
   const average = attempts.length
     ? Math.round(attempts.reduce((sum, entry) => sum + Number(entry.percentage || 0), 0) / attempts.length)
     : 0;
@@ -60,17 +37,6 @@ function renderDashboard(data) {
     ? Math.max(...attempts.map((entry) => Number(entry.percentage || 0)))
     : 0;
   const cardCount = flashDecks.reduce((sum, deck) => sum + (Array.isArray(deck.flashcards) ? deck.flashcards.length : 0), 0);
-  const streak = getCurrentStreak(attempts);
-  const totalXp = Number(profile.totalXp ?? attempts.reduce((sum, entry) => sum + Math.round(Number(entry.percentage || 0)) + 20, 0));
-  const achievements = [
-    { label: "First Quiz", unlocked: attempts.length >= 1, detail: `${attempts.length} attempts` },
-    { label: "Hot Streak", unlocked: streak >= 3, detail: `${streak} in a row` },
-    { label: "Perfect Shot", unlocked: attempts.some((entry) => Number(entry.percentage || 0) === 100), detail: "100% score" },
-    { label: "Deck Builder", unlocked: flashDecks.length >= 1, detail: `${flashDecks.length} decks` },
-    { label: "Memory Win", unlocked: Number(mini.memoryWins || 0) >= 1, detail: `${Number(mini.memoryWins || 0)} wins` },
-    { label: "Speedster", unlocked: Number(mini.reactionBest || 0) > 0 && Number(mini.reactionBest || 0) <= 350, detail: mini.reactionBest ? `${mini.reactionBest} ms` : "No run" }
-  ];
-  const unlockedCount = achievements.filter((item) => item.unlocked).length;
 
   root.innerHTML = `
     <section class="panel flow-card dashboard-main-card">
@@ -89,17 +55,8 @@ function renderDashboard(data) {
       <div class="dashboard-stat-grid">
         <article class="dash-stat-card accent-blue"><span>Average</span><strong>${average}%</strong><small>${attempts.length || 0} attempts</small></article>
         <article class="dash-stat-card accent-green"><span>Best Score</span><strong>${best}%</strong><small>Personal high</small></article>
-        <article class="dash-stat-card accent-purple"><span>Total XP</span><strong>${totalXp}</strong><small>${unlockedCount}/${achievements.length} achievements</small></article>
-        <article class="dash-stat-card accent-amber"><span>Decks</span><strong>${flashDecks.length}</strong><small>${cardCount} cards saved</small></article>
-      </div>
-
-      <div class="achievement-strip">
-        ${achievements.map((item) => `
-          <article class="achievement-chip ${item.unlocked ? "is-unlocked" : "is-locked"}">
-            <strong>${item.label}</strong>
-            <span>${item.unlocked ? item.detail : "Locked"}</span>
-          </article>
-        `).join("")}
+        <article class="dash-stat-card accent-purple"><span>Decks</span><strong>${flashDecks.length}</strong><small>${cardCount} cards saved</small></article>
+        <article class="dash-stat-card accent-amber"><span>Reaction Best</span><strong>${mini.reactionBest ? `${mini.reactionBest}` : "--"}</strong><small>${mini.reactionBest ? "milliseconds" : "No run yet"}</small></article>
       </div>
 
       <div class="dashboard-content-grid">
@@ -134,12 +91,12 @@ function renderDashboard(data) {
           </div>
           <div class="dashboard-list">
             ${flashDecks.length
-              ? flashDecks.slice(0, 3).map((deck, i) => `
+              ? flashDecks.slice(0, 4).map((deck, i) => `
                 <div class="answer-option deck-row">
                   <div class="deck-row-head">
                     <div>
                       <div class="helper-text">Created ${formatDate(deck.createdAt)}</div>
-                      <strong>${deck.title || "Study Deck"}</strong>
+                  <strong>${escapeHtml(deck.title) || "Study Deck"}</strong>
                     </div>
                     <span class="deck-count">${(deck.flashcards || []).length} cards</span>
                   </div>
@@ -210,7 +167,7 @@ function renderDashboard(data) {
         saveFlashDecks(localDecks);
       }
       if (isLoggedIn() && deck._id) {
-        await cloudRequest(`/data/flash-decks/${deck._id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: deck.title }) });
+        await apiRequest(`/data/flash-decks/${deck._id}`, { method: "PUT", body: JSON.stringify({ title: deck.title }) });
       }
       init();
     });
@@ -225,11 +182,11 @@ function renderDashboard(data) {
 
       // Remove from local storage
       const localDecks = getFlashDecks();
-      saveFlashDecks(localDecks.filter(d => d.id !== deck.id && d._id !== deck._id));
+      saveFlashDecks(localDecks.filter(d => d.id !== deck.id));
 
       // Remove from cloud if logged in
       if (isLoggedIn() && deck._id) {
-        await cloudRequest(`/data/flash-decks/${deck._id}`, { method: "DELETE" });
+        await apiRequest(`/data/flash-decks/${deck._id}`, { method: "DELETE" });
       }
       
       init(); // Re-render the dashboard seamlessly
@@ -237,18 +194,16 @@ function renderDashboard(data) {
   });
 
   document.getElementById("clearHistoryBtn")?.addEventListener("click", async () => {
-    const result = await cloudRequest("/data/attempts", { method: "DELETE" });
-    if (!result.ok) return;
-    const refreshed = await cloudRequest("/data/bootstrap");
-    if (refreshed.ok) renderDashboard(refreshed.data);
+    await apiRequest("/data/attempts", { method: "DELETE" });
+    const refreshed = await apiRequest("/data/bootstrap");
+    if (refreshed) renderDashboard(refreshed);
   });
 
   document.getElementById("clearDashboardBtn")?.addEventListener("click", async () => {
     if (!confirm("This will clear your quiz history, flashcards, mini-game stats, and dashboard progress. Continue?")) return;
-    const result = await cloudRequest("/data/dashboard", { method: "DELETE" });
-    if (!result.ok) return;
-    const refreshed = await cloudRequest("/data/bootstrap");
-    if (refreshed.ok) renderDashboard(refreshed.data);
+    await apiRequest("/data/dashboard", { method: "DELETE" });
+    const refreshed = await apiRequest("/data/bootstrap");
+    if (refreshed) renderDashboard(refreshed);
   });
 
   document.getElementById("deleteUserBtn")?.addEventListener("click", async () => {
@@ -274,18 +229,18 @@ async function init() {
     renderDashboard({ attempts: getSavedQuizHistory(), flashDecks: getFlashDecks(), miniGameStats: getMiniGameStats() });
     return;
   }
-  const result = await cloudRequest("/data/bootstrap");
-  if (!result.ok) {
+  const data = await apiRequest("/data/bootstrap");
+  if (!data) {
     renderDashboard({ attempts: getSavedQuizHistory(), flashDecks: getFlashDecks(), miniGameStats: getMiniGameStats() });
     return;
   }
-  if (result.data?.miniGameStats) {
-    setMiniGameStats(result.data.miniGameStats);
+  if (data.miniGameStats) {
+    setMiniGameStats(data.miniGameStats);
   }
-  if (result.data?.flashDecks) {
-    saveFlashDecks(result.data.flashDecks);
+  if (data.flashDecks) {
+    saveFlashDecks(data.flashDecks);
   }
-  renderDashboard(result.data);
+  renderDashboard(data);
 }
 
 init();

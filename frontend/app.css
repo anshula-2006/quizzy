@@ -28,25 +28,25 @@
 
 body.dark {
   color-scheme: dark;
-  --bg: #08111f;
-  --bg-deep: #050b16;
-  --panel: rgba(9, 18, 34, 0.76);
-  --panel-strong: rgba(12, 22, 40, 0.9);
+  --bg: #0B1220;
+  --bg-deep: #0B1220;
+  --panel: #111827;
+  --panel-strong: #111827;
   --panel-soft: rgba(255, 255, 255, 0.04);
-  --text: #f7fbff;
-  --muted: rgba(214, 226, 255, 0.68);
-  --line: rgba(255, 255, 255, 0.1);
+  --text: #F1F5F9;
+  --muted: #9CA3AF;
+  --line: rgba(255, 255, 255, 0.08);
   --line-strong: rgba(255, 255, 255, 0.16);
-  --purple: #7c3aed;
-  --cyan: #06b6d4;
-  --blue: #38bdf8;
+  --purple: #6366F1;
+  --cyan: #818CF8;
+  --blue: #818CF8;
   --green: #22c55e;
   --red: #f87171;
   --amber: #f59e0b;
   --shadow: 0 28px 90px rgba(2, 6, 23, 0.45);
   --shadow-soft: 0 18px 42px rgba(2, 6, 23, 0.24);
-  --eyebrow: #c4b5fd;
-  --label: #dbeafe;
+  --eyebrow: #818CF8;
+  --label: #F1F5F9;
   --input-bg: rgba(4, 10, 22, 0.72);
   --input-placeholder: rgba(214, 226, 255, 0.48);
 }
@@ -912,9 +912,9 @@ body:not(.dark) .nav-link:hover {
 
 /* Compact Quizzy UI pass */
 :root {
-  --radius-xl: 16px;
-  --radius-lg: 12px;
-  --radius-md: 10px;
+  --radius-xl: 24px;
+  --radius-lg: 18px;
+  --radius-md: 14px;
 }
 
 html {
@@ -939,13 +939,13 @@ html {
   z-index: 30;
   margin-bottom: 16px !important;
   padding: 10px 12px;
-  border-radius: 14px;
+  border-radius: 22px;
 }
 
 .brand-badge {
   width: 38px;
   height: 38px;
-  border-radius: 10px;
+  border-radius: 12px;
 }
 
 .nav-links {
@@ -1148,16 +1148,16 @@ html {
 .dashboard-stat-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-  margin-top: 12px;
+  gap: 10px;
+  margin-top: 18px;
 }
 
 .dash-stat-card {
   display: grid;
-  gap: 4px;
-  padding: 10px 12px;
+  gap: 6px;
+  padding: 14px;
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: 18px;
   background: var(--panel-soft);
 }
 
@@ -1174,47 +1174,8 @@ html {
 }
 
 .dash-stat-card strong {
-  font-size: clamp(1.35rem, 2.2vw, 1.8rem);
+  font-size: clamp(1.55rem, 2.6vw, 2.2rem);
   line-height: 1;
-}
-
-.achievement-strip {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.achievement-chip {
-  min-width: 0;
-  padding: 9px 10px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--panel-soft);
-}
-
-.achievement-chip strong,
-.achievement-chip span {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.achievement-chip strong {
-  font-size: 0.82rem;
-}
-
-.achievement-chip span {
-  margin-top: 2px;
-  color: var(--muted);
-  font-size: 0.74rem;
-  font-weight: 700;
-}
-
-.achievement-chip.is-unlocked {
-  border-color: rgba(34, 197, 94, 0.34);
-  background: linear-gradient(145deg, rgba(34, 197, 94, 0.14), var(--panel-soft));
 }
 
 .accent-blue {
@@ -1236,8 +1197,8 @@ html {
 .dashboard-content-grid {
   display: grid;
   grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
-  gap: 10px;
-  margin-top: 10px;
+  gap: 12px;
+  margin-top: 12px;
 }
 
 .dashboard-list-card {
@@ -1248,8 +1209,8 @@ html {
 
 .dashboard-list {
   display: grid;
-  gap: 6px;
-  max-height: 210px;
+  gap: 8px;
+  max-height: 310px;
   overflow: auto;
   padding-right: 2px;
 }
@@ -1302,8 +1263,8 @@ html {
 
 .dashboard-manage-row {
   justify-content: flex-end;
-  margin-top: 8px;
-  padding-top: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
   border-top: 1px solid var(--line);
 }
 
@@ -1316,7 +1277,7 @@ html {
 .mini-stat-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  gap: 10px;
 }
 
 .mini-stat-grid .setting-card {
@@ -1325,32 +1286,7 @@ html {
 }
 
 .mini-stat-grid strong {
-  font-size: 1.1rem;
-}
-
-.dashboard-main-card,
-.dashboard-side-card {
-  min-height: 0;
-}
-
-.dashboard-side-card {
-  gap: 10px;
-}
-
-.dashboard-side-card .setting-card {
-  border-radius: 10px;
-}
-
-.dashboard-side-card .section-title {
-  font-size: 1.45rem;
-}
-
-@media (min-width: 1101px) {
-  .dashboard-main-card,
-  .dashboard-side-card {
-    max-height: calc(100vh - 98px);
-    overflow: auto;
-  }
+  font-size: 1.35rem;
 }
 
 @media (max-width: 1100px) {
@@ -1397,8 +1333,7 @@ html {
   }
 
   .dashboard-stat-grid,
-  .mini-stat-grid,
-  .achievement-strip {
+  .mini-stat-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -1406,77 +1341,4 @@ html {
   .settings-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-}
-
-/* Strict Quizzy design system */
-:root,
-body.dark {
-  --bg: #0B1220;
-  --bg-deep: #070c16;
-  --panel: #111827;
-  --panel-strong: #111827;
-  --panel-soft: rgba(255, 255, 255, 0.04);
-  --text: #E5E7EB;
-  --muted: #9CA3AF;
-  --line: rgba(255,255,255,0.08);
-  --line-strong: rgba(255,255,255,0.12);
-  --purple: #7C3AED;
-  --cyan: #06B6D4;
-  --green: #22C55E;
-  --red: #F87171;
-  --amber: #F59E0B;
-  --shadow: 0 16px 36px rgba(0, 0, 0, 0.26);
-  --shadow-soft: 0 10px 24px rgba(0, 0, 0, 0.2);
-  --eyebrow: #22C55E;
-  --label: #E5E7EB;
-  --input-bg: rgba(255,255,255,0.04);
-  --input-placeholder: rgba(229, 231, 235, 0.42);
-}
-
-body,
-body:not(.dark) {
-  color: var(--text);
-  background:
-    radial-gradient(circle at 12% 8%, rgba(124, 58, 237, 0.18), transparent 28%),
-    radial-gradient(circle at 88% 10%, rgba(6, 182, 212, 0.12), transparent 24%),
-    linear-gradient(180deg, var(--bg), var(--bg-deep));
-}
-
-.panel,
-body:not(.dark) .panel {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  box-shadow: var(--shadow);
-}
-
-.btn,
-body:not(.dark) .nav-link.is-active,
-body:not(.dark) .nav-link:hover {
-  background: linear-gradient(135deg, #7C3AED, #06B6D4);
-}
-
-.top-nav,
-body:not(.dark) .top-nav,
-.global-auth-bar,
-body:not(.dark) .global-auth-bar {
-  background: rgba(17, 24, 39, 0.78);
-  border-color: var(--line);
-  backdrop-filter: blur(18px);
-}
-
-.setting-card,
-.source-card,
-.stat-card,
-.answer-option,
-.feedback-box,
-.dash-stat-card,
-.achievement-chip,
-.deck-count {
-  background: rgba(255,255,255,0.04);
-  border-color: var(--line);
-}
-
-.achievement-chip.is-unlocked {
-  border-color: rgba(34, 197, 94, 0.38);
-  background: rgba(34, 197, 94, 0.1);
 }

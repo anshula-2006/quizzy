@@ -1,6 +1,6 @@
 import API_BASE from "./js/config.js";
 import auth from "./auth.js";
-import { spawnFloatingXP } from "./js/shared.js";
+import { spawnFloatingXP, apiRequest } from "./js/shared.js";
 
 const input = document.getElementById("inputText");
 const urlInput = document.getElementById("urlInput");
@@ -14,7 +14,6 @@ const evaluationBoard = document.getElementById("evaluationBoard");
 const flashcardsBoard = document.getElementById("flashcardsBoard");
 const badgeCabinet = document.getElementById("badgeCabinet");
 const gameHub = document.getElementById("gameHub");
-const toggle = document.getElementById("themeToggle");
 const authUser = document.getElementById("authUser");
 const loginLink = document.getElementById("loginLink");
 const registerLink = document.getElementById("registerLink");
@@ -259,21 +258,6 @@ function isLoggedIn() {
   return Boolean(getAuthToken());
 }
 
-async function cloudRequest(path, options = {}) {
-  const token = getAuthToken();
-  if (!token) return { ok: false, error: "No session token" };
-  const headers = {
-    Authorization: `Bearer ${token}`,
-    ...(options.headers || {})
-  };
-  const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    return { ok: false, error: data.error || "Cloud request failed" };
-  }
-  return { ok: true, data };
-}
-
 function mergeGuestDataToUser(sessionUser) {
   if (!sessionUser?.email) return;
   const userSuffix = sessionUser.email;
@@ -422,18 +406,18 @@ function renderSaasMeta() {
 
 async function loadCloudDataIntoLocal() {
   if (!isLoggedIn()) return;
-  const result = await cloudRequest("/data/bootstrap");
-  if (!result.ok) return;
-  const attempts = Array.isArray(result.data?.attempts) ? result.data.attempts : [];
-  const savedQuestions = Array.isArray(result.data?.savedQuestions) ? result.data.savedQuestions : [];
-  const flashDecks = Array.isArray(result.data?.flashDecks) ? result.data.flashDecks : [];
-  cloudProfile = result.data?.profile || null;
-  cloudLeaderboard = Array.isArray(result.data?.leaderboard) ? result.data.leaderboard : [];
+  const data = await apiRequest("/data/bootstrap");
+  if (!data) return;
+  const attempts = Array.isArray(data.attempts) ? data.attempts : [];
+  const savedQuestions = Array.isArray(data.savedQuestions) ? data.savedQuestions : [];
+  const flashDecks = Array.isArray(data.flashDecks) ? data.flashDecks : [];
+  cloudProfile = data.profile || null;
+  cloudLeaderboard = Array.isArray(data.leaderboard) ? data.leaderboard : [];
   saveHistory(attempts);
   saveSavedQuestions(savedQuestions);
   saveFlashDecks(flashDecks);
-  if (result.data?.miniGameStats) {
-    saveMiniGameStats(result.data.miniGameStats);
+  if (data.miniGameStats) {
+    saveMiniGameStats(data.miniGameStats);
   }
 }
 
@@ -518,11 +502,6 @@ function setActiveSource(source) {
   sourceHint.textContent = getDefaultHint(source);
   sourceHint.style.color = "";
   updateGenerateButtonState();
-}
-
-function setThemeIcon() {
-  if (!toggle) return;
-  toggle.textContent = document.body.classList.contains("dark") ? "Sun" : "Moon";
 }
 
 function getHistory() {
@@ -964,15 +943,15 @@ async function clearDashboardHistory() {
     return;
   }
 
-  const result = await cloudRequest("/data/attempts", { method: "DELETE" });
-  if (!result.ok) {
+  const result = await apiRequest("/data/attempts", { method: "DELETE" });
+  if (!result) {
     await loadCloudDataIntoLocal();
     renderSaasMeta();
     renderEvaluationBoard();
     renderBadgeCabinet();
     renderGameHub();
     renderSidebar();
-    showToast(result.error || "Could not clear dashboard history.", "error");
+    showToast("Could not clear dashboard history.", "error");
     return;
   }
 
@@ -1127,12 +1106,13 @@ function renderEvaluationBoard() {
   const renderReviewDetail = (idx) => {
     const item = latestAnswers[idx];
     if (!item || !detailNode) return;
+    const safeSelected = String(item.selected || "Not answered").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     const imageBlock = item.image && /^https:\/\/upload\.wikimedia\.org\/.+\.(png|jpg)$/i.test(item.image)
       ? `<div class="explain-image-wrap"><img class="explain-image" src="${item.image}" alt="Review visual" loading="lazy" onerror="this.closest('.explain-image-wrap')?.remove()" /></div>`
       : "";
     detailNode.innerHTML = `
       <p><strong>${item.question}</strong></p>
-      <p>Your answer: ${item.selected || "Not answered"}</p>
+      <p>Your answer: ${safeSelected}</p>
       <p>Correct answer: ${item.correct || "-"}</p>
       <p>${item.explanation || "No explanation saved."}</p>
       ${imageBlock}
@@ -2853,13 +2833,6 @@ pdfInput?.addEventListener("change", () => {
 });
 sourceBtns?.forEach((node) => node.addEventListener("click", () => setActiveSource(node.dataset.source)));
 logoutBtn?.addEventListener("click", () => auth?.logout());
-
-toggle.onclick = () => {
-  document.body.classList.toggle("dark");
-  setThemeIcon();
-};
-
-setThemeIcon();
 wireModeControls();
 setRole("student");
 applyRolePreset("student");

@@ -605,53 +605,38 @@ function renderProgressExtras(entries) {
   const unlocked = badges.filter((badge) => badge.unlocked).length;
 
   return `
-    <section class="card badge-cabinet">
-      <div class="evaluation-head">
+    <section class="panel flow-card badge-cabinet">
+      <div class="evaluation-head" style="margin-bottom: 16px;">
         <div>
-          <h3>Badge Cabinet</h3>
-          <p class="cabinet-note">Your full collection of quiz, mission, and mini-game rewards.</p>
+          <h3 style="font-size: 1.15rem; margin-bottom: 4px;">Badge Cabinet</h3>
+          <p class="cabinet-note">Your full collection.</p>
         </div>
-        <div class="cabinet-score">
-          <strong>${unlocked}/${badges.length}</strong>
-          <span>badges unlocked</span>
+        <div class="cabinet-score" style="text-align: right;">
+          <strong style="font-size: 1.25rem;">${unlocked}/${badges.length}</strong>
         </div>
       </div>
-      <div class="cabinet-meta">
-        <div class="meta-chip">Quiz XP ${game.quizXp}</div>
-        <div class="meta-chip">Bonus XP ${game.bonusXp}</div>
-        <div class="meta-chip">Level ${game.level}</div>
-        <div class="meta-chip">Challenges ${getChallengeProgress().completed.length}</div>
-      </div>
-      <div class="badge-grid">
+      <div class="badge-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
         ${badges.map((badge) => `
-          <article class="badge-card ${badge.unlocked ? "is-unlocked" : "is-locked"} ${badge.rarity}">
-            <span class="badge-icon"><img src="${badge.icon}" alt="${badge.label}" loading="lazy" /></span>
-            <strong>${badge.label}</strong>
-            <small>${badge.unlocked ? `${badge.rarity.toUpperCase()} reward unlocked` : badge.hint}</small>
+          <article class="badge-card ${badge.unlocked ? "is-unlocked" : "is-locked"} ${badge.rarity}" style="min-height: auto; padding: 12px;">
+            <span class="badge-icon" style="width: 44px; height: 44px; margin-bottom: 8px;"><img src="${badge.icon}" alt="${badge.label}" loading="lazy" style="width: 24px; height: 24px;" /></span>
+            <strong style="font-size: 0.9rem;">${badge.label}</strong>
+            <small style="display: block; font-size: 0.75rem; line-height: 1.4; margin-top: 4px;">${badge.unlocked ? `Unlocked` : badge.hint}</small>
           </article>
         `).join("")}
       </div>
     </section>
-    <section class="card mini-games-shell">
-      <div class="evaluation-head">
+    <section class="panel flow-card mini-games-shell">
+      <div class="evaluation-head" style="margin-bottom: 16px;">
         <div>
-          <h3>Mini-Game Stats</h3>
-          <p class="cabinet-note">A snapshot of the fun side of your study progress.</p>
+          <h3 style="font-size: 1.15rem; margin-bottom: 4px;">Mini-Game Stats</h3>
+          <p class="cabinet-note">A snapshot of arcade progress.</p>
         </div>
       </div>
-      <div class="evaluation-stats">
-        <div class="card"><p>Memory Wins</p><h4>${game.gameStats.memoryWins}</h4></div>
-        <div class="card"><p>Best Moves</p><h4>${game.gameStats.memoryBestMoves || "--"}</h4></div>
-        <div class="card"><p>Best Time</p><h4>${game.gameStats.memoryBestTime ? `${game.gameStats.memoryBestTime}s` : "--"}</h4></div>
-        <div class="card"><p>Reaction Best</p><h4>${game.gameStats.reactionBest ? `${game.gameStats.reactionBest} ms` : "--"}</h4></div>
-        <div class="card"><p>Reaction Runs</p><h4>${game.gameStats.reactionRuns}</h4></div>
-        <div class="card"><p>Recall Best</p><h4>${game.gameStats.recallBestLevel || "--"}</h4></div>
-        <div class="card"><p>Recall Runs</p><h4>${game.gameStats.recallRuns}</h4></div>
-      </div>
-      <div class="cabinet-meta">
-        <div class="meta-chip">Study Ninja ${getSessionActivity().quizDone && getSessionActivity().flashcardsDone && getSessionActivity().miniGameDone ? "Unlocked" : "In progress"}</div>
-        <div class="meta-chip">Flash Decks ${getFlashDecks().length}</div>
-        <div class="meta-chip">Bonus XP ${game.bonusXp}</div>
+      <div class="evaluation-stats" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
+        <div class="stat-box"><p>Memory Wins</p><h4>${game.gameStats.memoryWins}</h4></div>
+        <div class="stat-box"><p>Best Moves</p><h4>${game.gameStats.memoryBestMoves || "--"}</h4></div>
+        <div class="stat-box"><p>Reaction Best</p><h4>${game.gameStats.reactionBest ? `${game.gameStats.reactionBest}ms` : "--"}</h4></div>
+        <div class="stat-box"><p>Recall Best</p><h4>${game.gameStats.recallBestLevel || "--"}</h4></div>
       </div>
     </section>
   `;
@@ -670,55 +655,43 @@ function renderBoard() {
 
   const leaderboardMarkup = cloudLeaderboard.length
     ? `
-      <section class="card scoreboard-table-wrap">
-        <div class="table-header-block">
-          <h3>Global Leaderboard</h3>
+      <section class="panel flow-card scoreboard-table-wrap">
+        <div class="table-header-block" style="margin-bottom: 12px;">
+          <h3 style="font-size: 1.15rem;">Global Leaderboard</h3>
           <p>Top players ranked by total points and XP.</p>
         </div>
-        <div class="modern-table">
-          <div class="modern-table-header">
-            <div class="col-rank">Rank</div>
-            <div class="col-player">Player</div>
-            <div class="col-score">Score</div>
-            <div class="col-meta">Stats</div>
-          </div>
+        <div class="dashboard-list">
           ${paginatedLeaderboard.map((player, idx) => {
             const rank = player.rank || ((currentLeaderboardPage - 1) * LEADERBOARD_PAGE_SIZE + idx + 1);
             return `
-            <div class="modern-table-row fade-in" style="animation-delay: ${idx * 0.05}s">
-              <div class="col-rank">
-                <span class="rank-badge ${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other'}">#${rank}</span>
+            <div class="answer-option fade-in" style="display: flex; align-items: center; gap: 12px; padding: 12px; min-height: 60px; animation-delay: ${idx * 0.05}s">
+              <span class="rank-badge ${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other'}" style="min-height: 32px; padding: 0 10px;">#${rank}</span>
+              <div style="flex: 1; min-width: 0;">
+                <strong style="display:block; color:var(--text); font-size:0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${player.name}</strong>
+                <span style="font-size:0.8rem; color:var(--muted);">${player.totalXp} XP • 🔥 ${player.currentStreak}</span>
               </div>
-              <div class="col-player">
-                <strong>${player.name}</strong>
-              </div>
-              <div class="col-score">
-                <span class="score-pill">${player.leaderboardScore} pts</span>
-              </div>
-              <div class="col-meta">
-                ${player.totalXp} XP <span class="streak-icon" title="Streak">🔥 ${player.currentStreak}</span>
-              </div>
+              <span class="score-pill" style="min-height: 32px; padding: 0 10px; font-size: 0.8rem;">${player.leaderboardScore}</span>
             </div>
           `}).join("")}
         </div>
         ${totalLeaderboardPages > 1 ? `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px;">
-          <button class="ghost leaderboard-prev-btn" ${currentLeaderboardPage === 1 ? "disabled" : ""}>Previous</button>
-          <span class="helper-text">Page ${currentLeaderboardPage} of ${totalLeaderboardPages}</span>
+          <button class="ghost leaderboard-prev-btn" style="min-height: 36px; padding: 0 12px;" ${currentLeaderboardPage === 1 ? "disabled" : ""}>Prev</button>
+          <span class="helper-text">${currentLeaderboardPage} / ${totalLeaderboardPages}</span>
           <button class="ghost leaderboard-next-btn" ${currentLeaderboardPage === totalLeaderboardPages ? "disabled" : ""}>Next</button>
         </div>
         ` : ""}
       </section>
     `
-    : `<div class="card empty-state"><h3>No Leaderboard Data</h3><p>Be the first to get on the board!</p></div>`;
+    : `<div class="panel flow-card empty-state"><h3>No Leaderboard Data</h3><p>Be the first to get on the board!</p></div>`;
 
   if (!entries.length) {
     scoreboardContent.innerHTML = `
-      <div class="card evaluation-empty">
+      <div class="panel flow-card evaluation-empty">
         <h3>No Data Yet</h3>
         <p>${isLoggedIn() ? "Take at least one quiz from the home page to populate your scoreboard." : "Log in or register first, then your quiz and arcade progress will start saving here."}</p>
       </div>
-      ${cloudProfile ? `<div class="card"><h3>Cloud Profile</h3><p>Total Points: ${cloudProfile.totalPoints || 0} | Total XP: ${cloudProfile.totalXp || 0} | Best Streak: ${cloudProfile.bestStreak || 0}</p></div>` : ""}
+      ${cloudProfile ? `<div class="panel flow-card"><h3>Cloud Profile</h3><p>Total Points: ${cloudProfile.totalPoints || 0} | Total XP: ${cloudProfile.totalXp || 0} | Best Streak: ${cloudProfile.bestStreak || 0}</p></div>` : ""}
       ${leaderboardMarkup}
       ${renderProgressExtras(entries)}
     `;
@@ -735,138 +708,130 @@ function renderBoard() {
   const game = getGamification(entries);
 
   scoreboardContent.innerHTML = `
-    <section class="scoreboard-grid">
-      <div class="card">
-        <div class="score-hero">
-          <div class="score-ring" style="--p:${latest}">
-            <strong>${latest}%</strong>
-            <span>Latest</span>
-          </div>
-          <div class="score-meta">
-            <div class="meta-chip">${getBandLabel(latest)}</div>
-            <div class="meta-chip muted">Avg ${avg}%</div>
-            <div class="meta-chip muted">Best ${best}%</div>
-            <div class="meta-chip muted">Lvl ${game.level}</div>
-            <div class="meta-chip ${trend.delta > 0 ? "up" : trend.delta < 0 ? "down" : "flat"}">${trend.label}</div>
-          </div>
-        </div>
-        <div class="score-spark">
-          ${chartData.map((e, i) => `
-            <div class="spark-col" title="Attempt ${i + 1}: ${e.percentage}%">
-              <div class="spark-bar" style="height:${Math.max(12, Math.min(100, e.percentage || 0))}%"></div>
-              <span>${e.percentage}%</span>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; align-items: start;">
+      <!-- Column 1: Performance & Stats -->
+      <div style="display: grid; gap: 24px; align-content: start;">
+        <div class="panel flow-card">
+          <div class="score-hero">
+            <div class="score-ring" style="--p:${latest}">
+              <strong>${latest}%</strong>
+              <span>Latest</span>
             </div>
-          `).join("")}
-        </div>
-        <div class="analysis-card">
-          <strong>Feedback</strong>
-          <p>${getFeedback(entries)}</p>
-        </div>
-        <div class="analysis-card">
-          <strong>Gamification</strong>
-          <p>${game.totalXp} XP earned. Level ${game.level} with ${game.progress}% progress to the next level.</p>
-          <div class="xp-progress"><span style="width:${game.progress}%"></span></div>
-          <p>${game.badges.length ? game.badges.map((badge) => badge.label).join(" | ") : "No badges unlocked yet."}</p>
-        </div>
-      </div>
-      <div class="card">
-        <h3>Quick Stats</h3>
-        <div class="evaluation-stats">
-          <div class="stat-box"><p>Total XP</p><h4>${cloudProfile?.totalXp ?? game.totalXp}</h4></div>
-          <div class="stat-box"><p>Total Points</p><h4>${cloudProfile?.totalPoints ?? 0}</h4></div>
-          <div class="stat-box"><p>Level</p><h4>${game.level}</h4></div>
-          <div class="stat-box"><p>Total Quizzes</p><h4>${entries.length}</h4></div>
-          <div class="stat-box"><p>Current Streak</p><h4>${cloudProfile?.currentStreak ?? streak}</h4></div>
-          <div class="stat-box"><p>Best Score</p><h4>${best}%</h4></div>
-          <div class="stat-box"><p>Average</p><h4>${avg}%</h4></div>
-        </div>
-      </div>
-    </section>
-    <section class="card scoreboard-table-wrap">
-      <div class="table-header-block">
-        <h3>Recent Attempts</h3>
-      </div>
-      <div class="modern-table">
-        ${recent.map((e) => `
-          <div class="modern-table-row">
-            <div class="col-date">${formatShortDate(e.createdAt)}</div>
-            <div class="col-score"><strong>${e.score}/${e.total}</strong> (${e.percentage}%)</div>
-            <div class="col-details">
-              <span class="settings-pill">${(e.settings?.difficulty || "mod").toUpperCase()}</span>
-              <span class="settings-pill">+${getAttemptXp(e)} XP</span>
+            <div class="score-meta">
+              <div class="meta-chip">${getBandLabel(latest)}</div>
+              <div class="meta-chip muted">Avg ${avg}%</div>
+              <div class="meta-chip muted">Best ${best}%</div>
+              <div class="meta-chip muted">Lvl ${game.level}</div>
+              <div class="meta-chip ${trend.delta > 0 ? "up" : trend.delta < 0 ? "down" : "flat"}">${trend.label}</div>
             </div>
           </div>
-        `).join("")}
+          <div class="score-spark" style="margin-top: 24px;">
+            ${chartData.map((e, i) => `
+              <div class="spark-col" title="Attempt ${i + 1}: ${e.percentage}%">
+                <div class="spark-bar" style="height:${Math.max(12, Math.min(100, e.percentage || 0))}%"></div>
+                <span>${e.percentage}%</span>
+              </div>
+            `).join("")}
+          </div>
+          <div class="analysis-card" style="margin-top: 24px;">
+            <strong>Feedback</strong>
+            <p>${getFeedback(entries)}</p>
+          </div>
+          <div class="analysis-card" style="margin-top: 12px;">
+            <strong>Gamification</strong>
+            <p>${game.totalXp} XP earned. Level ${game.level} with ${game.progress}% progress to the next level.</p>
+            <div class="xp-progress" style="margin: 12px 0;"><span style="width:${game.progress}%"></span></div>
+            <p>${game.badges.length ? game.badges.map((badge) => badge.label).join(" | ") : "No badges unlocked yet."}</p>
+          </div>
+        </div>
+        <div class="panel flow-card">
+          <h3 style="margin-bottom: 16px; font-size: 1.15rem;">Quick Stats</h3>
+          <div class="evaluation-stats" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
+            <div class="stat-box"><p>Total XP</p><h4>${cloudProfile?.totalXp ?? game.totalXp}</h4></div>
+            <div class="stat-box"><p>Points</p><h4>${cloudProfile?.totalPoints ?? 0}</h4></div>
+            <div class="stat-box"><p>Level</p><h4>${game.level}</h4></div>
+            <div class="stat-box"><p>Quizzes</p><h4>${entries.length}</h4></div>
+            <div class="stat-box"><p>Streak</p><h4>${cloudProfile?.currentStreak ?? streak}</h4></div>
+            <div class="stat-box"><p>Best</p><h4>${best}%</h4></div>
+          </div>
+        </div>
       </div>
-    </section>
-    <section class="scoreboard-grid">
-      <div class="card">
-        <div class="table-header-block">
-          <h3>Question Review</h3>
-          <p>Explanation and answer breakdown from any saved attempt.</p>
-        </div>
-        <div class="attempt-review-rail">
-          ${entries.slice(0, 10).map((entry, index) => `
-            <button class="attempt-review-btn ${index === activeReviewAttemptIndex ? "active" : ""}" data-attempt-index="${index}" type="button">
-              <span>${formatShortDate(entry.createdAt)}</span>
-              <strong>${entry.percentage || 0}%</strong>
-            </button>
-          `).join("")}
-        </div>
-        <div class="review-rail">
-          ${reviewAnswers.length
-            ? reviewAnswers.map((answer, index) => `
-              <button class="review-q-btn ${answer.isCorrect ? "good" : "bad"}" data-review-index="${index}" type="button">
-                Q${index + 1}
+      <!-- Column 2: Review & Attempts -->
+      <div style="display: grid; gap: 24px; align-content: start;">
+        <div class="panel flow-card">
+          <div class="table-header-block">
+            <h3>Question Review</h3>
+            <p>Explanation and answer breakdown.</p>
+          </div>
+          <div class="attempt-review-rail">
+            ${entries.slice(0, 10).map((entry, index) => `
+              <button class="attempt-review-btn ${index === activeReviewAttemptIndex ? "active" : ""}" data-attempt-index="${index}" type="button" style="min-width: 100px;">
+                <span>${formatShortDate(entry.createdAt).split(",")[0]}</span>
+                <strong>${entry.percentage || 0}%</strong>
               </button>
-            `).join("")
-            : `<p class="cabinet-note">No question review is available for this attempt yet.</p>`}
-        </div>
-        <div id="reviewDetail" class="review-detail">
-          ${reviewAnswers.length ? "Select a question to view the explanation." : "Question explanations will appear here after you complete a quiz."}
-        </div>
-      </div>
-      <div class="card">
-        <div class="table-header-block">
-          <h3>Review Tools</h3>
-          <p>${reviewEntry?.sourceType === "pdf" ? "PDF" : "Quiz"} study actions for the selected attempt.</p>
-        </div>
-        <div class="source-status-card ${sourceStatus.level}">
-          <strong>${sourceStatus.label}</strong>
-          <p>${sourceStatus.message}</p>
-        </div>
-        <div class="scoreboard-tool-actions">
-          <button id="saveAttemptQuestionsBtn" class="ghost" type="button" ${reviewAnswers.length ? "" : "disabled"}>Save Questions</button>
-          <button id="generateAttemptFlashcardsBtn" class="ghost" type="button" ${reviewEntry ? "" : "disabled"}>Generate Flashcards</button>
-          <button id="downloadReviewBtn" class="ghost" type="button" ${reviewAnswers.length ? "" : "disabled"}>Download Review</button>
-          <button id="downloadFlashcardsBtn" class="ghost" type="button" ${flashDecks.length ? "" : "disabled"}>Download Flashcards</button>
-        </div>
-        <div class="evaluation-stats">
-          <div class="stat-box"><p>Score</p><h4>${reviewEntry?.score || 0}/${reviewEntry?.total || 0}</h4></div>
-          <div class="stat-box"><p>Accuracy</p><h4>${reviewEntry?.percentage || 0}%</h4></div>
-          <div class="stat-box"><p>Reviewed</p><h4>${reviewAnswers.length}</h4></div>
-          <div class="stat-box"><p>Wrong</p><h4>${reviewAnswers.filter((answer) => !answer?.isCorrect).length}</h4></div>
-          <div class="stat-box"><p>Saved Questions</p><h4>${savedQuestions.length}</h4></div>
-          <div class="stat-box"><p>Flash Decks</p><h4>${flashDecks.length}</h4></div>
-        </div>
-        <div class="table-header-block">
-          <h3>Saved Study Library</h3>
-          <p>Quick access to the questions and flashcards you have built from attempts.</p>
-        </div>
-        <div class="scoreboard-library">
-          <div class="library-card">
-            <strong>Saved Questions</strong>
-            <p>${savedQuestions.length ? `${savedQuestions.length} question(s) ready for revision.` : "No saved questions yet."}</p>
+            `).join("")}
           </div>
-          <div class="library-card">
-            <strong>Flashcard Decks</strong>
-            <p>${flashDecks.length ? `${flashDecks[0]?.title || "Latest deck"} available for study.` : "No flashcard deck generated yet."}</p>
+          <div class="review-rail">
+            ${reviewAnswers.length
+              ? reviewAnswers.map((answer, index) => `
+                <button class="review-q-btn ${answer.isCorrect ? "good" : "bad"}" data-review-index="${index}" type="button">
+                  Q${index + 1}
+                </button>
+              `).join("")
+              : `<p class="cabinet-note">No question review is available for this attempt yet.</p>`}
+          </div>
+          <div id="reviewDetail" class="review-detail" style="margin-top: 16px;">
+            ${reviewAnswers.length ? "Select a question to view the explanation." : "Question explanations will appear here after you complete a quiz."}
           </div>
         </div>
+
+        <div class="panel flow-card">
+          <div class="table-header-block">
+            <h3>Review Tools</h3>
+            <p>Study actions for the selected attempt.</p>
+          </div>
+          <div class="source-status-card ${sourceStatus.level}">
+            <strong>${sourceStatus.label}</strong>
+            <p>${sourceStatus.message}</p>
+          </div>
+          <div class="scoreboard-tool-actions">
+            <button id="saveAttemptQuestionsBtn" class="ghost" type="button" ${reviewAnswers.length ? "" : "disabled"} style="flex:1;">Save Qs</button>
+            <button id="generateAttemptFlashcardsBtn" class="ghost" type="button" ${reviewEntry ? "" : "disabled"} style="flex:1;">Flashcards</button>
+          </div>
+          <div class="scoreboard-tool-actions" style="margin-top: 12px;">
+            <button id="downloadReviewBtn" class="ghost" type="button" ${reviewAnswers.length ? "" : "disabled"} style="flex:1;">DL Review</button>
+            <button id="downloadFlashcardsBtn" class="ghost" type="button" ${flashDecks.length ? "" : "disabled"} style="flex:1;">DL Cards</button>
+          </div>
+        </div>
+
+        <section class="panel flow-card">
+          <div class="table-header-block" style="margin-bottom: 12px;">
+            <h3>Recent Attempts</h3>
+            <p>Your latest runs.</p>
+          </div>
+          <div class="dashboard-list" style="max-height: 380px;">
+            ${recent.map((e) => `
+              <div class="answer-option compact-row" style="padding: 12px; align-items: center; gap: 12px;">
+                <div class="score-tile">
+                  <span style="font-size:0.7rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em;">Score</span>
+                  <strong style="color:var(--text); font-size:1.15rem;">${e.percentage}%</strong>
+                </div>
+                <div>
+                  <div style="color:var(--text); font-weight:600; font-size:0.9rem;">${e.score}/${e.total} Correct</div>
+                  <div class="helper-text" style="margin-top:2px;">${formatShortDate(e.createdAt)} • ${(e.settings?.difficulty || "mod").toUpperCase()}</div>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        </section>
       </div>
-    </section>
-    ${leaderboardMarkup}
-    ${renderProgressExtras(entries)}
+
+      <!-- Column 3: Leaderboard & Games -->
+      <div style="display: grid; gap: 24px; align-content: start;">
+        ${leaderboardMarkup}
+        ${renderProgressExtras(entries)}
+      </div>
+    </div>
   `;
 
   const detailNode = document.getElementById("reviewDetail");

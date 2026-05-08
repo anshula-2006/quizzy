@@ -211,9 +211,9 @@ function renderDashboard(data) {
 
       <section class="hero-stats-grid">
         ${statCard("Quizzes", attempts.length || Number(profile?.totalQuizzes || 0), "total attempts")}
-        ${statCard("Accuracy", \`\${avg}%\`, \`\${best}% best\`)}
-        ${statCard("Flashcards", cardCount, \`\${flashDecks.length} decks\`)}
-        ${statCard("Badges", unlockedBadges.length, \`\${badges.length} available\`)}
+        ${statCard("Accuracy", `${avg}%`, `${best}% best`)}
+        ${statCard("Flashcards", cardCount, `${flashDecks.length} decks`)}
+        ${statCard("Badges", unlockedBadges.length, `${badges.length} available`)}
       </section>
 
       <div class="dashboard-content-grid">

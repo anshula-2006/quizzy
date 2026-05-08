@@ -545,7 +545,7 @@ function addSavedQuestion(item) {
   items.unshift(item);
   saveSavedQuestions(items);
   if (isLoggedIn()) {
-    cloudRequest("/data/saved-questions", {
+    apiRequest("/data/saved-questions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(item)
@@ -575,7 +575,7 @@ function addFlashDeck(deck) {
   saveFlashDecks(decks);
   markSessionActivity("flashcardsDone");
   if (isLoggedIn()) {
-    cloudRequest("/data/flash-decks", {
+    apiRequest("/data/flash-decks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(deck)
@@ -2620,7 +2620,7 @@ function buildSubmissionAnswers() {
 async function submitQuizAttempt() {
   if (!isLoggedIn() || !activeQuizId) return null;
 
-  const response = await cloudRequest("/submit-quiz", {
+  const response = await apiRequest("/submit-quiz", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -2632,11 +2632,11 @@ async function submitQuizAttempt() {
     })
   });
 
-  if (!response.ok) {
-    throw new Error(response.error || "Failed to submit quiz");
+  if (!response) {
+    throw new Error("Failed to submit quiz");
   }
 
-  return response.data;
+  return response;
 }
 
 function autoSaveQuestionsFromEntry(entry) {

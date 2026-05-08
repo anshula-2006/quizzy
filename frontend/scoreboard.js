@@ -600,23 +600,33 @@ function applySavedTheme() {
 }
 
 function renderProgressExtras(entries) {
-  const badges = getBadgeCatalog(entries);
   const game = getGamification(entries);
-  const unlocked = badges.filter((badge) => badge.unlocked).length;
 
   return `
-    <section class="panel flow-card mini-games-shell">
-      <div class="evaluation-head" style="margin-bottom: 16px;">
+    <section class="panel flow-card mini-games-shell" style="padding: 24px;">
+      <div class="evaluation-head" style="margin-bottom: 20px;">
         <div>
-          <h3 style="font-size: 1.15rem; margin-bottom: 4px;">Mini-Game Stats</h3>
-          <p class="cabinet-note">A snapshot of arcade progress.</p>
+          <h3 style="font-size: 1.2rem; font-weight: 600; margin-bottom: 4px; color: var(--text);">Arcade Stats</h3>
+          <p class="cabinet-note" style="font-size: 0.85rem; color: var(--muted); margin: 0;">A snapshot of mini-game progress.</p>
         </div>
       </div>
-      <div class="evaluation-stats" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
-        <div class="stat-box"><p>Memory Wins</p><h4>${game.gameStats.memoryWins}</h4></div>
-        <div class="stat-box"><p>Best Moves</p><h4>${game.gameStats.memoryBestMoves || "--"}</h4></div>
-        <div class="stat-box"><p>Reaction Best</p><h4>${game.gameStats.reactionBest ? `${game.gameStats.reactionBest}ms` : "--"}</h4></div>
-        <div class="stat-box"><p>Recall Best</p><h4>${game.gameStats.recallBestLevel || "--"}</h4></div>
+      <div class="evaluation-stats" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+        <div class="saas-stat-card" style="padding: 12px; border-radius: 8px;">
+          <span class="saas-stat-label">Memory Wins</span>
+          <strong class="saas-stat-value" style="font-size: 1.2rem;">${game.gameStats.memoryWins || 0}</strong>
+        </div>
+        <div class="saas-stat-card" style="padding: 12px; border-radius: 8px;">
+          <span class="saas-stat-label">Best Moves</span>
+          <strong class="saas-stat-value" style="font-size: 1.2rem;">${game.gameStats.memoryBestMoves || "--"}</strong>
+        </div>
+        <div class="saas-stat-card" style="padding: 12px; border-radius: 8px;">
+          <span class="saas-stat-label">Reaction</span>
+          <strong class="saas-stat-value" style="font-size: 1.2rem;">${game.gameStats.reactionBest ? `${game.gameStats.reactionBest}ms` : "--"}</strong>
+        </div>
+        <div class="saas-stat-card" style="padding: 12px; border-radius: 8px;">
+          <span class="saas-stat-label">Recall Best</span>
+          <strong class="saas-stat-value" style="font-size: 1.2rem;">${game.gameStats.recallBestLevel || "--"}</strong>
+        </div>
       </div>
     </section>
   `;
@@ -641,7 +651,7 @@ function renderBoard() {
   const leaderboardMarkup = cloudLeaderboard.length
     ? `
       <section class="panel flow-card scoreboard-table-wrap" style="padding: 24px; border: 1px solid var(--border-main);">
-        <div class="table-header-block" style="margin-bottom: 20px; text-align: center; border-bottom: none; padding: 0;">
+        <div class="table-header-block" style="margin-bottom: 24px; text-align: center; border-bottom: none; padding: 0;">
           <h3 style="font-size: 1.3rem; font-weight: 600; color: var(--text);">Global Leaderboard</h3>
           <p style="color: var(--muted); font-size: 0.85rem; margin-top: 4px;">Top players ranked by total points and XP.</p>
         </div>
@@ -649,70 +659,78 @@ function renderBoard() {
         ${hasPodium ? `
         <div class="podium-wrapper fade-in">
           <div class="podium-step rank-2">
-            <div class="podium-avatar">🥈</div>
-            <div class="podium-name">${p2.name || 'Player'}</div>
-            <div class="podium-score">${p2.leaderboardScore || 0}</div>
+            <div class="podium-avatar" style="font-size: 1.5rem; background: var(--panel-soft); width: 48px; height: 48px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--line);">2</div>
+            <div class="podium-name">${escapeHtml(p2.name || 'Player')}</div>
+            <div class="podium-score">${p2.leaderboardScore || 0} pts</div>
             <div class="podium-bar"></div>
           </div>
           <div class="podium-step rank-1">
-            <div class="podium-avatar glow">🥇</div>
-            <div class="podium-name">${p1.name || 'Player'}</div>
-            <div class="podium-score">${p1.leaderboardScore || 0}</div>
+            <div class="podium-avatar glow" style="font-size: 1.8rem; background: #ededed; color: #000; width: 64px; height: 64px; display: grid; place-items: center; border-radius: 50%;">1</div>
+            <div class="podium-name" style="font-weight: 800;">${escapeHtml(p1.name || 'Player')}</div>
+            <div class="podium-score">${p1.leaderboardScore || 0} pts</div>
             <div class="podium-bar"></div>
           </div>
           <div class="podium-step rank-3">
-            <div class="podium-avatar">🥉</div>
-            <div class="podium-name">${p3.name || 'Player'}</div>
-            <div class="podium-score">${p3.leaderboardScore || 0}</div>
+            <div class="podium-avatar" style="font-size: 1.5rem; background: var(--panel-soft); width: 48px; height: 48px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--line);">3</div>
+            <div class="podium-name">${escapeHtml(p3.name || 'Player')}</div>
+            <div class="podium-score">${p3.leaderboardScore || 0} pts</div>
             <div class="podium-bar"></div>
           </div>
         </div>
         ` : ""}
 
-        <div class="compact-leaderboard-list custom-scrollbar">
+        <div class="compact-leaderboard-list custom-scrollbar" style="margin-top: 16px;">
           ${paginatedLeaderboard.map((player, idx) => {
             const rank = player.rank || ((currentLeaderboardPage - 1) * LEADERBOARD_PAGE_SIZE + idx + 1);
             if (hasPodium && rank <= 3) return ""; 
             
-            let rankIcon = `#${rank}`;
-            if (rank === 1) rankIcon = "🥇";
-            if (rank === 2) rankIcon = "🥈";
-            if (rank === 3) rankIcon = "🥉";
+            const isMe = (player.email === auth?.getSession?.()?.email);
 
             return `
-            <div class="lb-row fade-in" style="animation-delay: ${idx * 0.04}s">
-              <div class="lb-rank ${rank <= 3 ? 'top-rank' : ''}">${rankIcon}</div>
+            <div class="lb-row fade-in ${isMe ? 'is-me' : ''}" style="animation-delay: ${idx * 0.04}s">
+              <div class="lb-rank ${rank <= 3 ? 'top-rank' : ''}">${rank}</div>
               <div class="lb-details">
-                <strong class="lb-name">${player.name}</strong>
+                <strong class="lb-name">${escapeHtml(player.name)} ${isMe ? '<span style="font-size:0.7rem; background:var(--text); color:var(--bg); padding:2px 6px; border-radius:4px; margin-left:6px;">You</span>' : ''}</strong>
                 <span class="lb-meta">${player.totalXp} XP • 🔥 ${player.currentStreak}</span>
               </div>
-              <div class="lb-score">${player.leaderboardScore} <span style="font-size: 0.7rem; color: var(--muted); font-weight: normal; -webkit-text-fill-color: initial;">pts</span></div>
+              <div class="lb-score">${player.leaderboardScore} <span style="font-size: 0.7rem; color: var(--muted); font-weight: normal;">pts</span></div>
             </div>
           `}).join("")}
         </div>
         ${totalLeaderboardPages > 1 ? `
-        <div class="lb-pagination">
-          <button class="ghost leaderboard-prev-btn" style="min-height: 32px; padding: 0 12px; font-size: 0.8rem;" ${currentLeaderboardPage === 1 ? "disabled" : ""}>Prev</button>
-          <span class="helper-text" style="font-size: 0.8rem;">${currentLeaderboardPage} / ${totalLeaderboardPages}</span>
+        <div class="lb-pagination" style="border-top: 1px solid var(--line); margin-top: 16px; padding-top: 16px;">
+          <button class="ghost leaderboard-prev-btn" style="min-height: 32px; padding: 0 12px; font-size: 0.8rem;" ${currentLeaderboardPage === 1 ? "disabled" : ""}>Previous</button>
+          <span class="helper-text" style="font-size: 0.8rem;">Page ${currentLeaderboardPage} of ${totalLeaderboardPages}</span>
           <button class="ghost leaderboard-next-btn" style="min-height: 32px; padding: 0 12px; font-size: 0.8rem;" ${currentLeaderboardPage === totalLeaderboardPages ? "disabled" : ""}>Next</button>
         </div>
         ` : ""}
       </section>
     `
-    : `<div class="panel flow-card empty-state" style="padding: 32px; text-align: center;">
-         <h3 style="font-size: 1.2rem; margin-bottom: 8px;">No Leaderboard Data</h3>
-         <p style="color: var(--muted); font-size: 0.9rem;">Be the first to get on the board!</p>
+    : `<div class="panel flow-card empty-state" style="padding: 48px 32px; text-align: center;">
+         <div style="width: 48px; height: 48px; background: var(--panel-soft); border-radius: 50%; display: grid; place-items: center; margin: 0 auto 16px; border: 1px solid var(--line);">
+           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+         </div>
+         <h3 style="font-size: 1.25rem; margin: 0 0 8px; font-weight: 600;">No rankings yet</h3>
+         <p style="color: var(--muted); font-size: 0.9rem; max-width: 300px; margin: 0 auto;">The leaderboard is currently empty. Complete your first quiz to set the benchmark and claim the #1 spot.</p>
        </div>`;
 
   if (!entries.length) {
     scoreboardContent.innerHTML = `
-      <div class="panel flow-card evaluation-empty">
-        <h3>No Data Yet</h3>
-        <p>${isLoggedIn() ? "Take at least one quiz from the home page to populate your scoreboard." : "Log in or register first, then your quiz and arcade progress will start saving here."}</p>
+      <div class="dashboard-content-grid" style="grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);">
+        <div style="display: grid; gap: 24px; align-content: start;">
+          <div class="panel flow-card empty-state" style="padding: 48px 32px; text-align: center; border: 1px dashed var(--line);">
+            <div style="width: 48px; height: 48px; background: var(--panel-soft); border-radius: 50%; display: grid; place-items: center; margin: 0 auto 16px; border: 1px solid var(--line);">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            </div>
+            <h3 style="font-size: 1.25rem; margin: 0 0 8px; font-weight: 600;">No Performance Data</h3>
+            <p style="color: var(--muted); font-size: 0.9rem; max-width: 300px; margin: 0 auto;">${isLoggedIn() ? "Take at least one quiz from the home page to populate your scoreboard." : "Log in or register first, then your quiz and arcade progress will start saving here."}</p>
+          </div>
+        </div>
+        <div style="display: grid; gap: 24px; align-content: start;">
+          ${leaderboardMarkup}
+          ${renderProgressExtras(entries)}
+        </div>
       </div>
-      ${cloudProfile ? `<div class="panel flow-card"><h3>Cloud Profile</h3><p>Total Points: ${cloudProfile.totalPoints || 0} | Total XP: ${cloudProfile.totalXp || 0} | Best Streak: ${cloudProfile.bestStreak || 0}</p></div>` : ""}
-      ${leaderboardMarkup}
-      ${renderProgressExtras(entries)}
     `;
     return;
   }
@@ -727,117 +745,82 @@ function renderBoard() {
   const game = getGamification(entries);
 
   scoreboardContent.innerHTML = `
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; align-items: start;">
-      <!-- Column 1: Performance & Stats -->
+    <div class="dashboard-content-grid" style="grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr); gap: 24px; align-items: start;">
+      
+      <!-- Main Content Area -->
       <div style="display: grid; gap: 24px; align-content: start;">
         <div class="panel flow-card">
-          <div class="score-hero">
-            <div class="score-ring" style="--p:${latest}">
-              <strong>${latest}%</strong>
-              <span>Latest</span>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+            <div>
+              <h2 style="font-size: 1.8rem; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.03em;">Performance Overview</h2>
+              <p style="margin: 0; color: var(--muted); font-size: 0.9rem;">Analyze your recent results and trends.</p>
             </div>
-            <div class="score-meta">
-              <div class="meta-chip">${getBandLabel(latest)}</div>
-              <div class="meta-chip muted">Avg ${avg}%</div>
-              <div class="meta-chip muted">Best ${best}%</div>
-              <div class="meta-chip muted">Lvl ${game.level}</div>
-              <div class="meta-chip ${trend.delta > 0 ? "up" : trend.delta < 0 ? "down" : "flat"}">${trend.label}</div>
+            <div style="text-align: right;">
+              <div class="meta-chip" style="font-size: 1.1rem; padding: 6px 12px; background: var(--panel-soft); color: var(--text);">${latest}% Latest</div>
+              <div style="margin-top: 8px; color: var(--muted); font-size: 0.8rem;">Trend: ${trend.label}</div>
             </div>
           </div>
-          <div class="analysis-card" style="margin-top: 24px;">
-            <strong>Feedback</strong>
-            <p>${getFeedback(entries)}</p>
+          
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 32px;">
+            <div class="saas-stat-card" style="padding: 12px; border-radius: 8px;">
+              <span class="saas-stat-label">Total XP</span>
+              <strong class="saas-stat-value" style="font-size: 1.4rem;">${cloudProfile?.totalXp ?? game.totalXp}</strong>
+            </div>
+            <div class="saas-stat-card" style="padding: 12px; border-radius: 8px;">
+              <span class="saas-stat-label">Level</span>
+              <strong class="saas-stat-value" style="font-size: 1.4rem;">${game.level}</strong>
+            </div>
+            <div class="saas-stat-card" style="padding: 12px; border-radius: 8px;">
+              <span class="saas-stat-label">Best Score</span>
+              <strong class="saas-stat-value" style="font-size: 1.4rem;">${best}%</strong>
+            </div>
+            <div class="saas-stat-card" style="padding: 12px; border-radius: 8px;">
+              <span class="saas-stat-label">Avg Score</span>
+              <strong class="saas-stat-value" style="font-size: 1.4rem;">${avg}%</strong>
+            </div>
           </div>
-          <div class="analysis-card" style="margin-top: 12px;">
-            <strong>Gamification</strong>
-            <p>${game.totalXp} XP earned. Level ${game.level} with ${game.progress}% progress to the next level.</p>
-            <div class="xp-progress" style="margin: 12px 0;"><span style="width:${game.progress}%"></span></div>
-            <p>${game.badges.length ? game.badges.map((badge) => badge.label).join(" | ") : "No badges unlocked yet."}</p>
+
+          <div style="margin-top: 32px; padding: 16px; background: var(--panel-soft); border-radius: var(--radius-md); border: 1px solid var(--line);">
+            <strong style="display: block; margin-bottom: 8px; font-size: 0.95rem;">AI Feedback</strong>
+            <p style="margin: 0; font-size: 0.9rem; color: var(--muted); line-height: 1.6;">${getFeedback(entries)}</p>
           </div>
         </div>
+
         <div class="panel flow-card">
-          <h3 style="margin-bottom: 16px; font-size: 1.15rem;">Quick Stats</h3>
-          <div class="evaluation-stats" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
-            <div class="stat-box"><p>Total XP</p><h4>${cloudProfile?.totalXp ?? game.totalXp}</h4></div>
-            <div class="stat-box"><p>Points</p><h4>${cloudProfile?.totalPoints ?? 0}</h4></div>
-            <div class="stat-box"><p>Level</p><h4>${game.level}</h4></div>
-            <div class="stat-box"><p>Quizzes</p><h4>${entries.length}</h4></div>
-            <div class="stat-box"><p>Streak</p><h4>${cloudProfile?.currentStreak ?? streak}</h4></div>
-            <div class="stat-box"><p>Best</p><h4>${best}%</h4></div>
+          <div class="table-header-block" style="margin-bottom: 20px;">
+            <h3 style="font-size: 1.2rem; font-weight: 600;">Question Review</h3>
+            <p style="color: var(--muted); font-size: 0.85rem; margin-top: 4px;">Review missed concepts from your selected attempt.</p>
           </div>
-        </div>
-      </div>
-      <!-- Column 2: Review & Attempts -->
-      <div style="display: grid; gap: 24px; align-content: start;">
-        <div class="panel flow-card">
-          <div class="table-header-block">
-            <h3>Question Review</h3>
-            <p>Explanation and answer breakdown.</p>
-          </div>
-          <div class="attempt-review-rail">
-            ${entries.slice(0, 10).map((entry, index) => `
-              <button class="attempt-review-btn ${index === activeReviewAttemptIndex ? "active" : ""}" data-attempt-index="${index}" type="button" style="min-width: 100px;">
-                <span>${formatShortDate(entry.createdAt).split(",")[0]}</span>
-                <strong>${entry.percentage || 0}%</strong>
+          <div class="attempt-review-rail" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px;">
+            ${entries.slice(0, 8).map((entry, index) => `
+              <button class="btn-outline attempt-review-btn ${index === activeReviewAttemptIndex ? "active" : ""}" data-attempt-index="${index}" type="button" style="min-width: 120px; flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-start; padding: 10px; height: auto; ${index === activeReviewAttemptIndex ? 'background: var(--text); color: var(--bg); border-color: var(--text);' : ''}">
+                <span style="font-size: 0.75rem; opacity: 0.8; font-weight: normal;">${formatShortDate(entry.createdAt).split(",")[0]}</span>
+                <strong style="font-size: 1.1rem; margin-top: 2px;">${entry.percentage || 0}%</strong>
               </button>
             `).join("")}
           </div>
-          <div class="review-rail">
+          
+          <div class="review-rail" style="display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap;">
             ${reviewAnswers.length
               ? reviewAnswers.map((answer, index) => `
-                <button class="review-q-btn ${answer.isCorrect ? "good" : "bad"}" data-review-index="${index}" type="button">
+                <button class="review-q-btn btn-outline" data-review-index="${index}" type="button" style="min-height: 32px; padding: 0 12px; font-size: 0.8rem; ${answer.isCorrect ? 'border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.1);' : 'border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.1);'}">
                   Q${index + 1}
                 </button>
               `).join("")
               : `<p class="cabinet-note">No question review is available for this attempt yet.</p>`}
           </div>
-          <div id="reviewDetail" class="review-detail" style="margin-top: 16px;">
+          <div id="reviewDetail" class="review-detail" style="margin-top: 16px; padding: 16px; background: var(--panel-soft); border-radius: var(--radius-md); border: 1px solid var(--line); font-size: 0.9rem; color: var(--muted); line-height: 1.6;">
             ${reviewAnswers.length ? "Select a question to view the explanation." : "Question explanations will appear here after you complete a quiz."}
           </div>
-        </div>
-
-        <div class="panel flow-card">
-          <div class="table-header-block">
-            <h3>Review Tools</h3>
-            <p>Study actions for the selected attempt.</p>
-          </div>
-          <div class="source-status-card ${sourceStatus.level}">
-            <strong>${sourceStatus.label}</strong>
-            <p>${sourceStatus.message}</p>
-          </div>
-          <div class="scoreboard-tool-actions">
-            <button id="saveAttemptQuestionsBtn" class="ghost" type="button" ${reviewAnswers.length ? "" : "disabled"} style="flex:1;">Save Qs</button>
-            <button id="generateAttemptFlashcardsBtn" class="ghost" type="button" ${reviewEntry ? "" : "disabled"} style="flex:1;">Flashcards</button>
-          </div>
-          <div class="scoreboard-tool-actions" style="margin-top: 12px;">
-            <button id="downloadReviewBtn" class="ghost" type="button" ${reviewAnswers.length ? "" : "disabled"} style="flex:1;">DL Review</button>
-            <button id="downloadFlashcardsBtn" class="ghost" type="button" ${flashDecks.length ? "" : "disabled"} style="flex:1;">DL Cards</button>
+          
+          <div class="scoreboard-tool-actions" style="display: flex; gap: 12px; margin-top: 20px;">
+            <button id="saveAttemptQuestionsBtn" class="btn-outline" type="button" ${reviewAnswers.length ? "" : "disabled"} style="flex:1;">Save Questions</button>
+            <button id="generateAttemptFlashcardsBtn" class="btn-outline" type="button" ${reviewEntry ? "" : "disabled"} style="flex:1;">Generate Flashcards</button>
           </div>
         </div>
-
-        <section class="panel flow-card">
-          <div class="table-header-block" style="margin-bottom: 12px;">
-            <h3>Recent Attempts</h3>
-            <p>Your latest runs.</p>
-          </div>
-          <div class="dashboard-list" style="max-height: 380px;">
-            ${recent.map((e) => `
-              <div class="answer-option compact-row" style="padding: 12px; align-items: center; gap: 12px;">
-                <div class="score-tile">
-                  <span style="font-size:0.7rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em;">Score</span>
-                  <strong style="color:var(--text); font-size:1.15rem;">${e.percentage}%</strong>
-                </div>
-                <div>
-                  <div style="color:var(--text); font-weight:600; font-size:0.9rem;">${e.score}/${e.total} Correct</div>
-                  <div class="helper-text" style="margin-top:2px;">${formatShortDate(e.createdAt)} • ${(e.settings?.difficulty || "mod").toUpperCase()}</div>
-                </div>
-              </div>
-            `).join("")}
-          </div>
-        </section>
       </div>
 
-      <!-- Column 3: Leaderboard & Games -->
+      <!-- Sidebar Area -->
       <div style="display: grid; gap: 24px; align-content: start;">
         ${leaderboardMarkup}
         ${renderProgressExtras(entries)}

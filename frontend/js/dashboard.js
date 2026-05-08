@@ -104,7 +104,7 @@ function renderSkeleton() {
   `;
 }
 
-function statCard(label, value, helper, icon, accent = "violet", trend = "Live") {
+function statCard(label, value, helper) {
   return `
     <article class="saas-stat-card panel">
       <span class="saas-stat-label">${label}</span>
@@ -115,27 +115,32 @@ function statCard(label, value, helper, icon, accent = "violet", trend = "Live")
 }
 
 function renderLineChart(data) {
+  if (!data || !data.length) return `<div class="empty-state-mini" style="height: 190px; display: grid; place-items: center; border: 1px dashed var(--line); border-radius: var(--radius-md);"><span>No data to chart</span></div>`;
+  const maxScore = Math.max(...data.map(d => d.score), 10);
   const points = data.map((item, index) => {
     const x = data.length === 1 ? 50 : (index / (data.length - 1)) * 100;
-    const y = 92 - Math.max(0, Math.min(100, item.score));
+    const y = 92 - ((item.score / maxScore) * 84);
     return `${x},${y}`;
   }).join(" ");
+  
   return `
-    <svg class="line-chart" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Weekly performance line graph">
+    <div style="position: relative; height: 190px; margin-top: 18px;">
+      <svg class="line-chart" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Weekly performance line graph" style="position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; filter: none; margin: 0;">
       <defs>
         <linearGradient id="lineGlow" x1="0" x2="1">
           <stop offset="0%" stop-color="#888" />
           <stop offset="100%" stop-color="#ededed" />
         </linearGradient>
       </defs>
-      <polyline points="${points}" fill="none" stroke="url(#lineGlow)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+        <polyline points="${points}" fill="none" stroke="url(#lineGlow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
       ${data.map((item, index) => {
         const x = data.length === 1 ? 50 : (index / (data.length - 1)) * 100;
-        const y = 92 - Math.max(0, Math.min(100, item.score));
-        return `<circle cx="${x}" cy="${y}" r="2.2" />`;
+          const y = 92 - ((item.score / maxScore) * 84);
+          return `<circle cx="${x}" cy="${y}" r="1.5" fill="#000" stroke="#ededed" stroke-width="1.5" />`;
       }).join("")}
     </svg>
-    <div class="chart-axis">${data.map((item) => `<span>${item.label}</span>`).join("")}</div>
+    </div>
+    <div class="chart-axis" style="margin-top: 12px; display: flex; justify-content: space-between;">${data.map((item) => `<span>${item.label}</span>`).join("")}</div>
   `;
 }
 
@@ -155,9 +160,7 @@ function renderDashboard(data) {
   const rank = getRank(profile, leaderboard);
   const cardCount = flashDecks.reduce((sum, deck) => sum + (Array.isArray(deck.flashcards) ? deck.flashcards.length : 0), 0);
   const recent = attempts.slice(0, 6);
-  const categoryStats = getCategoryStats(attempts);
   const insights = getInsights(attempts, badges, profile);
-  const topFive = leaderboard.slice(0, 5);
 
   root.className = "dashboard-platform-shell page-fade";
   root.innerHTML = `
@@ -173,7 +176,7 @@ function renderDashboard(data) {
       <div class="side-progress">
         <span>Level ${game.level}</span>
         <strong>${game.totalXp} XP</strong>
-        <div class="xp-progress"><span style="width:${game.progress}%"></span></div>
+        <div class="xp-progress" style="margin-top: 8px;"><span style="width:${game.progress}%"></span></div>
       </div>
     </aside>
 
@@ -184,7 +187,9 @@ function renderDashboard(data) {
         <div class="topbar-cluster">
           <span class="quick-pill">${game.totalXp} XP</span>
           <span class="quick-pill">${game.streak} streak</span>
-          <button class="icon-btn" type="button" title="Notifications">!</button>
+          <button class="icon-btn" type="button" title="Notifications">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+          </button>
           <div class="avatar-chip"><span>${escapeHtml((auth?.getSession?.()?.name || "Q").slice(0, 1).toUpperCase())}</span><strong>${escapeHtml(auth?.getSession?.()?.name || "Player")}</strong></div>
         </div>
       </header>
@@ -198,17 +203,64 @@ function renderDashboard(data) {
           </div>
         </div>
         <div class="profile-metrics">
-          <div class="profile-metric"><span>Global Rank</span><strong>#${rank}</strong></div>
+          <div class="profile-metric"><span>Global Rank</span><strong>${rank === "--" ? "--" : `#${rank}`}</strong></div>
           <div class="profile-metric border-left"><span>Total XP</span><strong>${game.totalXp}</strong></div>
           <div class="profile-metric border-left"><span>Streak</span><strong>${game.streak} 🔥</strong></div>
         </div>
       </section>
 
       <section class="hero-stats-grid">
-        ${statCard("Quizzes", attempts.length || Number(profile?.totalQuizzes || 0), "total attempts", "QZ", "cyan", recent.length ? "Active" : "Ready")}
-        ${statCard("Total XP", game.totalXp, `Level ${game.level}`, "XP", "violet", `+${game.latestXp} latest`)}
-        ${statCard("Accuracy", `${avg}%`, `${best}% best`, "AC", ")green", insights[0].value.includes("calibrate") ? "New" : "Live")}
-        ${statCard("Flashcards", cardCount, `${flashDecks.length} decks`, "FC", "yellow", flashDecks.length ? "Organize" : "Empty")}
+        ${statCard("Quizzes", attempts.length || Number(profile?.totalQuizzes || 0), "total attempts")}
+        ${statCard("Accuracy", \`\${avg}%\`, \`\${best}% best\`)}
+        ${statCard("Flashcards", cardCount, \`\${flashDecks.length} decks\`)}
+        ${statCard("Badges", unlockedBadges.length, \`\${badges.length} available\`)}
       </section>
+
+      <div class="dashboard-content-grid">
+        <div style="display: grid; gap: 16px; align-content: start;">
+          <section class="panel flow-card">
+            <div class="card-title-row">
+              <div><strong style="font-size:1.1rem;">Performance Velocity</strong><span style="display:block; margin-top:2px; font-size:0.85rem;">Last 7 days accuracy trend</span></div>
+            </div>
+            ${renderLineChart(weekly)}
+          </section>
+
+          <section class="panel flow-card">
+            <div class="card-title-row">
+              <div><strong style="font-size:1.1rem;">AI Insights</strong><span style="display:block; margin-top:2px; font-size:0.85rem;">Algorithmic feedback</span></div>
+            </div>
+            <div class="insight-grid" style="margin-top: 16px;">
+              ${insights.map(i => `
+                <div class="insight-pill" style="align-items: flex-start;">
+                  <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <span style="color: var(--text);">${i.label}</span>
+                    <span style="font-size: 0.8rem; font-weight: 400; text-transform: none; letter-spacing: 0;">${i.value}</span>
+                  </div>
+                </div>
+              `).join("")}
+            </div>
+          </section>
+        </div>
+
+        <div style="display: grid; gap: 16px; align-content: start;">
+          <section class="panel flow-card">
+            <div class="card-title-row">
+              <div><strong style="font-size:1.1rem;">Recent Activity</strong><span style="display:block; margin-top:2px; font-size:0.85rem;">Your latest learning sessions</span></div>
+            </div>
+            <div class="timeline-list" style="margin-top: 16px;">
+              ${recent.length ? recent.map(a => `
+                <div class="timeline-item" style="grid-template-columns: 1fr;">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <strong style="color: var(--text); font-size: 0.95rem;">${a.percentage}% Score</strong>
+                    <span style="font-size: 0.75rem; background: var(--panel-soft); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--line);">${a.settings?.difficulty?.toUpperCase()}</span>
+                  </div>
+                  <span style="color: var(--muted); font-size: 0.8rem; margin-top: 4px;">${formatDate(a.createdAt)} • ${a.score}/${a.total} Correct</span>
+                </div>
+              `).join("") : `<div class="empty-state-mini" style="padding: 24px; text-align: center; border: 1px dashed var(--line); border-radius: var(--radius-md);"><span style="color: var(--muted); font-size: 0.9rem;">No recent activity. Start a quiz!</span></div>`}
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
 `;
 }

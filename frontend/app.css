@@ -1332,7 +1332,7 @@ html {
   .split-grid.two-col,
   .hero-home,
   .dashboard-content-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
   }
 
   .dashboard-main-card,
@@ -2460,6 +2460,11 @@ body {
 }
 
 .mini-lb-row.is-me {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.lb-row.is-me {
   border-color: rgba(255, 255, 255, 0.2);
   background: rgba(255, 255, 255, 0.08);
 }

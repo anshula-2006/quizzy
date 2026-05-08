@@ -177,6 +177,7 @@ export async function createFlashDeck(req, res) {
 
 export async function clearAttempts(req, res) {
   await QuizAttempt.deleteMany({ user: req.user._id });
+  const achievements = Array.isArray(req.user.stats?.achievements) ? req.user.stats.achievements : [];
   req.user.stats = {
     ...req.user.stats,
     totalQuizzes: 0,
@@ -188,7 +189,7 @@ export async function clearAttempts(req, res) {
     currentStreak: 0,
     bestStreak: 0,
     bestPercentage: 0,
-    achievements: []
+    achievements
   };
   await req.user.save();
   res.json({ message: "Attempts cleared" });
@@ -237,6 +238,7 @@ export async function clearDashboard(req, res) {
     FlashDeck.deleteMany({ user: req.user._id })
   ]);
 
+  const achievements = Array.isArray(req.user.stats?.achievements) ? req.user.stats.achievements : [];
   req.user.stats = {
     ...req.user.stats,
     totalQuizzes: 0,
@@ -248,7 +250,7 @@ export async function clearDashboard(req, res) {
     currentStreak: 0,
     bestStreak: 0,
     bestPercentage: 0,
-    achievements: [],
+    achievements,
     miniGameStats: {
       memoryWins: 0,
       memoryBestMoves: 0,

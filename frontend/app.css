@@ -55,6 +55,10 @@ body.dark {
   box-sizing: border-box;
 }
 
+.hidden {
+  display: none !important;
+}
+
 html,
 body {
   min-height: 100%;
@@ -197,6 +201,11 @@ input,
 textarea,
 select {
   font: inherit;
+}
+
+:is(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid rgba(147, 164, 255, 0.9);
+  outline-offset: 3px;
 }
 
 button {
@@ -1771,6 +1780,34 @@ body {
   filter: drop-shadow(0 0 16px rgba(99, 102, 241, 0.7));
 }
 
+.medal-gold,
+.medal-silver,
+.medal-bronze {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  font-size: 1.25rem !important;
+  font-weight: 900;
+  border: 1px solid var(--line);
+}
+
+.medal-gold {
+  color: #f5d389;
+  background: rgba(214, 168, 79, 0.13);
+}
+
+.medal-silver {
+  color: #d5dbe7;
+  background: rgba(213, 219, 231, 0.1);
+}
+
+.medal-bronze {
+  color: #d8a37b;
+  background: rgba(216, 163, 123, 0.11);
+}
+
 .podium-name {
   font-size: 0.85rem;
   font-weight: 700;
@@ -2583,12 +2620,53 @@ body {
   background: #f3f6fb;
 }
 
+.settings-row:focus-within i {
+  outline: 2px solid rgba(147, 164, 255, 0.8);
+  outline-offset: 3px;
+}
+
 .profile-hero {
   margin-bottom: 14px;
 }
 
 .profile-stats {
   margin-bottom: 14px;
+}
+
+.flash-title,
+.flash-copy {
+  text-align: center;
+}
+
+.flash-copy {
+  margin-bottom: 1.25rem;
+}
+
+.flash-empty-state {
+  display: grid;
+  min-height: 320px;
+  place-items: center;
+  text-align: center;
+}
+
+.flash-empty-state .btn {
+  margin-top: 1rem;
+}
+
+.result-review-list {
+  max-width: 920px;
+  margin: 14px auto 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
 }
 
 .no-badges {

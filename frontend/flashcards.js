@@ -18,10 +18,10 @@ function init() {
 
   if (!activeDeck || !activeDeck.flashcards || activeDeck.flashcards.length === 0) {
     root.innerHTML = `
-      <div style="text-align: center; padding: 4rem 1rem;">
+      <div class="empty-state-mini flash-empty-state">
         <h2 class="section-title">No flashcards found</h2>
-        <p class="section-copy" style="margin-top: 1rem;">Generate a deck first to start studying.</p>
-        <a href="./generate.html" class="btn" style="margin-top: 2rem; display: inline-block;">Go Generate</a>
+        <p class="section-copy">Generate a deck first to start studying.</p>
+        <a href="./generate.html" class="btn">Go Generate</a>
       </div>
     `;
     return;
@@ -34,8 +34,8 @@ function init() {
     const safeFront = String(card.front).replace(/"/g, "&quot;");
     root.innerHTML = `
       <p class="eyebrow">Flashcards</p>
-      <h1 class="section-title" style="text-align:center;">${activeDeck.title || "Study Deck"}</h1>
-      <p class="section-copy" style="text-align:center; margin-bottom: 2rem;">Hover or focus the card to reveal the answer.</p>
+      <h1 class="section-title flash-title">${activeDeck.title || "Study Deck"}</h1>
+      <p class="section-copy flash-copy">Hover or focus the card to reveal the answer.</p>
       
       <div class="fc-board">
         <div class="fc-container" tabindex="0" role="button" aria-label="Flashcard: ${safeFront}. Focus to reveal answer.">

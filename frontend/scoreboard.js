@@ -359,7 +359,7 @@ async function cloudRequest(path, options = {}) {
 
 async function syncFromCloud() {
   if (!isLoggedIn()) return;
-  console.debug("[Quizzy badges] fetching scoreboard bootstrap");
+  if (localStorage.getItem("quizzy-debug-badges") === "true") console.debug("[Quizzy badges] fetching scoreboard bootstrap");
   const result = await cloudRequest("/data/bootstrap");
   if (!result.ok) return;
   const attempts = Array.isArray(result.data?.attempts) ? result.data.attempts : [];
@@ -367,7 +367,7 @@ async function syncFromCloud() {
   const flashDecks = Array.isArray(result.data?.flashDecks) ? result.data.flashDecks : [];
   cloudProfile = result.data?.profile || null;
   cloudLeaderboard = Array.isArray(result.data?.leaderboard) ? result.data.leaderboard : [];
-  console.debug("[Quizzy badges] scoreboard API response", { achievements: cloudProfile?.achievements, attempts: attempts.length });
+  if (localStorage.getItem("quizzy-debug-badges") === "true") console.debug("[Quizzy badges] scoreboard API response", { achievements: cloudProfile?.achievements, attempts: attempts.length });
   saveHistory(attempts);
   saveSavedQuestions(savedQuestions);
   saveFlashDecks(flashDecks);
@@ -712,19 +712,19 @@ function renderBoard() {
         ${hasPodium ? `
         <div class="podium-wrapper fade-in">
           <div class="podium-step rank-2">
-            <div class="podium-avatar">🥈</div>
+            <div class="podium-avatar medal-silver">2</div>
             <div class="podium-name">${escapeHtml(p2.name || 'Player')}</div>
             <div class="podium-score">${p2.totalXp || 0} XP</div>
             <div class="podium-bar"></div>
           </div>
           <div class="podium-step rank-1">
-            <div class="podium-avatar glow">🥇</div>
+            <div class="podium-avatar glow medal-gold">1</div>
             <div class="podium-name">${escapeHtml(p1.name || 'Player')}</div>
             <div class="podium-score">${p1.totalXp || 0} XP</div>
             <div class="podium-bar"></div>
           </div>
           <div class="podium-step rank-3">
-            <div class="podium-avatar">🥉</div>
+            <div class="podium-avatar medal-bronze">3</div>
             <div class="podium-name">${escapeHtml(p3.name || 'Player')}</div>
             <div class="podium-score">${p3.totalXp || 0} XP</div>
             <div class="podium-bar"></div>
@@ -739,9 +739,9 @@ function renderBoard() {
             const rowBadges = getLeaderboardBadges(player);
             
             let rankIcon = `#${rank}`;
-            if (rank === 1) rankIcon = "🥇";
-            if (rank === 2) rankIcon = "🥈";
-            if (rank === 3) rankIcon = "🥉";
+            if (rank === 1) rankIcon = "#1";
+            if (rank === 2) rankIcon = "#2";
+            if (rank === 3) rankIcon = "#3";
 
             return `
             <div class="lb-row fade-in" style="animation-delay: ${idx * 0.04}s">

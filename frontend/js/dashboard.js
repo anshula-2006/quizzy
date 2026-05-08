@@ -455,7 +455,7 @@ async function init() {
     return;
   }
 
-  console.debug("[Quizzy badges] fetching dashboard bootstrap");
+  if (localStorage.getItem("quizzy-debug-badges") === "true") console.debug("[Quizzy badges] fetching dashboard bootstrap");
   const data = await apiRequest("/data/bootstrap");
   if (!data) {
     dashboardState = { attempts: getSavedQuizHistory(), flashDecks: getFlashDecks(), miniGameStats: getMiniGameStats(), profile: null, leaderboard: [], loading: false };
@@ -463,7 +463,7 @@ async function init() {
     renderDashboard(dashboardState);
     return;
   }
-  console.debug("[Quizzy badges] dashboard API response", { achievements: data.profile?.achievements, attempts: data.attempts?.length });
+  if (localStorage.getItem("quizzy-debug-badges") === "true") console.debug("[Quizzy badges] dashboard API response", { achievements: data.profile?.achievements, attempts: data.attempts?.length });
   if (data.miniGameStats) setMiniGameStats(data.miniGameStats);
   if (data.flashDecks) saveFlashDecks(data.flashDecks);
   mergeBadgesFromSources(data.attempts || [], data.profile || null, data.profile?.achievements || []);

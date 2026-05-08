@@ -1,4 +1,4 @@
-import { clearQuizFlow, feedbackText, getQuizState, getResultState, setQuizState, setResultState } from "./shared.js";
+import { clearQuizFlow, feedbackText, getQuizState, getResultState, setQuizState, setResultState, escapeHtml } from "./shared.js";
 
 const resultRoot = document.getElementById("resultRoot");
 const resultState = getResultState();
@@ -40,6 +40,26 @@ if (resultState) {
       </div>
     </section>
   `;
+
+  const answers = Array.isArray(resultState.answers) ? resultState.answers : [];
+  if (answers.length) {
+    resultRoot.insertAdjacentHTML("beforeend", `
+      <section class="panel flow-card result-review-list">
+        <div class="card-title-row"><div><strong>Question review</strong><span>Fast scan of missed concepts</span></div></div>
+        <div class="dashboard-list">
+          ${answers.slice(0, 8).map((answer, index) => `
+            <article class="answer-option compact-row ${answer.isCorrect ? "correct" : "wrong"}">
+              <div class="score-tile"><span>Q${index + 1}</span><strong>${answer.isCorrect ? "OK" : "Review"}</strong></div>
+              <div>
+                <strong>${escapeHtml(answer.question || "Question")}</strong>
+                <p class="helper-text">Correct: ${escapeHtml(answer.correct || "-")}</p>
+              </div>
+            </article>
+          `).join("")}
+        </div>
+      </section>
+    `);
+  }
 
   document.getElementById("retryBtn")?.addEventListener("click", () => {
     if (!quizState?.questions?.length) {

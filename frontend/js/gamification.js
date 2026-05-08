@@ -34,6 +34,12 @@ const serverAchievementMap = {
   speedster: "speedster"
 };
 
+function debugBadges(message, payload = {}) {
+  if (localStorage.getItem("quizzy-debug-badges") === "true") {
+    console.debug(message, payload);
+  }
+}
+
 export function getScopeId() {
   try {
     const raw = localStorage.getItem("quizzy-session-v2");
@@ -189,7 +195,7 @@ export function persistBadgeLedger(ids, scope = getScopeId(), source = "unknown"
   const merged = [...new Set([...previous.unlocked, ...(Array.isArray(ids) ? ids : [])].filter(Boolean))];
   const payload = { unlocked: merged, updatedAt: new Date().toISOString(), source };
   localStorage.setItem(ledgerKey(scope), JSON.stringify(payload));
-  console.debug("[Quizzy badges] persistence save", { scope, source, count: merged.length, ids: merged });
+  debugBadges("[Quizzy badges] persistence save", { scope, source, count: merged.length, ids: merged });
   return payload;
 }
 
@@ -199,7 +205,7 @@ export function mergeBadgesFromSources(entries = getSavedQuizHistory(), profile 
     .map((id) => serverAchievementMap[id] || id)
     .filter(Boolean);
   const ledger = persistBadgeLedger([...computedIds, ...serverIds], getScopeId(), "merge");
-  console.debug("[Quizzy badges] state merge", { computedIds, serverIds, ledger: ledger.unlocked });
+  debugBadges("[Quizzy badges] state merge", { computedIds, serverIds, ledger: ledger.unlocked });
   return ledger.unlocked;
 }
 

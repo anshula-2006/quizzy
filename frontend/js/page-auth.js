@@ -37,6 +37,24 @@ function renderAuthBar() {
   bar.querySelector(".global-auth-logout")?.addEventListener("click", () => {
     auth?.logout?.();
   });
+
+  bar.querySelector(".global-auth-search input")?.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") return;
+    const query = String(event.currentTarget.value || "").trim().toLowerCase();
+    const routes = [
+      ["dashboard", "dashboard.html"],
+      ["quiz", "generate.html"],
+      ["generate", "generate.html"],
+      ["flashcards", "flashcards.html"],
+      ["leaderboard", "scoreboard.html"],
+      ["scoreboard", "scoreboard.html"],
+      ["profile", "profile.html"],
+      ["settings", "settings.html"],
+      ["arcade", "arcade.html"]
+    ];
+    const match = routes.find(([label]) => label.includes(query) || query.includes(label));
+    if (match) window.location.href = buildHref(match[1]);
+  });
 }
 
 applySavedTheme();

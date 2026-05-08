@@ -8,7 +8,7 @@ const timeNode = document.getElementById("timeCount");
 const restartBtn = document.getElementById("restartGameBtn");
 const statusNode = document.getElementById("memoryStatus");
 
-// ✅ FIXED IMAGE PATHS
+// Image paths are resolved relative to the Vite page bundle.
 const MEMORY_IMAGES = [
   "/assets/memory-game/image1.jpg",
   "/assets/memory-game/image2.jpg",

@@ -81,6 +81,36 @@ body {
   gap: 10px;
 }
 
+.global-auth-search {
+  flex: 1;
+  max-width: 420px;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border: 1px solid var(--auth-border);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.035);
+}
+
+.global-auth-search span {
+  color: var(--auth-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.global-auth-search input {
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  outline: 0;
+  color: var(--auth-text);
+  background: transparent;
+}
+
 .global-auth-link-strong {
   background: linear-gradient(90deg, var(--auth-accent-1), var(--auth-accent-2));
   border-color: transparent;
@@ -394,6 +424,10 @@ body {
   .global-auth-bar {
     align-items: flex-start;
     border-radius: 20px;
+  }
+
+  .global-auth-search {
+    display: none;
   }
 
   .auth-shell {

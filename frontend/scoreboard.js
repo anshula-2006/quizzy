@@ -1,6 +1,5 @@
 import API_BASE from "./js/config.js";
 import auth from "./auth.js";
-import { getBadgeCatalog as getSharedBadgeCatalog, getResolvedBadges as resolvePersistentBadges, getGamificationSummary as getPersistentGamification, mergeBadgesFromSources } from "./js/gamification.js";
 
 const authUser = document.getElementById("authUser");
 const loginLink = document.getElementById("loginLink");
@@ -25,9 +24,6 @@ let cloudProfile = null;
 let cloudLeaderboard = [];
 let activeReviewAttemptIndex = 0;
 let currentLeaderboardPage = 1;
-let leaderboardFilter = "all";
-let leaderboardSort = "score";
-let leaderboardSearch = "";
 const LEADERBOARD_PAGE_SIZE = 10;
 
 function getAttemptXp(entry) {
@@ -103,7 +99,28 @@ function getBadgeCatalog(entries) {
 }
 
 function getGamification(entries) {
-  return getPersistentGamification(entries, cloudProfile);
+  const list = Array.isArray(entries) ? entries : [];
+  const latest = list[0] || null;
+  const bonusXp = getBonusXp();
+  const gameStats = getMiniGameStats();
+  const quizXp = list.reduce((sum, entry) => sum + getAttemptXp(entry), 0);
+  const totalXp = quizXp + bonusXp;
+  const streak = getStreak(list);
+  const best = list.length ? Math.max(...list.map((entry) => Number(entry.percentage || 0))) : 0;
+  const badges = getBadgeCatalog(list).filter((badge) => badge.unlocked);
+
+  return {
+    totalXp,
+    quizXp,
+    bonusXp,
+    level: getLevelFromXp(totalXp),
+    progress: getLevelProgress(totalXp),
+    streak,
+    best,
+    gameStats,
+    badges,
+    latestXp: latest ? getAttemptXp(latest) : 0
+  };
 }
 
 function getScopeId() {
@@ -359,7 +376,6 @@ async function cloudRequest(path, options = {}) {
 
 async function syncFromCloud() {
   if (!isLoggedIn()) return;
-  if (localStorage.getItem("quizzy-debug-badges") === "true") console.debug("[Quizzy badges] fetching scoreboard bootstrap");
   const result = await cloudRequest("/data/bootstrap");
   if (!result.ok) return;
   const attempts = Array.isArray(result.data?.attempts) ? result.data.attempts : [];
@@ -367,12 +383,10 @@ async function syncFromCloud() {
   const flashDecks = Array.isArray(result.data?.flashDecks) ? result.data.flashDecks : [];
   cloudProfile = result.data?.profile || null;
   cloudLeaderboard = Array.isArray(result.data?.leaderboard) ? result.data.leaderboard : [];
-  if (localStorage.getItem("quizzy-debug-badges") === "true") console.debug("[Quizzy badges] scoreboard API response", { achievements: cloudProfile?.achievements, attempts: attempts.length });
   saveHistory(attempts);
   saveSavedQuestions(savedQuestions);
   saveFlashDecks(flashDecks);
   if (result.data?.miniGameStats) saveMiniGameStats(result.data.miniGameStats);
-  mergeBadgesFromSources(attempts, cloudProfile, cloudProfile?.achievements || []);
 }
 
 function renderAuthNav() {
@@ -586,31 +600,11 @@ function applySavedTheme() {
 }
 
 function renderProgressExtras(entries) {
-  const badges = resolvePersistentBadges(entries, cloudProfile);
+  const badges = getBadgeCatalog(entries);
   const game = getGamification(entries);
   const unlocked = badges.filter((badge) => badge.unlocked).length;
 
   return `
-    <section class="panel flow-card badge-cabinet">
-      <div class="evaluation-head" style="margin-bottom: 16px;">
-        <div>
-          <h3 style="font-size: 1.15rem; margin-bottom: 4px;">Badge Cabinet</h3>
-          <p class="cabinet-note">Your full collection.</p>
-        </div>
-        <div class="cabinet-score" style="text-align: right;">
-          <strong style="font-size: 1.25rem;">${unlocked}/${badges.length}</strong>
-        </div>
-      </div>
-      <div class="badge-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
-        ${badges.map((badge) => `
-          <article class="badge-card ${badge.unlocked ? "is-unlocked" : "is-locked"} ${badge.rarity}" style="min-height: auto; padding: 12px;">
-            <span class="badge-icon" style="width: 44px; height: 44px; margin-bottom: 8px;"><img src="${badge.icon}" alt="${badge.label}" loading="lazy" style="width: 24px; height: 24px;" /></span>
-            <strong style="font-size: 0.9rem;">${badge.label}</strong>
-            <small style="display: block; font-size: 0.75rem; line-height: 1.4; margin-top: 4px;">${badge.unlocked ? `Unlocked` : badge.hint}</small>
-          </article>
-        `).join("")}
-      </div>
-    </section>
     <section class="panel flow-card mini-games-shell">
       <div class="evaluation-head" style="margin-bottom: 16px;">
         <div>
@@ -628,45 +622,6 @@ function renderProgressExtras(entries) {
   `;
 }
 
-function getLeaderboardBadges(player) {
-  const ids = Array.isArray(player?.achievements) ? player.achievements : [];
-  const mapped = ids.map((id) => ({
-    first_quiz: "starter",
-    streak_3: "streak",
-    perfect_score: "perfect-shot",
-    quiz_master: "scholar",
-    xp_500: "xp-hunter",
-    flash_fan: "flash-fan",
-    memory_master: "memory-master",
-    speedster: "speedster"
-  }[id] || id));
-  return getSharedBadgeCatalog([], { ...player, achievements: ids })
-    .map((badge) => ({ ...badge, unlocked: badge.unlocked || mapped.includes(badge.id) }))
-    .filter((badge) => badge.unlocked)
-    .slice(0, 4);
-}
-
-function getVisibleLeaderboard() {
-  const session = auth?.getSession?.();
-  const currentEmail = session?.email || session?.user?.email || "";
-  const query = leaderboardSearch.trim().toLowerCase();
-  const scoped = cloudLeaderboard.filter((player) => {
-    if (leaderboardFilter === "friends") return player.email === currentEmail;
-    return true;
-  });
-  const searched = query
-    ? scoped.filter((player) => String(player.name || "").toLowerCase().includes(query) || String(player.email || "").toLowerCase().includes(query))
-    : scoped;
-  const sorters = {
-    xp: (a, b) => Number(b.totalXp || 0) - Number(a.totalXp || 0),
-    accuracy: (a, b) => Number(b.accuracy || b.bestPercentage || 0) - Number(a.accuracy || a.bestPercentage || 0),
-    streak: (a, b) => Number(b.currentStreak || 0) - Number(a.currentStreak || 0),
-    quizzes: (a, b) => Number(b.totalQuizzes || 0) - Number(a.totalQuizzes || 0),
-    score: (a, b) => Number(b.leaderboardScore || 0) - Number(a.leaderboardScore || 0)
-  };
-  return [...searched].sort(sorters[leaderboardSort] || sorters.score).map((player, index) => ({ ...player, displayRank: index + 1 }));
-}
-
 function renderBoard() {
   const entries = getHistory();
   activeReviewAttemptIndex = Math.max(0, Math.min(activeReviewAttemptIndex, Math.max(0, entries.length - 1)));
@@ -675,58 +630,40 @@ function renderBoard() {
   const sourceStatus = getAttemptSourceStatus(reviewEntry);
   const flashDecks = getFlashDecks();
   const savedQuestions = getSavedQuestions();
-  const visibleLeaderboard = getVisibleLeaderboard();
-  const totalLeaderboardPages = Math.ceil(visibleLeaderboard.length / LEADERBOARD_PAGE_SIZE) || 1;
-  currentLeaderboardPage = Math.max(1, Math.min(currentLeaderboardPage, totalLeaderboardPages));
-  const paginatedLeaderboard = visibleLeaderboard.slice((currentLeaderboardPage - 1) * LEADERBOARD_PAGE_SIZE, currentLeaderboardPage * LEADERBOARD_PAGE_SIZE);
+  const totalLeaderboardPages = Math.ceil(cloudLeaderboard.length / LEADERBOARD_PAGE_SIZE) || 1;
+  const paginatedLeaderboard = cloudLeaderboard.slice((currentLeaderboardPage - 1) * LEADERBOARD_PAGE_SIZE, currentLeaderboardPage * LEADERBOARD_PAGE_SIZE);
 
-  const hasPodium = currentLeaderboardPage === 1 && visibleLeaderboard.length >= 3;
-  const p1 = visibleLeaderboard[0] || {};
-  const p2 = visibleLeaderboard[1] || {};
-  const p3 = visibleLeaderboard[2] || {};
+  const hasPodium = currentLeaderboardPage === 1 && cloudLeaderboard.length >= 3;
+  const p1 = cloudLeaderboard[0] || {};
+  const p2 = cloudLeaderboard[1] || {};
+  const p3 = cloudLeaderboard[2] || {};
 
-  const leaderboardMarkup = visibleLeaderboard.length
+  const leaderboardMarkup = cloudLeaderboard.length
     ? `
-      <section class="panel flow-card scoreboard-table-wrap esports-board">
-        <div class="table-header-block leaderboard-tools-head">
-          <div>
-            <h3>Esports leaderboard</h3>
-            <p>Search, filter, and inspect top Quizzy competitors.</p>
-          </div>
-          <button id="refreshBoardInlineBtn" class="ghost" type="button">Refresh</button>
-        </div>
-        <div class="leaderboard-controls">
-          <div class="segmented-control" role="tablist">
-            ${["weekly", "monthly", "all", "friends", "global"].map((item) => `<button class="${leaderboardFilter === item ? "active" : ""}" data-board-filter="${item}" type="button">${item}</button>`).join("")}
-          </div>
-          <input id="leaderboardSearch" class="leaderboard-search" type="search" value="${escapeHtml(leaderboardSearch)}" placeholder="Search player" />
-          <select id="leaderboardSort" class="leaderboard-sort">
-            <option value="score" ${leaderboardSort === "score" ? "selected" : ""}>Sort by score</option>
-            <option value="xp" ${leaderboardSort === "xp" ? "selected" : ""}>Sort by XP</option>
-            <option value="accuracy" ${leaderboardSort === "accuracy" ? "selected" : ""}>Sort by accuracy</option>
-            <option value="streak" ${leaderboardSort === "streak" ? "selected" : ""}>Sort by streak</option>
-            <option value="quizzes" ${leaderboardSort === "quizzes" ? "selected" : ""}>Sort by quizzes</option>
-          </select>
+      <section class="panel flow-card scoreboard-table-wrap" style="padding: 24px; border: 1px solid var(--border-main);">
+        <div class="table-header-block" style="margin-bottom: 20px; text-align: center; border-bottom: none; padding: 0;">
+          <h3 style="font-size: 1.3rem; font-weight: 900; background: linear-gradient(135deg, #6366F1, #818CF8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Global Leaderboard</h3>
+          <p style="color: var(--muted); font-size: 0.85rem; margin-top: 4px;">Top players ranked by total points and XP.</p>
         </div>
 
         ${hasPodium ? `
         <div class="podium-wrapper fade-in">
           <div class="podium-step rank-2">
-            <div class="podium-avatar medal-silver">2</div>
-            <div class="podium-name">${escapeHtml(p2.name || 'Player')}</div>
-            <div class="podium-score">${p2.totalXp || 0} XP</div>
+            <div class="podium-avatar">🥈</div>
+            <div class="podium-name">${p2.name || 'Player'}</div>
+            <div class="podium-score">${p2.leaderboardScore || 0}</div>
             <div class="podium-bar"></div>
           </div>
           <div class="podium-step rank-1">
-            <div class="podium-avatar glow medal-gold">1</div>
-            <div class="podium-name">${escapeHtml(p1.name || 'Player')}</div>
-            <div class="podium-score">${p1.totalXp || 0} XP</div>
+            <div class="podium-avatar glow">🥇</div>
+            <div class="podium-name">${p1.name || 'Player'}</div>
+            <div class="podium-score">${p1.leaderboardScore || 0}</div>
             <div class="podium-bar"></div>
           </div>
           <div class="podium-step rank-3">
-            <div class="podium-avatar medal-bronze">3</div>
-            <div class="podium-name">${escapeHtml(p3.name || 'Player')}</div>
-            <div class="podium-score">${p3.totalXp || 0} XP</div>
+            <div class="podium-avatar">🥉</div>
+            <div class="podium-name">${p3.name || 'Player'}</div>
+            <div class="podium-score">${p3.leaderboardScore || 0}</div>
             <div class="podium-bar"></div>
           </div>
         </div>
@@ -734,24 +671,22 @@ function renderBoard() {
 
         <div class="compact-leaderboard-list custom-scrollbar">
           ${paginatedLeaderboard.map((player, idx) => {
-            const rank = player.displayRank || player.rank || ((currentLeaderboardPage - 1) * LEADERBOARD_PAGE_SIZE + idx + 1);
+            const rank = player.rank || ((currentLeaderboardPage - 1) * LEADERBOARD_PAGE_SIZE + idx + 1);
             if (hasPodium && rank <= 3) return ""; 
-            const rowBadges = getLeaderboardBadges(player);
             
-            let rankIcon = `#${rank}`;
-            if (rank === 1) rankIcon = "#1";
-            if (rank === 2) rankIcon = "#2";
-            if (rank === 3) rankIcon = "#3";
+            let rankIcon = \`#\${rank}\`;
+            if (rank === 1) rankIcon = "🥇";
+            if (rank === 2) rankIcon = "🥈";
+            if (rank === 3) rankIcon = "🥉";
 
             return `
             <div class="lb-row fade-in" style="animation-delay: ${idx * 0.04}s">
               <div class="lb-rank ${rank <= 3 ? 'top-rank' : ''}">${rankIcon}</div>
               <div class="lb-details">
-                <strong class="lb-name">${escapeHtml(player.name || "Player")}</strong>
+                <strong class="lb-name">${player.name}</strong>
                 <span class="lb-meta">${player.totalXp} XP • 🔥 ${player.currentStreak}</span>
               </div>
-              <div class="row-badges">${rowBadges.length ? rowBadges.map((badge) => `<img class="row-badge ${badge.rarity}" src="${badge.icon}" alt="${escapeHtml(badge.label)}" title="${escapeHtml(badge.label)}" loading="lazy" />`).join("") : `<span class="no-badges">No badges</span>`}</div>
-              <div class="lb-score">${player.leaderboardScore || 0} <span style="font-size: 0.7rem; color: var(--muted); font-weight: normal; -webkit-text-fill-color: initial;">pts</span></div>
+              <div class="lb-score">${player.leaderboardScore} <span style="font-size: 0.7rem; color: var(--muted); font-weight: normal; -webkit-text-fill-color: initial;">pts</span></div>
             </div>
           `}).join("")}
         </div>
@@ -808,14 +743,6 @@ function renderBoard() {
               <div class="meta-chip muted">Lvl ${game.level}</div>
               <div class="meta-chip ${trend.delta > 0 ? "up" : trend.delta < 0 ? "down" : "flat"}">${trend.label}</div>
             </div>
-          </div>
-          <div class="score-spark" style="margin-top: 24px;">
-            ${chartData.map((e, i) => `
-              <div class="spark-col" title="Attempt ${i + 1}: ${e.percentage}%">
-                <div class="spark-bar" style="height:${Math.max(12, Math.min(100, e.percentage || 0))}%"></div>
-                <span>${e.percentage}%</span>
-              </div>
-            `).join("")}
           </div>
           <div class="analysis-card" style="margin-top: 24px;">
             <strong>Feedback</strong>
@@ -951,31 +878,6 @@ function renderBoard() {
       currentLeaderboardPage += 1;
       renderBoard();
     }
-  });
-
-  document.querySelectorAll("[data-board-filter]").forEach((btnNode) => {
-    btnNode.addEventListener("click", () => {
-      leaderboardFilter = btnNode.dataset.boardFilter || "all";
-      currentLeaderboardPage = 1;
-      renderBoard();
-    });
-  });
-
-  document.getElementById("leaderboardSearch")?.addEventListener("input", (event) => {
-    leaderboardSearch = event.target.value || "";
-    currentLeaderboardPage = 1;
-    renderBoard();
-  });
-
-  document.getElementById("leaderboardSort")?.addEventListener("change", (event) => {
-    leaderboardSort = event.target.value || "score";
-    currentLeaderboardPage = 1;
-    renderBoard();
-  });
-
-  document.getElementById("refreshBoardInlineBtn")?.addEventListener("click", async () => {
-    await syncFromCloud();
-    renderBoard();
   });
 
   document.querySelectorAll(".attempt-review-btn").forEach((btnNode) => {

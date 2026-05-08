@@ -2,27 +2,19 @@
 
 ## Summary
 
-Quizzy is a real-time quiz application that enables a host to conduct live quiz sessions with multiple participants. The system emphasizes low latency communication and ranks users based on correctness and response time. The architecture is lightweight, relying on WebSockets and in-memory storage.
+Quizzy is a modern, premium SaaS quiz generation and learning platform. It allows users to instantly generate high-quality quizzes and flashcards from text, URLs, or PDF documents. The application features a rich analytics dashboard, gamified arcade challenges, global leaderboards, and detailed performance tracking.
 
 ---
 
-## Strengths
+## Features
 
-* Real-time communication using WebSockets is implemented effectively
-* Simple session-based model avoids unnecessary authentication overhead
-* Fast response handling due to in-memory data storage
-* Clear separation between frontend and backend
-* Core functionality is focused and works for the intended use case
-
----
-
-## Limitations
-
-* No persistent storage; all session data is lost on server restart
-* Lack of authentication makes it unsuitable for secure or large-scale deployments
-* In-memory session handling may not scale under high concurrency
-* Minimal error handling and validation
-* No deployment configuration or environment management
+* **AI Quiz Generation**: Automatically create MCQ, short-answer, and mixed-mode quizzes from uploaded content.
+* **Comprehensive Dashboard**: Track accuracy, XP, streaks, and performance trends over time.
+* **Gamification & Badges**: Unlock rarity-based achievements, earn XP rewards, and complete daily arcade challenges.
+* **Mini Arcade**: Integrated educational mini-games (Memory Match, Reaction Tap, Recall, Word Scramble).
+* **Flashcards**: Auto-generated study decks with an interactive 3D flip-card UI.
+* **Global Leaderboard**: Compete with other learners globally on XP and quiz performance.
+* **Premium SaaS Design**: A pristine, compact, minimal UI inspired by platforms like Vercel and Stripe.
 
 ---
 
@@ -30,20 +22,19 @@ Quizzy is a real-time quiz application that enables a host to conduct live quiz 
 
 ### Backend
 
-* Built with Node.js and WebSockets
-* Maintains a central sessions object
+* Built with Node.js
+* RESTful API architecture connecting to persistent cloud storage
+* Full JWT-based authentication system
 * Handles:
-
-  * Session creation
-  * Participant joining
-  * Question broadcasting
-  * Answer evaluation and ranking
+  * AI content extraction (PDF, URL, Text)
+  * Secure user sessions
+  * Global leaderboard synchronization
 
 ### Frontend
 
-* Built with React and Tailwind CSS
-* Provides interfaces for host and participants
-* Communicates with backend via WebSocket events
+* Built with Vanilla JavaScript, Vite, and highly optimized custom CSS
+* Component-driven architecture using robust ES modules
+* Zero heavy UI frameworks—yielding lightning-fast load times
 
 ---
 
@@ -92,5 +83,3 @@ npm run dev
 ## Overall Assessment
 
 Quizzy demonstrates a solid understanding of real-time systems and event-driven architecture. It is a good functional prototype, but requires improvements in scalability, robustness, and production-readiness to move beyond a basic implementation.
-
-

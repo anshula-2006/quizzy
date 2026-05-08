@@ -16,7 +16,6 @@ const BONUS_XP_BASE = "quizzy-bonus-xp-v1";
 const CHALLENGE_BASE = "quizzy-challenges-v1";
 const MINI_GAME_BASE = "quizzy-mini-games-v1";
 const SESSION_ACTIVITY_BASE = "quizzy-session-activity-v1";
-const THEME_KEY = "quizzy-theme";
 const MAX_HISTORY_ITEMS = 20;
 const MAX_SAVED_ITEMS = 60;
 const MAX_FLASH_DECKS = 25;

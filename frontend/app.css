@@ -2539,22 +2539,6 @@ body {
   background: #ededed;
 }
 
-.row-badges {
-  display: flex;
-  justify-content: flex-end;
-  gap: 5px;
-  min-width: 92px;
-}
-
-.row-badge {
-  width: 24px;
-  height: 24px;
-  padding: 4px;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: rgba(255,255,255,0.08);
-}
-
 .row-badge.gold,
 .badge-card.gold.is-unlocked {
   box-shadow: 0 0 18px rgba(245, 158, 11, 0.3);
@@ -2565,105 +2549,12 @@ body {
   box-shadow: 0 0 22px rgba(34, 211, 238, 0.32);
 }
 
-.settings-layout {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-  margin-top: 14px;
-}
-
-.settings-row {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 46px;
-  gap: 14px;
-  align-items: center;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--line);
-}
-
-.settings-row:last-child {
-  border-bottom: 0;
-}
-
-.settings-row strong,
-.settings-row em {
-  display: block;
-}
-
-.settings-row em {
-  margin-top: 4px;
-  color: var(--muted);
-  font-size: 0.86rem;
-  font-style: normal;
-  line-height: 1.45;
-}
-
-.settings-row input {
-  position: absolute;
-  opacity: 0;
-}
-
-.settings-row i {
-  width: 44px;
-  height: 24px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: rgba(255,255,255,0.06);
-}
-
-.settings-row i::after {
-  content: "";
-  display: block;
-  width: 18px;
-  height: 18px;
-  margin: 2px;
-  border-radius: 50%;
-  background: var(--muted);
-  transition: transform 0.2s ease, background 0.2s ease;
-}
-
-.settings-row input:checked + i {
-  background: rgba(91, 140, 255, 0.24);
-  border-color: rgba(147, 164, 255, 0.36);
-}
-
-.settings-row input:checked + i::after {
-  transform: translateX(20px);
-  background: #f3f6fb;
-}
-
-.settings-row:focus-within i {
-  outline: 2px solid rgba(147, 164, 255, 0.8);
-  outline-offset: 3px;
-}
-
 .profile-hero {
   margin-bottom: 14px;
 }
 
 .profile-stats {
   margin-bottom: 14px;
-}
-
-.flash-title,
-.flash-copy {
-  text-align: center;
-}
-
-.flash-copy {
-  margin-bottom: 1.25rem;
-}
-
-.flash-empty-state {
-  display: grid;
-  min-height: 320px;
-  place-items: center;
-  text-align: center;
-}
-
-.flash-empty-state .btn {
-  margin-top: 1rem;
 }
 
 .result-review-list {
@@ -2771,10 +2662,6 @@ body {
 
   .global-auth-search {
     display: none;
-  }
-
-  .settings-layout {
-    grid-template-columns: 1fr;
   }
 
   .row-badges {

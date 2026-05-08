@@ -2,7 +2,6 @@ import auth from "../auth.js";
 
 const onGamePage = window.location.pathname.includes("/games/");
 const baseHref = onGamePage ? ".." : ".";
-const THEME_KEY = "quizzy-theme";
 
 function buildHref(file) {
   return `${baseHref}/${file}`;

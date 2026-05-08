@@ -5,7 +5,7 @@ import { getGamificationSummary, getResolvedBadges, mergeBadgesFromSources, getS
 const root = document.getElementById("profileRoot");
 
 function averageScore(attempts) {
-  return entries.length ? Math.round(entries.reduce((sum, entry) => sum + Number(entry.percentage || 0), 0) / entries.length) : 0;
+  return attempts.length ? Math.round(attempts.reduce((sum, entry) => sum + Number(entry.percentage || 0), 0) / attempts.length) : 0;
 }
 
 function formatShortDate(isoValue) {

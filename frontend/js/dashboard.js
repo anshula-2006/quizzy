@@ -106,10 +106,10 @@ function renderSkeleton() {
 
 function statCard(label, value, helper) {
   return `
-    <article class="saas-stat-card panel">
-      <span class="saas-stat-label">${label}</span>
-      <strong class="saas-stat-value">${value}</strong>
-      <span class="saas-stat-helper">${helper}</span>
+    <article class="saas-stat-card panel" style="padding: 20px; border-radius: var(--radius-lg); background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent); border: 1px solid var(--line); display: flex; flex-direction: column; justify-content: space-between;">
+      <span class="saas-stat-label" style="font-size: 0.85rem; font-weight: 500; color: var(--muted); text-transform: none; letter-spacing: 0;">${label}</span>
+      <strong class="saas-stat-value" style="font-size: 2rem; font-weight: 700; color: var(--text); margin: 8px 0 4px; letter-spacing: -0.03em;">${value}</strong>
+      <span class="saas-stat-helper" style="font-size: 0.8rem; color: var(--muted); font-weight: 500;">${helper}</span>
     </article>
   `;
 }
@@ -196,110 +196,141 @@ function renderDashboard(data) {
         </div>
       </header>
 
-      <section class="profile-header-compact panel">
-        <div class="profile-identity">
-          <div class="profile-avatar-large">${escapeHtml((auth?.getSession?.()?.name || "Q").slice(0, 1).toUpperCase())}</div>
-          <div class="profile-title">
-            <h1>${escapeHtml(auth?.getSession?.()?.name || "Player")}</h1>
-            <span class="pill">Level ${game.level}</span>
+      <div style="display: grid; gap: 24px; margin-top: 24px;">
+        <section class="profile-header-compact panel" style="padding: 24px; display: flex; justify-content: space-between; align-items: center; border-radius: var(--radius-lg); background: linear-gradient(145deg, rgba(255,255,255,0.03), transparent); border: 1px solid var(--line); flex-wrap: wrap; gap: 20px;">
+          <div class="profile-identity" style="display: flex; align-items: center; gap: 16px;">
+            <div class="profile-avatar-large" style="background: #ededed; color: #000; font-weight: 800; border-radius: 12px; width: 56px; height: 56px; display: grid; place-items: center; font-size: 1.8rem;">${escapeHtml((auth?.getSession?.()?.name || "Q").slice(0, 1).toUpperCase())}</div>
+            <div class="profile-title">
+              <h1 style="font-size: 1.4rem; margin: 0 0 4px; font-weight: 700; color: var(--text); letter-spacing: -0.02em;">${escapeHtml(auth?.getSession?.()?.name || "Player")}</h1>
+              <span class="pill" style="font-size: 0.75rem; padding: 4px 10px; height: auto; background: var(--panel-soft); border: 1px solid var(--line); border-radius: 6px;">Level ${game.level}</span>
+            </div>
           </div>
-        </div>
-        <div class="profile-metrics">
-          <div class="profile-metric"><span>Global Rank</span><strong>${rank === "--" ? "--" : "#" + rank}</strong></div>
-          <div class="profile-metric border-left"><span>Total XP</span><strong>${game.totalXp}</strong></div>
-          <div class="profile-metric border-left"><span>Streak</span><strong>${game.streak} 🔥</strong></div>
-        </div>
-      </section>
-
-      <section class="hero-stats-grid">
-        ${statCard("Quizzes", attempts.length || Number(profile?.totalQuizzes || 0), "total attempts")}
-        ${statCard("Accuracy", avg + "%", best + "% best")}
-        ${statCard("Flashcards", cardCount, flashDecks.length + " decks")}
-        ${statCard("Badges", unlockedBadges.length, badges.length + " available")}
-      </section>
-
-      <div class="dashboard-content-grid" style="gap: 20px;">
-        <div style="display: grid; gap: 20px; align-content: start;">
-          <section class="panel flow-card">
-            <div class="card-title-row">
-              <div><strong style="font-size:1.1rem;">Performance Velocity</strong><span style="display:block; margin-top:2px; font-size:0.85rem;">Last 7 days accuracy trend</span></div>
+          <div class="profile-metrics" style="display: flex; gap: 32px; align-items: center;">
+            <div class="profile-metric" style="display: flex; flex-direction: column; gap: 4px;">
+              <span style="font-size: 0.75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">Global Rank</span>
+              <strong style="font-size: 1.3rem; font-weight: 700; color: var(--text);">${rank === "--" ? "--" : "#" + rank}</strong>
             </div>
-            ${renderLineChart(weekly)}
-          </section>
-
-          <section class="panel flow-card">
-            <div class="card-title-row">
-              <div><strong style="font-size:1.1rem;">Focus Areas</strong><span style="display:block; margin-top:2px; font-size:0.85rem;">Score by category</span></div>
+            <div class="profile-metric border-left" style="display: flex; flex-direction: column; gap: 4px; padding-left: 32px; border-left: 1px solid var(--line);">
+              <span style="font-size: 0.75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">Total XP</span>
+              <strong style="font-size: 1.3rem; font-weight: 700; color: var(--text);">${game.totalXp}</strong>
             </div>
-            <div style="display: grid; gap: 8px; margin-top: 16px;">
-              ${categoryStats.length ? categoryStats.slice(0,4).map(c => `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: var(--panel-soft); border-radius: var(--radius-md); border: 1px solid var(--line);">
-                  <span style="font-size: 0.9rem; text-transform: capitalize; font-weight: 600;">${escapeHtml(c.label)}</span>
-                  <div style="display: flex; align-items: center; gap: 16px;">
-                    <span style="font-size: 0.8rem; color: var(--muted);">${c.count} quizzes</span>
-                    <strong style="font-size: 0.95rem; color: var(--text);">${c.average}%</strong>
+            <div class="profile-metric border-left" style="display: flex; flex-direction: column; gap: 4px; padding-left: 32px; border-left: 1px solid var(--line);">
+              <span style="font-size: 0.75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">Streak</span>
+              <strong style="font-size: 1.3rem; font-weight: 700; color: var(--amber);">${game.streak} 🔥</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="hero-stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+          ${statCard("Quizzes", attempts.length || Number(profile?.totalQuizzes || 0), "Total completions")}
+          ${statCard("Accuracy", avg + "%", `Best: ${best}%`)}
+          ${statCard("Flashcards", cardCount, `${flashDecks.length} active decks`)}
+          ${statCard("Badges", unlockedBadges.length, `${badges.length} available`)}
+        </section>
+
+        <div class="dashboard-content-grid" style="display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr); gap: 24px;">
+          
+          <!-- Left Column -->
+          <div style="display: grid; gap: 24px; align-content: start;">
+            <section class="panel flow-card" style="padding: 24px; border-radius: var(--radius-lg);">
+              <div class="card-title-row" style="margin-bottom: 20px;">
+                <div>
+                  <strong style="font-size:1.1rem; display:block;">Performance Velocity</strong>
+                  <span style="display:block; margin-top:4px; font-size:0.85rem; color: var(--muted);">Last 7 days accuracy trend</span>
+                </div>
+              </div>
+              ${renderLineChart(weekly)}
+            </section>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+              <section class="panel flow-card" style="padding: 20px; border-radius: var(--radius-md);">
+                <div class="card-title-row" style="margin-bottom: 16px;">
+                  <div>
+                    <strong style="font-size:1rem; display:block;">Focus Areas</strong>
+                    <span style="display:block; margin-top:2px; font-size:0.8rem; color: var(--muted);">Category breakdown</span>
                   </div>
                 </div>
-              `).join("") : `<div class="empty-state-mini" style="padding: 16px; text-align: center; border: 1px dashed var(--line); border-radius: var(--radius-md);"><span style="color: var(--muted); font-size: 0.85rem;">No category data yet.</span></div>`}
-            </div>
-          </section>
-
-          <section class="panel flow-card">
-            <div class="card-title-row">
-              <div><strong style="font-size:1.1rem;">AI Insights</strong><span style="display:block; margin-top:2px; font-size:0.85rem;">Algorithmic recommendations</span></div>
-            </div>
-            <div class="insight-grid" style="margin-top: 16px;">
-              ${insights.map(i => `
-                <div class="insight-pill" style="align-items: flex-start; padding: 12px; border-radius: var(--radius-md);">
-                  <div style="display: flex; flex-direction: column; gap: 2px;">
-                    <span style="color: var(--text); font-size: 0.9rem; font-weight: 600;">${i.label}</span>
-                    <span style="font-size: 0.85rem; font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--muted);">${i.value}</span>
-                  </div>
-                </div>
-              `).join("")}
-            </div>
-          </section>
-        </div>
-
-        <div style="display: grid; gap: 20px; align-content: start;">
-          <section class="panel flow-card">
-            <div class="card-title-row">
-              <div><strong style="font-size:1.1rem;">Recent Activity</strong><span style="display:block; margin-top:2px; font-size:0.85rem;">Your latest learning sessions</span></div>
-            </div>
-            <div class="timeline-list" style="margin-top: 16px; display: grid; gap: 8px;">
-              ${recent.length ? recent.map(a => `
-                <div class="timeline-item" style="grid-template-columns: 1fr; padding: 14px; border-radius: var(--radius-md);">
-                  <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <strong style="color: var(--text); font-size: 0.95rem;">${a.percentage}% Score</strong>
-                    <span style="font-size: 0.75rem; background: var(--panel-soft); padding: 4px 8px; border-radius: 6px; border: 1px solid var(--line); font-weight: 600;">${a.settings?.difficulty?.toUpperCase() || 'MODERATE'}</span>
-                  </div>
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
-                     <span style="color: var(--muted); font-size: 0.8rem;">${formatDate(a.createdAt)}</span>
-                     <span style="color: var(--muted); font-size: 0.8rem;">${a.score}/${a.total} Correct</span>
-                  </div>
-                </div>
-              `).join("") : `<div class="empty-state-mini" style="padding: 24px; text-align: center; border: 1px dashed var(--line); border-radius: var(--radius-md);"><span style="color: var(--muted); font-size: 0.9rem;">No recent activity. Start a quiz!</span></div>`}
-            </div>
-            ${attempts.length > 6 ? `<a href="./profile.html" class="btn-outline" style="width: 100%; margin-top: 12px; display: flex; justify-content: center; min-height: 36px; font-size: 0.85rem;">View Full History</a>` : ''}
-          </section>
-
-          <section class="panel flow-card">
-            <div class="card-title-row">
-              <div><strong style="font-size:1.1rem;">Top Players</strong><span style="display:block; margin-top:2px; font-size:0.85rem;">Global ranking preview</span></div>
-              <a href="./scoreboard.html" style="font-size: 0.85rem; color: var(--muted); text-decoration: underline; font-weight: 600;">View all</a>
-            </div>
-            <div style="display: grid; gap: 8px; margin-top: 16px;">
-               ${topPlayers.length ? topPlayers.map((p, idx) => `
-                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: var(--panel-soft); border-radius: var(--radius-md); border: 1px solid var(--line);">
-                    <div style="display: flex; align-items: center; gap: 14px;">
-                      <span style="font-size: 0.85rem; font-weight: 700; color: var(--muted); width: 16px; text-align: center;">${idx + 1}</span>
-                      <strong style="font-size: 0.95rem; color: var(--text);">${escapeHtml(p.name)}</strong>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                  ${categoryStats.length ? categoryStats.slice(0,4).map(c => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: rgba(255, 255, 255, 0.02); border-radius: var(--radius-md); border: 1px solid var(--line);">
+                      <span style="font-size: 0.85rem; text-transform: capitalize; font-weight: 600; color: var(--text);">${escapeHtml(c.label)}</span>
+                      <div style="display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 0.75rem; color: var(--muted);">${c.count} qz</span>
+                        <strong style="font-size: 0.9rem; color: var(--text);">${c.average}%</strong>
+                      </div>
                     </div>
-                    <span style="font-size: 0.85rem; font-weight: 600;">${p.totalXp} XP</span>
-                 </div>
-               `).join("") : `<div class="empty-state-mini" style="padding: 16px; text-align: center; border: 1px dashed var(--line); border-radius: var(--radius-md);"><span style="color: var(--muted); font-size: 0.85rem;">No players ranked yet.</span></div>`}
+                  `).join("") : `<div class="empty-state-mini" style="padding: 16px; text-align: center; border: 1px dashed var(--line); border-radius: var(--radius-md);"><span style="color: var(--muted); font-size: 0.85rem;">No category data yet.</span></div>`}
+                </div>
+              </section>
+
+              <section class="panel flow-card" style="padding: 20px; border-radius: var(--radius-md);">
+                <div class="card-title-row" style="margin-bottom: 16px;">
+                  <div>
+                    <strong style="font-size:1rem; display:block;">AI Insights</strong>
+                    <span style="display:block; margin-top:2px; font-size:0.8rem; color: var(--muted);">Smart recommendations</span>
+                  </div>
+                </div>
+                <div class="insight-grid" style="display: flex; flex-direction: column; gap: 8px;">
+                  ${insights.slice(0, 3).map(i => `
+                    <div class="insight-pill" style="padding: 10px 12px; background: rgba(255, 255, 255, 0.02); border-radius: var(--radius-md); border: 1px solid var(--line); display: block;">
+                      <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <span style="color: var(--text); font-size: 0.85rem; font-weight: 600;">${i.label}</span>
+                        <span style="font-size: 0.8rem; color: var(--muted); line-height: 1.4; text-transform: none; font-weight: 400; letter-spacing: 0;">${i.value}</span>
+                      </div>
+                    </div>
+                  `).join("")}
+                </div>
+              </section>
             </div>
-          </section>
+          </div>
+
+          <!-- Right Column -->
+          <div style="display: grid; gap: 24px; align-content: start;">
+            <section class="panel flow-card" style="padding: 24px; border-radius: var(--radius-lg);">
+              <div class="card-title-row" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                  <strong style="font-size:1.1rem; display:block;">Recent Activity</strong>
+                  <span style="display:block; margin-top:4px; font-size:0.85rem; color: var(--muted);">Latest learning sessions</span>
+                </div>
+                ${attempts.length > 5 ? `<a href="./profile.html" class="btn-outline" style="min-height: 32px; padding: 0 12px; font-size: 0.8rem;">View All</a>` : ''}
+              </div>
+              <div class="timeline-list" style="display: flex; flex-direction: column; gap: 8px;">
+                ${recent.length ? recent.slice(0,5).map(a => `
+                  <div class="timeline-item" style="padding: 12px 16px; background: rgba(255, 255, 255, 0.02); border-radius: var(--radius-md); border: 1px solid var(--line); display: grid; grid-template-columns: 1fr; gap: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <strong style="color: var(--text); font-size: 0.95rem; font-weight: 600;">${a.percentage}% Score</strong>
+                      <span style="font-size: 0.7rem; background: var(--bg); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--line); font-weight: 700; color: var(--muted);">${a.settings?.difficulty?.toUpperCase() || 'MODERATE'}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                       <span style="color: var(--muted); font-size: 0.8rem;">${formatDate(a.createdAt)}</span>
+                       <span style="color: var(--text); font-size: 0.85rem; font-weight: 500;">${a.score}/${a.total} Correct</span>
+                    </div>
+                  </div>
+                `).join("") : `<div class="empty-state-mini" style="padding: 24px; text-align: center; border: 1px dashed var(--line); border-radius: var(--radius-md);"><span style="color: var(--muted); font-size: 0.9rem;">No recent activity. Start a quiz!</span></div>`}
+              </div>
+            </section>
+
+            <section class="panel flow-card" style="padding: 24px; border-radius: var(--radius-lg);">
+              <div class="card-title-row" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                  <strong style="font-size:1.1rem; display:block;">Top Players</strong>
+                  <span style="display:block; margin-top:4px; font-size:0.85rem; color: var(--muted);">Global ranking preview</span>
+                </div>
+                <a href="./scoreboard.html" class="btn-outline" style="min-height: 32px; padding: 0 12px; font-size: 0.8rem;">Leaderboard</a>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                 ${topPlayers.length ? topPlayers.map((p, idx) => `
+                   <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(255, 255, 255, 0.02); border-radius: var(--radius-md); border: 1px solid var(--line); ${p.email === auth?.getSession?.()?.email ? 'border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.05);' : ''}">
+                      <div style="display: flex; align-items: center; gap: 16px;">
+                        <span style="font-size: 0.85rem; font-weight: 700; color: var(--muted); width: 20px; text-align: center;">${idx + 1}</span>
+                        <strong style="font-size: 0.95rem; color: var(--text);">${escapeHtml(p.name)}</strong>
+                      </div>
+                      <span style="font-size: 0.85rem; font-weight: 600; color: var(--muted);">${p.totalXp} XP</span>
+                   </div>
+                 `).join("") : `<div class="empty-state-mini" style="padding: 16px; text-align: center; border: 1px dashed var(--line); border-radius: var(--radius-md);"><span style="color: var(--muted); font-size: 0.85rem;">No players ranked yet.</span></div>`}
+              </div>
+            </section>
+          </div>
         </div>
       </div>
     </main>

@@ -1937,6 +1937,7 @@ body {
   font-size: 0.95rem;
   font-weight: 600;
   background: none;
+  background-clip: unset;
   -webkit-background-clip: unset;
   -webkit-text-fill-color: var(--text);
   color: var(--text);

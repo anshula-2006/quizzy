@@ -124,8 +124,8 @@ function renderLineChart(data) {
     <svg class="line-chart" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Weekly performance line graph">
       <defs>
         <linearGradient id="lineGlow" x1="0" x2="1">
-          <stop offset="0%" stop-color="#22d3ee" />
-          <stop offset="100%" stop-color="#a78bfa" />
+          <stop offset="0%" stop-color="#888" />
+          <stop offset="100%" stop-color="#ededed" />
         </linearGradient>
       </defs>
       <polyline points="${points}" fill="none" stroke="url(#lineGlow)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />

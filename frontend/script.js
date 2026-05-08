@@ -973,7 +973,7 @@ function renderEvaluationBoard() {
 
   if (entries.length === 0) {
     evaluationBoard.innerHTML = `
-      <div class="panel flow-card" style="border-style: dashed;">
+      <div class="panel flow-card">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
           <div>
             <span class="saas-stat-label">${labels.dashboard}</span>
@@ -1003,11 +1003,11 @@ function renderEvaluationBoard() {
   evaluationBoard.innerHTML = `
     <div style="display: grid; gap: 16px;">
       <div style="display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
-        <div class="panel flow-card" style="background: linear-gradient(145deg, rgba(124, 58, 237, 0.05), rgba(6, 182, 212, 0.05)); border-color: rgba(124, 58, 237, 0.2);">
+        <div class="panel flow-card">
           <div style="display: flex; justify-content: space-between; align-items: flex-start;">
             <div>
               <span class="saas-stat-label">${labels.dashboard}</span>
-              <h3 style="margin: 4px 0 8px; font-size: 2rem; color: var(--text);">${latest.percentage}% latest score</h3>
+              <h3 style="margin: 4px 0 8px; font-size: 1.8rem; font-weight: 600; color: var(--text);">${latest.percentage}% latest score</h3>
               <p style="margin: 0; color: var(--muted); font-size: 0.9rem;">${getFeedback(entries)}</p>
             </div>
             <button id="clearHistoryBtn" class="btn-outline" style="min-height: 32px; padding: 0 12px; font-size: 0.8rem;" type="button">Clear</button>
@@ -1032,7 +1032,7 @@ function renderEvaluationBoard() {
             <div><span class="saas-stat-label">Band</span><strong class="saas-stat-value" style="display:block; margin-top:4px; font-size: 1.1rem;">${getBandLabel(latest.percentage)}</strong></div>
             <div><span class="saas-stat-label">Trend</span><strong class="saas-stat-value" style="display:block; margin-top:4px; font-size: 1.1rem;">${getTrend(entries).label}</strong></div>
           </div>
-          <div style="margin-top: 24px; padding: 12px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--line);">
+          <div style="margin-top: 24px; padding: 12px; background: var(--panel-soft); border-radius: var(--radius-md); border: 1px solid var(--line);">
             <strong style="font-size: 0.9rem;">Latest attempt</strong>
             <p style="margin: 4px 0 0; font-size: 0.85rem; color: var(--muted);">${latest.score}/${latest.total} • ${formatShortDate(latest.createdAt)} • ${(latest.settings?.outputLanguage || "English").toUpperCase()}</p>
           </div>
@@ -1047,7 +1047,7 @@ function renderEvaluationBoard() {
           </div>
           <div style="display: grid; gap: 10px; margin-top: 16px;">
             ${recent.map((e) => `
-              <div style="padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center;">
+              <div style="padding: 12px; border-radius: var(--radius-md); background: var(--panel-soft); border: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center;">
                 <div>
                   <strong style="font-size: 1.2rem;">${e.percentage}%</strong>
                   <p style="margin: 4px 0 0; font-size: 0.8rem; color: var(--muted);">${e.score}/${e.total} • ${formatShortDate(e.createdAt)}</p>
@@ -1067,7 +1067,7 @@ function renderEvaluationBoard() {
               </button>
             `).join("")}
           </div>
-          <div id="reviewDetail" style="margin-top: 16px; padding: 16px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--line); font-size: 0.9rem; color: var(--muted); line-height: 1.6;">Click a question chip to view the explanation.</div>
+          <div id="reviewDetail" style="margin-top: 16px; padding: 16px; background: var(--panel-soft); border-radius: var(--radius-md); border: 1px solid var(--line); font-size: 0.9rem; color: var(--muted); line-height: 1.6;">Click a question chip to view the explanation.</div>
         </div>
       </div>
     </div>
@@ -2348,7 +2348,7 @@ function renderShortAnswerInput() {
   return `
     <div style="display: grid; gap: 12px;">
       <label class="saas-stat-label" for="shortAnswerInput">Your answer</label>
-      <textarea id="shortAnswerInput" class="text-input" style="min-height: 140px; border-radius: 20px;" placeholder="Type your answer here..."></textarea>
+      <textarea id="shortAnswerInput" class="text-input" style="min-height: 140px; border-radius: var(--radius-md);" placeholder="Type your answer here..."></textarea>
       <button id="submitShortBtn" class="btn" type="button">Lock Answer</button>
     </div>
   `;
@@ -2363,7 +2363,7 @@ function showQuestion() {
 
   quiz.innerHTML = `
     <div style="position: fixed; inset: 0; z-index: 50; overflow-y: auto; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); padding: 24px; display: grid; place-items: center;">
-      <div class="panel quiz-card fade-in" style="width: 100%; max-width: 900px; box-shadow: var(--shadow);">
+      <div class="panel quiz-card fade-in" style="width: 100%; max-width: 900px;">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
           <div>
             <span class="saas-stat-label">Quiz mode</span>
@@ -2384,7 +2384,7 @@ function showQuestion() {
         </div>
 
         <div style="display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); margin-top: 32px;">
-          <div style="padding: 24px; background: rgba(255,255,255,0.03); border-radius: 20px; border: 1px solid var(--line);">
+          <div style="padding: 24px; background: var(--panel-soft); border-radius: var(--radius-lg); border: 1px solid var(--line);">
             <span class="saas-stat-label">Focus prompt</span>
             <h3 style="margin: 12px 0 0; font-size: clamp(1.4rem, 2.5vw, 2rem); font-weight: 900; line-height: 1.3;">${q.question}</h3>
             <p style="margin: 16px 0 0; color: var(--muted); font-size: 0.9rem; line-height: 1.6;">Choose your answer and move to the next challenge. Smooth and fast, one step at a time.</p>
@@ -2393,7 +2393,7 @@ function showQuestion() {
           <div style="display: grid; gap: 12px; align-content: start;">
             ${q.type === "mcq"
               ? q.options.map((o, i) => `
-                <button class="answer-option option quiz-option" data-o="${String.fromCharCode(65 + i)}" type="button" style="border-radius: 20px; padding: 16px 20px;">
+                <button class="answer-option option quiz-option" data-o="${String.fromCharCode(65 + i)}" type="button" style="border-radius: var(--radius-md); padding: 16px 20px;">
                   <span class="answer-key">${String.fromCharCode(65 + i)}</span>
                   <span style="font-weight: 600;">${o}</span>
                 </button>`).join("")
@@ -2537,7 +2537,7 @@ function reveal(q, choice, isReview) {
 
     quiz.querySelector(".quiz-card").insertAdjacentHTML(
       "beforeend",
-      `<div class="explanation" style="margin-top: 24px; padding: 24px; background: rgba(0,0,0,0.3); border: 1px solid var(--line); border-radius: 20px;">
+      `<div class="explanation" style="margin-top: 24px; padding: 24px; background: var(--panel-soft); border: 1px solid var(--line); border-radius: var(--radius-lg);">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
           <span class="meta-chip" style="${isCorrect ? 'background: rgba(34,197,94,0.15); color: var(--green);' : 'background: rgba(248,113,113,0.15); color: var(--red);'}">${isCorrect ? "Correct" : "Wrong"}</span>
           <strong style="font-size: 0.95rem;">${answerText}</strong>
@@ -2720,7 +2720,7 @@ async function finish() {
         </div>
 
         <div style="display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-top: 32px; align-items: center;">
-          <div style="padding: 24px; background: linear-gradient(145deg, rgba(124, 58, 237, 0.1), rgba(6, 182, 212, 0.05)); border-radius: 24px; text-align: center; border: 1px solid var(--line);">
+          <div style="padding: 24px; background: var(--panel-soft); border-radius: var(--radius-lg); text-align: center; border: 1px solid var(--line);">
             <span class="saas-stat-label">Final score</span>
             <strong style="display: block; margin-top: 12px; font-size: 4rem; font-weight: 900; line-height: 1;">${entry.percentage}%</strong>
             <p style="margin: 12px 0 0; font-size: 0.9rem; color: var(--muted);">${Math.max(0, questions.length - score)} miss(es) • ${entry.gamification?.xp || getAttemptXp(entry)} XP earned</p>

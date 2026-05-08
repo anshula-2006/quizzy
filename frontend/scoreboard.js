@@ -642,7 +642,7 @@ function renderBoard() {
     ? `
       <section class="panel flow-card scoreboard-table-wrap" style="padding: 24px; border: 1px solid var(--border-main);">
         <div class="table-header-block" style="margin-bottom: 20px; text-align: center; border-bottom: none; padding: 0;">
-          <h3 style="font-size: 1.3rem; font-weight: 900; background: linear-gradient(135deg, #6366F1, #818CF8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Global Leaderboard</h3>
+          <h3 style="font-size: 1.3rem; font-weight: 600; color: var(--text);">Global Leaderboard</h3>
           <p style="color: var(--muted); font-size: 0.85rem; margin-top: 4px;">Top players ranked by total points and XP.</p>
         </div>
 

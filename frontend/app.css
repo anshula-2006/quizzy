@@ -2828,17 +2828,24 @@ body {
 
 .challenge-card {
   padding: 18px;
-  border-radius: var(--radius-lg);
-  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius-md);
+  background: var(--panel-soft);
   border: 1px solid var(--line);
   display: flex;
   flex-direction: column;
   gap: 12px;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.challenge-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: var(--shadow-soft);
 }
 
 .challenge-card.done {
-  border-color: rgba(34, 197, 94, 0.3);
-  background: rgba(34, 197, 94, 0.05);
+  border-color: rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.08);
 }
 
 .challenge-top {
@@ -2881,16 +2888,18 @@ body {
   padding: 8px 16px;
   border-radius: var(--radius-md);
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.04);
   color: var(--text);
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.85rem;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
 }
 
 .challenge-cta:hover {
-  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .mini-games-grid {
@@ -2902,12 +2911,19 @@ body {
 
 .mini-game-panel {
   padding: 20px;
-  border-radius: var(--radius-lg);
-  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius-md);
+  background: var(--panel-soft);
   border: 1px solid var(--line);
   display: flex;
   flex-direction: column;
   gap: 14px;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mini-game-panel:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: var(--shadow-soft);
 }
 
 .mini-game-head {
@@ -2935,9 +2951,9 @@ body {
   padding: 8px 16px;
   border-radius: var(--radius-md);
   border: none;
-  background: #ededed;
-  color: #000;
-  font-weight: 700;
+  background: var(--text);
+  color: var(--bg);
+  font-weight: 600;
   font-size: 0.85rem;
   cursor: pointer;
   transition: transform 0.2s ease, opacity 0.2s ease;
@@ -2946,7 +2962,7 @@ body {
 
 .mini-game-head button:hover,
 .mini-actions button:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
   opacity: 0.9;
 }
 
@@ -2967,7 +2983,7 @@ body {
 
 .speed-question-card {
   padding: 16px;
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.3);
   border-radius: var(--radius-md);
   border: 1px solid var(--line);
 }

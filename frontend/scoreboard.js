@@ -651,35 +651,40 @@ function renderBoard() {
   const leaderboardMarkup = cloudLeaderboard.length
     ? `
       <section class="panel flow-card scoreboard-table-wrap" style="padding: 24px; border: 1px solid var(--border-main);">
-        <div class="table-header-block" style="margin-bottom: 24px; text-align: center; border-bottom: none; padding: 0;">
-          <h3 style="font-size: 1.3rem; font-weight: 600; color: var(--text);">Global Leaderboard</h3>
-          <p style="color: var(--muted); font-size: 0.85rem; margin-top: 4px;">Top players ranked by total points and XP.</p>
+        <div class="table-header-block" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; text-align: left; padding: 0; border: none;">
+          <div>
+            <h3 style="font-size: 1.3rem; font-weight: 600; color: var(--text); margin: 0;">Global Leaderboard</h3>
+            <p style="color: var(--muted); font-size: 0.85rem; margin: 4px 0 0;">Top players ranked by total points and XP.</p>
+          </div>
+          <div class="segmented-control" style="background: transparent; border: none; padding: 0;">
+            <span style="font-size: 0.8rem; color: var(--muted); font-weight: 600; padding: 6px 12px; background: var(--panel-soft); border-radius: var(--radius-md); border: 1px solid var(--line);">Global View</span>
+          </div>
         </div>
 
         ${hasPodium ? `
-        <div class="podium-wrapper fade-in">
-          <div class="podium-step rank-2">
-            <div class="podium-avatar" style="font-size: 1.5rem; background: var(--panel-soft); width: 48px; height: 48px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--line);">2</div>
-            <div class="podium-name">${escapeHtml(p2.name || 'Player')}</div>
-            <div class="podium-score">${p2.leaderboardScore || 0} pts</div>
-            <div class="podium-bar"></div>
+        <div class="podium-wrapper fade-in" style="display: flex; justify-content: center; align-items: flex-end; gap: 12px; margin-bottom: 32px; min-height: 160px;">
+          <div class="podium-step rank-2" style="display: flex; flex-direction: column; align-items: center; width: 30%; max-width: 100px;">
+            <div class="podium-avatar" style="font-size: 1.2rem; font-weight: 700; color: var(--muted); background: var(--panel-soft); width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--line); margin-bottom: 12px;">2</div>
+            <div class="podium-name" style="font-size: 0.9rem; font-weight: 600; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; color: var(--text); padding: 0 4px;">${escapeHtml(p2.name || 'Player')}</div>
+            <div class="podium-score" style="font-size: 0.8rem; color: var(--muted); margin: 4px 0 12px;">${p2.totalXp || 0} XP</div>
+            <div class="podium-bar" style="width: 100%; height: 60px; border-radius: 8px 8px 0 0; background: linear-gradient(180deg, rgba(255,255,255,0.06), transparent); border: 1px solid var(--line); border-bottom: none;"></div>
           </div>
-          <div class="podium-step rank-1">
-            <div class="podium-avatar glow" style="font-size: 1.8rem; background: #ededed; color: #000; width: 64px; height: 64px; display: grid; place-items: center; border-radius: 50%;">1</div>
-            <div class="podium-name" style="font-weight: 800;">${escapeHtml(p1.name || 'Player')}</div>
-            <div class="podium-score">${p1.leaderboardScore || 0} pts</div>
-            <div class="podium-bar"></div>
+          <div class="podium-step rank-1" style="display: flex; flex-direction: column; align-items: center; width: 30%; max-width: 110px; z-index: 2;">
+            <div class="podium-avatar" style="font-size: 1.4rem; font-weight: 800; color: #000; background: #ededed; width: 60px; height: 60px; display: grid; place-items: center; border-radius: 50%; margin-bottom: 12px; box-shadow: 0 4px 16px rgba(255,255,255,0.15);">1</div>
+            <div class="podium-name" style="font-size: 1rem; font-weight: 700; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; color: var(--text); padding: 0 4px;">${escapeHtml(p1.name || 'Player')}</div>
+            <div class="podium-score" style="font-size: 0.85rem; color: var(--text); font-weight: 600; margin: 4px 0 12px;">${p1.totalXp || 0} XP</div>
+            <div class="podium-bar" style="width: 100%; height: 90px; border-radius: 8px 8px 0 0; background: linear-gradient(180deg, rgba(255,255,255,0.15), transparent); border: 1px solid rgba(255,255,255,0.25); border-bottom: none;"></div>
           </div>
-          <div class="podium-step rank-3">
-            <div class="podium-avatar" style="font-size: 1.5rem; background: var(--panel-soft); width: 48px; height: 48px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--line);">3</div>
-            <div class="podium-name">${escapeHtml(p3.name || 'Player')}</div>
-            <div class="podium-score">${p3.leaderboardScore || 0} pts</div>
-            <div class="podium-bar"></div>
+          <div class="podium-step rank-3" style="display: flex; flex-direction: column; align-items: center; width: 30%; max-width: 100px;">
+            <div class="podium-avatar" style="font-size: 1.2rem; font-weight: 700; color: var(--muted); background: var(--panel-soft); width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--line); margin-bottom: 12px;">3</div>
+            <div class="podium-name" style="font-size: 0.9rem; font-weight: 600; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; color: var(--text); padding: 0 4px;">${escapeHtml(p3.name || 'Player')}</div>
+            <div class="podium-score" style="font-size: 0.8rem; color: var(--muted); margin: 4px 0 12px;">${p3.totalXp || 0} XP</div>
+            <div class="podium-bar" style="width: 100%; height: 40px; border-radius: 8px 8px 0 0; background: linear-gradient(180deg, rgba(255,255,255,0.04), transparent); border: 1px solid var(--line); border-bottom: none;"></div>
           </div>
         </div>
         ` : ""}
 
-        <div class="compact-leaderboard-list custom-scrollbar" style="margin-top: 16px;">
+        <div class="compact-leaderboard-list custom-scrollbar" style="display: flex; flex-direction: column; gap: 10px;">
           ${paginatedLeaderboard.map((player, idx) => {
             const rank = player.rank || ((currentLeaderboardPage - 1) * LEADERBOARD_PAGE_SIZE + idx + 1);
             if (hasPodium && rank <= 3) return ""; 
@@ -687,21 +692,26 @@ function renderBoard() {
             const isMe = (player.email === auth?.getSession?.()?.email);
 
             return `
-            <div class="lb-row fade-in ${isMe ? 'is-me' : ''}" style="animation-delay: ${idx * 0.04}s">
-              <div class="lb-rank ${rank <= 3 ? 'top-rank' : ''}">${rank}</div>
-              <div class="lb-details">
-                <strong class="lb-name">${escapeHtml(player.name)} ${isMe ? '<span style="font-size:0.7rem; background:var(--text); color:var(--bg); padding:2px 6px; border-radius:4px; margin-left:6px;">You</span>' : ''}</strong>
-                <span class="lb-meta">${player.totalXp} XP • 🔥 ${player.currentStreak}</span>
+            <div class="lb-row fade-in" style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: ${isMe ? 'rgba(255, 255, 255, 0.08)' : 'var(--panel-soft)'}; border: 1px solid ${isMe ? 'rgba(255, 255, 255, 0.2)' : 'var(--line)'}; border-radius: var(--radius-md); animation-delay: ${idx * 0.04}s">
+              <div style="display: flex; align-items: center; gap: 18px; flex: 1; min-width: 0;">
+                <div style="font-size: 1rem; font-weight: 700; color: var(--muted); width: 28px; text-align: center;">${rank}</div>
+                <div style="display: flex; flex-direction: column; min-width: 0; gap: 4px;">
+                  <strong style="font-size: 1rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(player.name)} ${isMe ? '<span style="font-size:0.7rem; background:#ededed; color:#000; padding:2px 6px; border-radius:4px; margin-left:8px; font-weight: 700;">You</span>' : ''}</strong>
+                  <span style="font-size: 0.85rem; color: var(--muted);">Streak: 🔥 ${player.currentStreak || 0}</span>
+                </div>
               </div>
-              <div class="lb-score">${player.leaderboardScore} <span style="font-size: 0.7rem; color: var(--muted); font-weight: normal;">pts</span></div>
+              <div style="text-align: right; display: flex; flex-direction: column; gap: 4px;">
+                <div style="font-size: 1.05rem; font-weight: 600; color: var(--text);">${player.totalXp || 0} XP</div>
+                <div style="font-size: 0.8rem; color: var(--muted);">${player.leaderboardScore || 0} pts</div>
+              </div>
             </div>
           `}).join("")}
         </div>
         ${totalLeaderboardPages > 1 ? `
-        <div class="lb-pagination" style="border-top: 1px solid var(--line); margin-top: 16px; padding-top: 16px;">
-          <button class="ghost leaderboard-prev-btn" style="min-height: 32px; padding: 0 12px; font-size: 0.8rem;" ${currentLeaderboardPage === 1 ? "disabled" : ""}>Previous</button>
-          <span class="helper-text" style="font-size: 0.8rem;">Page ${currentLeaderboardPage} of ${totalLeaderboardPages}</span>
-          <button class="ghost leaderboard-next-btn" style="min-height: 32px; padding: 0 12px; font-size: 0.8rem;" ${currentLeaderboardPage === totalLeaderboardPages ? "disabled" : ""}>Next</button>
+        <div class="lb-pagination" style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--line); margin-top: 24px; padding-top: 20px;">
+          <button class="btn-outline leaderboard-prev-btn" style="min-height: 36px; padding: 0 16px; font-size: 0.85rem;" ${currentLeaderboardPage === 1 ? "disabled" : ""}>Previous</button>
+          <span style="font-size: 0.85rem; color: var(--muted); font-weight: 500;">Page ${currentLeaderboardPage} of ${totalLeaderboardPages}</span>
+          <button class="btn-outline leaderboard-next-btn" style="min-height: 36px; padding: 0 16px; font-size: 0.85rem;" ${currentLeaderboardPage === totalLeaderboardPages ? "disabled" : ""}>Next</button>
         </div>
         ` : ""}
       </section>

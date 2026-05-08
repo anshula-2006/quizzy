@@ -1447,21 +1447,21 @@ function renderGameHub() {
   gameHub.innerHTML = `
     <div class="evaluation-wrap">
       <div class="game-hub">
-        <div class="card challenge-board">
+        <div class="panel flow-card challenge-board" style="margin-bottom: 24px;">
           <div class="evaluation-head">
             <div>
               <h3>XP Missions</h3>
-              <p class="cabinet-note">Tell learners exactly what gets them more XP so the study loop feels playful.</p>
+              <p class="cabinet-note">Complete specific tasks to earn bonus XP and accelerate your progress.</p>
             </div>
             <div class="meta-chip">Bonus XP ${getBonusXp()}</div>
           </div>
           <div class="challenge-grid">${challengeCards}</div>
         </div>
-        <div class="card mini-games-shell">
+        <div class="panel flow-card mini-games-shell">
           <div class="evaluation-head">
             <div>
               <h3>Mini Games</h3>
-              <p class="cabinet-note">Short playful tasks that make the quiz app feel more like a game room.</p>
+              <p class="cabinet-note">Interactive challenges designed to test recall and reaction speed.</p>
             </div>
           </div>
           <div class="mini-games-grid">

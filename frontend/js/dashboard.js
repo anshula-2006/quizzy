@@ -161,6 +161,8 @@ function renderDashboard(data) {
   const cardCount = flashDecks.reduce((sum, deck) => sum + (Array.isArray(deck.flashcards) ? deck.flashcards.length : 0), 0);
   const recent = attempts.slice(0, 6);
   const insights = getInsights(attempts, badges, profile);
+  const categoryStats = getCategoryStats(attempts);
+  const topPlayers = leaderboard.slice(0, 5);
 
   root.className = "dashboard-platform-shell page-fade";
   root.innerHTML = `
@@ -216,8 +218,8 @@ function renderDashboard(data) {
         ${statCard("Badges", unlockedBadges.length, badges.length + " available")}
       </section>
 
-      <div class="dashboard-content-grid">
-        <div style="display: grid; gap: 16px; align-content: start;">
+      <div class="dashboard-content-grid" style="gap: 20px;">
+        <div style="display: grid; gap: 20px; align-content: start;">
           <section class="panel flow-card">
             <div class="card-title-row">
               <div><strong style="font-size:1.1rem;">Performance Velocity</strong><span style="display:block; margin-top:2px; font-size:0.85rem;">Last 7 days accuracy trend</span></div>
@@ -227,14 +229,31 @@ function renderDashboard(data) {
 
           <section class="panel flow-card">
             <div class="card-title-row">
-              <div><strong style="font-size:1.1rem;">AI Insights</strong><span style="display:block; margin-top:2px; font-size:0.85rem;">Algorithmic feedback</span></div>
+              <div><strong style="font-size:1.1rem;">Focus Areas</strong><span style="display:block; margin-top:2px; font-size:0.85rem;">Score by category</span></div>
+            </div>
+            <div style="display: grid; gap: 8px; margin-top: 16px;">
+              ${categoryStats.length ? categoryStats.slice(0,4).map(c => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: var(--panel-soft); border-radius: var(--radius-md); border: 1px solid var(--line);">
+                  <span style="font-size: 0.9rem; text-transform: capitalize; font-weight: 600;">${escapeHtml(c.label)}</span>
+                  <div style="display: flex; align-items: center; gap: 16px;">
+                    <span style="font-size: 0.8rem; color: var(--muted);">${c.count} quizzes</span>
+                    <strong style="font-size: 0.95rem; color: var(--text);">${c.average}%</strong>
+                  </div>
+                </div>
+              `).join("") : `<div class="empty-state-mini" style="padding: 16px; text-align: center; border: 1px dashed var(--line); border-radius: var(--radius-md);"><span style="color: var(--muted); font-size: 0.85rem;">No category data yet.</span></div>`}
+            </div>
+          </section>
+
+          <section class="panel flow-card">
+            <div class="card-title-row">
+              <div><strong style="font-size:1.1rem;">AI Insights</strong><span style="display:block; margin-top:2px; font-size:0.85rem;">Algorithmic recommendations</span></div>
             </div>
             <div class="insight-grid" style="margin-top: 16px;">
               ${insights.map(i => `
-                <div class="insight-pill" style="align-items: flex-start;">
-                  <div style="display: flex; flex-direction: column; gap: 4px;">
-                    <span style="color: var(--text);">${i.label}</span>
-                    <span style="font-size: 0.8rem; font-weight: 400; text-transform: none; letter-spacing: 0;">${i.value}</span>
+                <div class="insight-pill" style="align-items: flex-start; padding: 12px; border-radius: var(--radius-md);">
+                  <div style="display: flex; flex-direction: column; gap: 2px;">
+                    <span style="color: var(--text); font-size: 0.9rem; font-weight: 600;">${i.label}</span>
+                    <span style="font-size: 0.85rem; font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--muted);">${i.value}</span>
                   </div>
                 </div>
               `).join("")}
@@ -242,21 +261,43 @@ function renderDashboard(data) {
           </section>
         </div>
 
-        <div style="display: grid; gap: 16px; align-content: start;">
+        <div style="display: grid; gap: 20px; align-content: start;">
           <section class="panel flow-card">
             <div class="card-title-row">
               <div><strong style="font-size:1.1rem;">Recent Activity</strong><span style="display:block; margin-top:2px; font-size:0.85rem;">Your latest learning sessions</span></div>
             </div>
-            <div class="timeline-list" style="margin-top: 16px;">
+            <div class="timeline-list" style="margin-top: 16px; display: grid; gap: 8px;">
               ${recent.length ? recent.map(a => `
-                <div class="timeline-item" style="grid-template-columns: 1fr;">
+                <div class="timeline-item" style="grid-template-columns: 1fr; padding: 14px; border-radius: var(--radius-md);">
                   <div style="display: flex; justify-content: space-between; align-items: center;">
                     <strong style="color: var(--text); font-size: 0.95rem;">${a.percentage}% Score</strong>
-                    <span style="font-size: 0.75rem; background: var(--panel-soft); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--line);">${a.settings?.difficulty?.toUpperCase()}</span>
+                    <span style="font-size: 0.75rem; background: var(--panel-soft); padding: 4px 8px; border-radius: 6px; border: 1px solid var(--line); font-weight: 600;">${a.settings?.difficulty?.toUpperCase() || 'MODERATE'}</span>
                   </div>
-                  <span style="color: var(--muted); font-size: 0.8rem; margin-top: 4px;">${formatDate(a.createdAt)} • ${a.score}/${a.total} Correct</span>
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+                     <span style="color: var(--muted); font-size: 0.8rem;">${formatDate(a.createdAt)}</span>
+                     <span style="color: var(--muted); font-size: 0.8rem;">${a.score}/${a.total} Correct</span>
+                  </div>
                 </div>
               `).join("") : `<div class="empty-state-mini" style="padding: 24px; text-align: center; border: 1px dashed var(--line); border-radius: var(--radius-md);"><span style="color: var(--muted); font-size: 0.9rem;">No recent activity. Start a quiz!</span></div>`}
+            </div>
+            ${attempts.length > 6 ? `<a href="./profile.html" class="btn-outline" style="width: 100%; margin-top: 12px; display: flex; justify-content: center; min-height: 36px; font-size: 0.85rem;">View Full History</a>` : ''}
+          </section>
+
+          <section class="panel flow-card">
+            <div class="card-title-row">
+              <div><strong style="font-size:1.1rem;">Top Players</strong><span style="display:block; margin-top:2px; font-size:0.85rem;">Global ranking preview</span></div>
+              <a href="./scoreboard.html" style="font-size: 0.85rem; color: var(--muted); text-decoration: underline; font-weight: 600;">View all</a>
+            </div>
+            <div style="display: grid; gap: 8px; margin-top: 16px;">
+               ${topPlayers.length ? topPlayers.map((p, idx) => `
+                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: var(--panel-soft); border-radius: var(--radius-md); border: 1px solid var(--line);">
+                    <div style="display: flex; align-items: center; gap: 14px;">
+                      <span style="font-size: 0.85rem; font-weight: 700; color: var(--muted); width: 16px; text-align: center;">${idx + 1}</span>
+                      <strong style="font-size: 0.95rem; color: var(--text);">${escapeHtml(p.name)}</strong>
+                    </div>
+                    <span style="font-size: 0.85rem; font-weight: 600;">${p.totalXp} XP</span>
+                 </div>
+               `).join("") : `<div class="empty-state-mini" style="padding: 16px; text-align: center; border: 1px dashed var(--line); border-radius: var(--radius-md);"><span style="color: var(--muted); font-size: 0.85rem;">No players ranked yet.</span></div>`}
             </div>
           </section>
         </div>

@@ -336,3 +336,29 @@ function renderDashboard(data) {
     </main>
 `;
 }
+
+async function initDashboard() {
+  if (!root) return;
+  renderSkeleton();
+  
+  try {
+    let data;
+    if (isLoggedIn()) {
+      data = await apiRequest("/data/bootstrap");
+    } else {
+      data = {
+        attempts: typeof getSavedQuizHistory === 'function' ? getSavedQuizHistory() : [],
+        flashDecks: typeof getFlashDecks === 'function' ? getFlashDecks() : [],
+        miniGameStats: typeof getMiniGameStats === 'function' ? getMiniGameStats() : {},
+        profile: null,
+        leaderboard: []
+      };
+    }
+    renderDashboard(data || dashboardState);
+  } catch (error) {
+    console.error("Failed to load dashboard data:", error);
+    renderDashboard(dashboardState);
+  }
+}
+
+initDashboard();

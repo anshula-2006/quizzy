@@ -185,18 +185,35 @@ function renderSkeleton() {
   `;
 }
 
-function statCard(label, value, helper) {
+function getCompactIcon(type) {
+  const icons = {
+    xp: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>`,
+    rank: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5aa2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>`,
+    accuracy: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M22 12h-4"></path><path d="M6 12H2"></path><path d="M12 6V2"></path><path d="M12 22v-4"></path><circle cx="12" cy="12" r="2"></circle></svg>`,
+    streak: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>`,
+    quizzes: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>`,
+    badges: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15l-3 3-1-4-4-1 3-3-1-4 4 1 3-3 3 3 4-1-1 4 3 3-4 1-1 4-3-3z"></path></svg>`
+  };
+  return icons[type] || "";
+}
+
+function compactStatCard(label, value, helper, iconType) {
   return `
-    <article class="saas-stat-card panel" style="padding: 20px; border-radius: var(--radius-lg); background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent); border: 1px solid var(--line); display: flex; flex-direction: column; justify-content: space-between;">
-      <span class="saas-stat-label" style="font-size: 0.85rem; font-weight: 500; color: var(--muted); text-transform: none; letter-spacing: 0;">${label}</span>
-      <strong class="saas-stat-value" style="font-size: 2rem; font-weight: 700; color: var(--text); margin: 8px 0 4px; letter-spacing: -0.03em;">${value}</strong>
-      <span class="saas-stat-helper" style="font-size: 0.8rem; color: var(--muted); font-weight: 500;">${helper}</span>
+    <article class="panel" style="padding: 16px; border-radius: var(--radius-md); background: var(--panel-soft); border: 1px solid var(--line); display: flex; align-items: flex-start; gap: 12px; min-width: 0;">
+      <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: grid; place-items: center; color: var(--text); flex-shrink: 0;">
+        ${getCompactIcon(iconType)}
+      </div>
+      <div style="min-width: 0; flex: 1;">
+        <span style="font-size: 0.7rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 2px;">${label}</span>
+        <strong style="font-size: 1.15rem; font-weight: 700; color: var(--text); display: block; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${value}</strong>
+        ${helper ? `<span style="font-size: 0.7rem; color: var(--muted); display: block; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${helper}</span>` : ''}
+      </div>
     </article>
   `;
 }
 
 function renderLineChart(data) {
-  if (!data || !data.length) return `<div class="empty-state-mini" style="height: 190px; display: grid; place-items: center; border: 1px dashed var(--line); border-radius: var(--radius-md);"><span>No data to chart</span></div>`;
+  if (!data || !data.length) return `<div class="empty-state-mini" style="height: 160px; display: grid; place-items: center; border: 1px dashed var(--line); border-radius: var(--radius-md);"><span>No data to chart</span></div>`;
   const maxScore = Math.max(...data.map(d => d.score), 10);
   const points = data.map((item, index) => {
     const x = data.length === 1 ? 50 : (index / (data.length - 1)) * 100;
@@ -205,7 +222,7 @@ function renderLineChart(data) {
   }).join(" ");
   
   return `
-    <div style="position: relative; height: 190px; margin-top: 18px;">
+    <div style="position: relative; height: 160px; margin-top: 16px;">
       <svg class="line-chart" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Weekly performance line graph" style="position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; filter: none; margin: 0;">
       <defs>
         <linearGradient id="lineGlow" x1="0" x2="1">
@@ -263,7 +280,7 @@ function renderDashboard(data) {
       </div>
     </aside>
 
-    <main class="dash-main">
+    <main class="dash-main" style="display: flex; flex-direction: column; gap: 20px;">
       <header class="dash-topbar panel">
         <button class="mobile-menu-btn" type="button" aria-label="Toggle sidebar">Menu</button>
         <label class="dash-search"><span>Search</span><input type="search" placeholder="Search quizzes, badges, rivals..." /></label>
@@ -277,141 +294,140 @@ function renderDashboard(data) {
         </div>
       </header>
 
-      <div style="display: grid; gap: 24px; margin-top: 24px;">
-        <section class="profile-header-compact panel" style="padding: 24px; display: flex; justify-content: space-between; align-items: center; border-radius: var(--radius-lg); background: linear-gradient(145deg, rgba(255,255,255,0.03), transparent); border: 1px solid var(--line); flex-wrap: wrap; gap: 20px;">
-          <div class="profile-identity" style="display: flex; align-items: center; gap: 16px;">
-            <div class="profile-avatar-large" style="background: #ededed; color: #000; font-weight: 800; border-radius: 12px; width: 56px; height: 56px; display: grid; place-items: center; font-size: 1.8rem;">${escapeHtml((auth?.getSession?.()?.name || "Q").slice(0, 1).toUpperCase())}</div>
-            <div class="profile-title">
-              <h1 style="font-size: 1.4rem; margin: 0 0 4px; font-weight: 700; color: var(--text); letter-spacing: -0.02em;">${escapeHtml(auth?.getSession?.()?.name || "Player")}</h1>
-              <span class="pill" style="font-size: 0.75rem; padding: 4px 10px; height: auto; background: var(--panel-soft); border: 1px solid var(--line); border-radius: 6px;">Level ${game.level}</span>
-            </div>
-          </div>
-          <div class="profile-metrics" style="display: flex; gap: 32px; align-items: center;">
-            <div class="profile-metric" style="display: flex; flex-direction: column; gap: 4px;">
-              <span style="font-size: 0.75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">Global Rank</span>
-              <strong style="font-size: 1.3rem; font-weight: 700; color: var(--text);">${rank === "--" ? "--" : "#" + rank}</strong>
-            </div>
-            <div class="profile-metric border-left" style="display: flex; flex-direction: column; gap: 4px; padding-left: 32px; border-left: 1px solid var(--line);">
-              <span style="font-size: 0.75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">Total XP</span>
-              <strong style="font-size: 1.3rem; font-weight: 700; color: var(--text);">${game.totalXp}</strong>
-            </div>
-            <div class="profile-metric border-left" style="display: flex; flex-direction: column; gap: 4px; padding-left: 32px; border-left: 1px solid var(--line);">
-              <span style="font-size: 0.75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">Streak</span>
-              <strong style="font-size: 1.3rem; font-weight: 700; color: var(--amber);">${game.streak} 🔥</strong>
-            </div>
-          </div>
-        </section>
+      <!-- Welcome & Quick Actions -->
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 4px; flex-wrap: wrap; gap: 16px;">
+        <div>
+          <h1 style="font-size: 1.5rem; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.02em; color: var(--text);">Welcome back, ${escapeHtml(auth?.getSession?.()?.name || "Player")}</h1>
+          <p style="color: var(--muted); font-size: 0.9rem; margin: 0;">Here's what's happening with your learning progress.</p>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <a href="./generate.html" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;">Start Quiz</a>
+          <a href="./flashcards.html" class="btn-outline" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;">Study Flashcards</a>
+        </div>
+      </div>
 
-        <section class="hero-stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-          ${statCard("Quizzes", attempts.length || Number(profile?.totalQuizzes || 0), "Total completions")}
-          ${statCard("Accuracy", avg + "%", `Best: ${best}%`)}
-          ${statCard("Flashcards", cardCount, `${flashDecks.length} active decks`)}
-          ${statCard("Badges", unlockedBadges.length, `${badges.length} available`)}
-        </section>
+      <!-- Quick Stats Row -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
+        ${compactStatCard("Total XP", game.totalXp, "Level " + game.level, "xp")}
+        ${compactStatCard("Global Rank", rank === "--" ? "--" : "#" + rank, "Leaderboard", "rank")}
+        ${compactStatCard("Accuracy", avg + "%", "Best: " + best + "%", "accuracy")}
+        ${compactStatCard("Streak", game.streak + " 🔥", "Consecutive >70%", "streak")}
+        ${compactStatCard("Quizzes", attempts.length, "Total completions", "quizzes")}
+        ${compactStatCard("Badges", unlockedBadges.length, "Out of " + badges.length, "badges")}
+      </div>
 
-        <div class="dashboard-content-grid" style="display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr); gap: 24px;">
+      <!-- Main Two-Column Layout -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; align-items: start;">
           
-          <!-- Left Column -->
-          <div style="display: grid; gap: 24px; align-content: start;">
-            <section class="panel flow-card" style="padding: 24px; border-radius: var(--radius-lg);">
-              <div class="card-title-row" style="margin-bottom: 20px;">
-                <div>
-                  <strong style="font-size:1.1rem; display:block;">Performance Velocity</strong>
-                  <span style="display:block; margin-top:4px; font-size:0.85rem; color: var(--muted);">Last 7 days accuracy trend</span>
-                </div>
+        <!-- Left Column: Performance & Insights -->
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          
+          <section class="panel flow-card" style="padding: 20px; border-radius: var(--radius-md);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <div>
+                <strong style="font-size:1.05rem; display:block;">Accuracy Trend</strong>
+                <span style="font-size:0.8rem; color: var(--muted);">Last 7 days performance</span>
               </div>
-              ${renderLineChart(weekly)}
-            </section>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
-              <section class="panel flow-card" style="padding: 20px; border-radius: var(--radius-md);">
-                <div class="card-title-row" style="margin-bottom: 16px;">
-                  <div>
-                    <strong style="font-size:1rem; display:block;">Focus Areas</strong>
-                    <span style="display:block; margin-top:2px; font-size:0.8rem; color: var(--muted);">Category breakdown</span>
-                  </div>
-                </div>
-                <div style="display: flex; flex-direction: column; gap: 8px;">
-                  ${categoryStats.length ? categoryStats.slice(0,4).map(c => `
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: rgba(255, 255, 255, 0.02); border-radius: var(--radius-md); border: 1px solid var(--line);">
-                      <span style="font-size: 0.85rem; text-transform: capitalize; font-weight: 600; color: var(--text);">${escapeHtml(c.label)}</span>
-                      <div style="display: flex; align-items: center; gap: 12px;">
-                        <span style="font-size: 0.75rem; color: var(--muted);">${c.count} qz</span>
-                        <strong style="font-size: 0.9rem; color: var(--text);">${c.average}%</strong>
-                      </div>
-                    </div>
-                  `).join("") : `<div class="empty-state-mini" style="padding: 16px; text-align: center; border: 1px dashed var(--line); border-radius: var(--radius-md);"><span style="color: var(--muted); font-size: 0.85rem;">No category data yet.</span></div>`}
-                </div>
-              </section>
-
-              <section class="panel flow-card" style="padding: 20px; border-radius: var(--radius-md);">
-                <div class="card-title-row" style="margin-bottom: 16px;">
-                  <div>
-                    <strong style="font-size:1rem; display:block;">AI Insights</strong>
-                    <span style="display:block; margin-top:2px; font-size:0.8rem; color: var(--muted);">Smart recommendations</span>
-                  </div>
-                </div>
-                <div class="insight-grid" style="display: flex; flex-direction: column; gap: 8px;">
-                  ${insights.slice(0, 3).map(i => `
-                    <div class="insight-pill" style="padding: 10px 12px; background: rgba(255, 255, 255, 0.02); border-radius: var(--radius-md); border: 1px solid var(--line); display: block;">
-                      <div style="display: flex; flex-direction: column; gap: 4px;">
-                        <span style="color: var(--text); font-size: 0.85rem; font-weight: 600;">${i.label}</span>
-                        <span style="font-size: 0.8rem; color: var(--muted); line-height: 1.4; text-transform: none; font-weight: 400; letter-spacing: 0;">${i.value}</span>
-                      </div>
-                    </div>
-                  `).join("")}
-                </div>
-              </section>
             </div>
-          </div>
+            ${renderLineChart(weekly)}
+          </section>
 
-          <!-- Right Column -->
-          <div style="display: grid; gap: 24px; align-content: start;">
-            <section class="panel flow-card" style="padding: 24px; border-radius: var(--radius-lg);">
-              <div class="card-title-row" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-start;">
-                <div>
-                  <strong style="font-size:1.1rem; display:block;">Recent Activity</strong>
-                  <span style="display:block; margin-top:4px; font-size:0.85rem; color: var(--muted);">Latest learning sessions</span>
-                </div>
-                ${attempts.length > 5 ? `<a href="./profile.html" class="btn-outline" style="min-height: 32px; padding: 0 12px; font-size: 0.8rem;">View All</a>` : ''}
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+            <section class="panel flow-card" style="padding: 20px; border-radius: var(--radius-md);">
+              <div style="margin-bottom: 12px;">
+                <strong style="font-size:1.05rem; display:block;">Category Mastery</strong>
+                <span style="font-size:0.8rem; color: var(--muted);">Accuracy by topic</span>
               </div>
-              <div class="timeline-list" style="display: flex; flex-direction: column; gap: 8px;">
-                ${recent.length ? recent.slice(0,5).map(a => `
-                  <div class="timeline-item" style="padding: 12px 16px; background: rgba(255, 255, 255, 0.02); border-radius: var(--radius-md); border: 1px solid var(--line); display: grid; grid-template-columns: 1fr; gap: 8px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                      <strong style="color: var(--text); font-size: 0.95rem; font-weight: 600;">${a.percentage}% Score</strong>
-                      <span style="font-size: 0.7rem; background: var(--bg); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--line); font-weight: 700; color: var(--muted);">${a.settings?.difficulty?.toUpperCase() || 'MODERATE'}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                       <span style="color: var(--muted); font-size: 0.8rem;">${formatDate(a.createdAt)}</span>
-                       <span style="color: var(--text); font-size: 0.85rem; font-weight: 500;">${a.score}/${a.total} Correct</span>
-                    </div>
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                ${categoryStats.length ? categoryStats.slice(0,4).map(c => `
+                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255, 255, 255, 0.02); border-radius: var(--radius-md); border: 1px solid var(--line);">
+                    <span style="font-size: 0.85rem; text-transform: capitalize; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(c.label)}</span>
+                    <strong style="font-size: 0.9rem; color: var(--text);">${c.average}%</strong>
                   </div>
-                `).join("") : `<div class="empty-state-mini" style="padding: 24px; text-align: center; border: 1px dashed var(--line); border-radius: var(--radius-md);"><span style="color: var(--muted); font-size: 0.9rem;">No recent activity. Start a quiz!</span></div>`}
+                `).join("") : `<div class="empty-state-mini" style="padding: 16px; text-align: center; border: 1px dashed var(--line); border-radius: var(--radius-md);"><span style="color: var(--muted); font-size: 0.8rem;">No categories yet.</span></div>`}
               </div>
             </section>
 
-            <section class="panel flow-card" style="padding: 24px; border-radius: var(--radius-lg);">
-              <div class="card-title-row" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-start;">
-                <div>
-                  <strong style="font-size:1.1rem; display:block;">Top Players</strong>
-                  <span style="display:block; margin-top:4px; font-size:0.85rem; color: var(--muted);">Global ranking preview</span>
-                </div>
-                <a href="./scoreboard.html" class="btn-outline" style="min-height: 32px; padding: 0 12px; font-size: 0.8rem;">Leaderboard</a>
+            <section class="panel flow-card" style="padding: 20px; border-radius: var(--radius-md);">
+              <div style="margin-bottom: 12px;">
+                <strong style="font-size:1.05rem; display:block;">AI Insights</strong>
+                <span style="font-size:0.8rem; color: var(--muted);">Smart recommendations</span>
               </div>
-              <div style="display: flex; flex-direction: column; gap: 8px;">
-                 ${topPlayers.length ? topPlayers.map((p, idx) => `
-                   <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(255, 255, 255, 0.02); border-radius: var(--radius-md); border: 1px solid var(--line); ${p.email === auth?.getSession?.()?.email ? 'border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.05);' : ''}">
-                      <div style="display: flex; align-items: center; gap: 16px;">
-                        <span style="font-size: 0.85rem; font-weight: 700; color: var(--muted); width: 20px; text-align: center;">${idx + 1}</span>
-                        <strong style="font-size: 0.95rem; color: var(--text);">${escapeHtml(p.name)}</strong>
-                      </div>
-                      <span style="font-size: 0.85rem; font-weight: 600; color: var(--muted);">${p.totalXp} XP</span>
-                   </div>
-                 `).join("") : `<div class="empty-state-mini" style="padding: 16px; text-align: center; border: 1px dashed var(--line); border-radius: var(--radius-md);"><span style="color: var(--muted); font-size: 0.85rem;">No players ranked yet.</span></div>`}
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                ${insights.slice(0, 3).map(i => `
+                  <div style="padding: 8px 12px; background: rgba(255, 255, 255, 0.02); border-radius: var(--radius-md); border: 1px solid var(--line);">
+                    <span style="color: var(--text); font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 2px;">${i.label}</span>
+                    <span style="font-size: 0.8rem; color: var(--muted); line-height: 1.4;">${i.value}</span>
+                  </div>
+                `).join("")}
               </div>
             </section>
           </div>
+        </div>
+
+        <!-- Right Column: Activity, Achievements, Leaderboard -->
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          
+          <section class="panel flow-card" style="padding: 20px; border-radius: var(--radius-md);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+              <div>
+                <strong style="font-size:1.05rem; display:block;">Recent Activity</strong>
+                <span style="font-size:0.8rem; color: var(--muted);">Latest learning sessions</span>
+              </div>
+              ${attempts.length > 4 ? `<a href="./profile.html" style="font-size: 0.8rem; color: var(--text); font-weight: 500;">View All</a>` : ''}
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              ${recent.length ? recent.slice(0,4).map(a => `
+                <div style="padding: 10px 12px; background: rgba(255, 255, 255, 0.02); border-radius: var(--radius-md); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 4px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <strong style="color: var(--text); font-size: 0.9rem; font-weight: 600;">${a.percentage}% Score</strong>
+                    <span style="font-size: 0.7rem; background: var(--panel-soft); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--line); color: var(--muted);">${a.settings?.difficulty?.toUpperCase() || 'MODERATE'}</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                     <span style="color: var(--muted); font-size: 0.75rem;">${formatDate(a.createdAt)}</span>
+                     <span style="color: var(--text); font-size: 0.8rem; font-weight: 500;">${a.score}/${a.total} Correct</span>
+                  </div>
+                </div>
+              `).join("") : `<div class="empty-state-mini" style="padding: 16px; text-align: center; border: 1px dashed var(--line); border-radius: var(--radius-md);"><span style="color: var(--muted); font-size: 0.85rem;">No recent activity.</span></div>`}
+            </div>
+          </section>
+
+          <section class="panel flow-card" style="padding: 20px; border-radius: var(--radius-md);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <div>
+                <strong style="font-size:1.05rem; display:block;">Top Players</strong>
+                <span style="font-size:0.8rem; color: var(--muted);">Global preview</span>
+              </div>
+              <a href="./scoreboard.html" style="font-size: 0.8rem; color: var(--text); font-weight: 500;">Leaderboard</a>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+               ${topPlayers.length ? topPlayers.slice(0, 4).map((p, idx) => `
+                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255, 255, 255, 0.02); border-radius: var(--radius-md); border: 1px solid var(--line); ${p.email === auth?.getSession?.()?.email ? 'border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.05);' : ''}">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                      <span style="font-size: 0.8rem; font-weight: 700; color: var(--muted); width: 16px; text-align: center;">${idx + 1}</span>
+                      <strong style="font-size: 0.85rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px;">${escapeHtml(p.name)}</strong>
+                    </div>
+                    <span style="font-size: 0.8rem; font-weight: 600; color: var(--muted);">${p.totalXp} XP</span>
+                 </div>
+               `).join("") : `<div class="empty-state-mini" style="padding: 16px; text-align: center; border: 1px dashed var(--line); border-radius: var(--radius-md);"><span style="color: var(--muted); font-size: 0.8rem;">No players ranked yet.</span></div>`}
+            </div>
+          </section>
+          
+          <section class="panel flow-card" style="padding: 20px; border-radius: var(--radius-md);">
+            <div style="margin-bottom: 12px;">
+              <strong style="font-size:1.05rem; display:block;">Recent Badges</strong>
+              <span style="font-size:0.8rem; color: var(--muted);">${unlockedBadges.length}/${badges.length} Unlocked</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+               ${unlockedBadges.length ? unlockedBadges.slice(0, 4).map(b => `
+                 <div style="display: flex; align-items: center; gap: 8px; padding: 8px; background: rgba(255, 255, 255, 0.02); border-radius: var(--radius-md); border: 1px solid var(--line);">
+                    <span style="font-size: 1rem;">${b.rarity === 'gold' ? '🥇' : b.rarity === 'silver' ? '🥈' : '🥉'}</span>
+                    <strong style="font-size: 0.8rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(b.label)}</strong>
+                 </div>
+               `).join("") : `<div class="empty-state-mini" style="padding: 16px; text-align: center; border: 1px dashed var(--line); border-radius: var(--radius-md); grid-column: 1 / -1;"><span style="color: var(--muted); font-size: 0.8rem;">No badges earned.</span></div>`}
+            </div>
+          </section>
+
         </div>
       </div>
     </main>

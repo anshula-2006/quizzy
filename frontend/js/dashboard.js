@@ -210,3 +210,5 @@ function renderDashboard(data) {
         ${statCard("Accuracy", `${avg}%`, `${best}% best`, "AC", ")green", insights[0].value.includes("calibrate") ? "New" : "Live")}
         ${statCard("Flashcards", cardCount, `${flashDecks.length} decks`, "FC", "yellow", flashDecks.length ? "Organize" : "Empty")}
       </section>
+`;
+}

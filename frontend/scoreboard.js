@@ -674,7 +674,7 @@ function renderBoard() {
             const rank = player.rank || ((currentLeaderboardPage - 1) * LEADERBOARD_PAGE_SIZE + idx + 1);
             if (hasPodium && rank <= 3) return ""; 
             
-            let rankIcon = \`#\${rank}\`;
+            let rankIcon = `#${rank}`;
             if (rank === 1) rankIcon = "🥇";
             if (rank === 2) rankIcon = "🥈";
             if (rank === 3) rankIcon = "🥉";

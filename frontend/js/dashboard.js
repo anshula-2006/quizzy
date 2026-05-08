@@ -106,12 +106,10 @@ function renderSkeleton() {
 
 function statCard(label, value, helper, icon, accent = "violet", trend = "Live") {
   return `
-    <article class="analytics-card stat-card-premium accent-${accent}">
-      <div class="stat-orb">${icon}</div>
-      <span>${label}</span>
-      <strong>${value}</strong>
-      <small>${helper}</small>
-      <em>${trend}</em>
+    <article class="saas-stat-card panel">
+      <span class="saas-stat-label">${label}</span>
+      <strong class="saas-stat-value">${value}</strong>
+      <span class="saas-stat-helper">${helper}</span>
     </article>
   `;
 }
@@ -191,19 +189,24 @@ function renderDashboard(data) {
         </div>
       </header>
 
-      <section class="dashboard-command panel">
-        <div>
-          <p class="eyebrow">Command center</p>
-          <h1>Competitive quiz analytics</h1>
-          <p>Track XP velocity, accuracy, streak pressure, badges, and study momentum from one polished cockpit.</p>
+      <section class="profile-header-compact panel">
+        <div class="profile-identity">
+          <div class="profile-avatar-large">${escapeHtml((auth?.getSession?.()?.name || "Q").slice(0, 1).toUpperCase())}</div>
+          <div class="profile-title">
+            <h1>${escapeHtml(auth?.getSession?.()?.name || "Player")}</h1>
+            <span class="pill">Level ${game.level}</span>
+          </div>
         </div>
-        <div class="dashboard-actions">
-          <a class="btn" href="./generate.html">New Quiz</a>
-          <a class="btn-outline" href="./scoreboard.html">View Leaderboard</a>
+        <div class="profile-metrics">
+          <div class="profile-metric"><span>Global Rank</span><strong>#${rank}</strong></div>
+          <div class="profile-metric border-left"><span>Total XP</span><strong>${game.totalXp}</strong></div>
+          <div class="profile-metric border-left"><span>Streak</span><strong>${game.streak} 🔥</strong></div>
         </div>
       </section>
 
       <section class="hero-stats-grid">
         ${statCard("Quizzes", attempts.length || Number(profile?.totalQuizzes || 0), "total attempts", "QZ", "cyan", recent.length ? "Active" : "Ready")}
         ${statCard("Total XP", game.totalXp, `Level ${game.level}`, "XP", "violet", `+${game.latestXp} latest`)}
-        ${statCard("Accuracy", `${avg}%`, `${best}% best`, "AC", "g
+        ${statCard("Accuracy", `${avg}%`, `${best}% best`, "AC", ")green", insights[0].value.includes("calibrate") ? "New" : "Live")}
+        ${statCard("Flashcards", cardCount, `${flashDecks.length} decks`, "FC", "yellow", flashDecks.length ? "Organize" : "Empty")}
+      </section>

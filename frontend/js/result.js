@@ -45,16 +45,18 @@ if (resultState) {
   if (answers.length) {
     resultRoot.insertAdjacentHTML("beforeend", `
       <section class="panel flow-card result-review-list">
-        <div class="card-title-row"><div><strong>Question review</strong><span>Fast scan of missed concepts</span></div></div>
-        <div class="dashboard-list">
+        <div class="card-title-row" style="margin-bottom: 16px;"><div><strong style="font-size: 1.1rem;">Question review</strong><span style="display: block; margin-top: 2px; font-size: 0.85rem;">Fast scan of missed concepts</span></div></div>
+        <div style="display: grid; gap: 8px;">
           ${answers.slice(0, 8).map((answer, index) => `
-            <article class="answer-option compact-row ${answer.isCorrect ? "correct" : "wrong"}">
-              <div class="score-tile"><span>Q${index + 1}</span><strong>${answer.isCorrect ? "OK" : "Review"}</strong></div>
-              <div>
-                <strong>${escapeHtml(answer.question || "Question")}</strong>
-                <p class="helper-text">Correct: ${escapeHtml(answer.correct || "-")}</p>
+            <div style="display: flex; gap: 16px; padding: 16px; background: var(--panel-soft); border-radius: var(--radius-md); border: 1px solid var(--line); align-items: flex-start;">
+              <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 48px; height: 48px; border-radius: var(--radius-md); background: ${answer.isCorrect ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'}; color: ${answer.isCorrect ? 'var(--green)' : 'var(--red)'}; font-weight: 700; font-size: 0.9rem; flex-shrink: 0;">
+                Q${index + 1}
               </div>
-            </article>
+              <div style="flex: 1; min-width: 0;">
+                <strong style="display: block; font-size: 1rem; color: var(--text); margin-bottom: 4px; line-height: 1.4;">${escapeHtml(answer.question || "Question")}</strong>
+                <span style="font-size: 0.85rem; color: var(--muted); display: block;">Correct answer: ${escapeHtml(answer.correct || "-")}</span>
+              </div>
+            </div>
           `).join("")}
         </div>
       </section>

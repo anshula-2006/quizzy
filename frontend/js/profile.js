@@ -23,8 +23,9 @@ function heatmap(entries) {
   return Array.from({ length: 28 }, (_, index) => {
     const date = new Date();
     date.setDate(date.getDate() - (27 - index));
-    const count = counts.get(date.toISOString().slice(0, 10)) || 0;
-    return `<span class="heat-cell heat-${Math.min(4, count)}"></span>`;
+    const dateStr = date.toISOString().slice(0, 10);
+    const count = counts.get(dateStr) || 0;
+    return `<span class="heat-cell heat-${Math.min(4, count)}" title="${dateStr}: ${count} quizzes"></span>`;
   }).join("");
 }
 

@@ -2691,22 +2691,6 @@ body {
   position: relative;
 }
 
-.lb-row:hover::after {
-  content: attr(data-profile-card);
-  position: absolute;
-  right: 12px;
-  bottom: calc(100% + 8px);
-  z-index: 4;
-  max-width: 260px;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: rgba(10, 17, 32, 0.96);
-  color: var(--text);
-  font-size: 0.78rem;
-  box-shadow: var(--shadow-soft);
-}
-
 @keyframes barGrow {
   from { height: 0; opacity: 0.4; }
 }

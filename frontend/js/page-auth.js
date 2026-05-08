@@ -25,7 +25,6 @@ function renderAuthBar() {
     <div class="global-auth-actions">
       ${user ? `<span class="global-auth-user">Hi, ${user.name}</span>` : ""}
       ${user ? `<a class="global-auth-link" href="${buildHref("profile.html")}">Profile</a>` : ""}
-      ${user ? `<a class="global-auth-link" href="${buildHref("settings.html")}">Settings</a>` : ""}
       ${user ? "" : `<a class="global-auth-link" href="${buildHref("login.html")}">Login</a>`}
       ${user ? "" : `<a class="global-auth-link global-auth-link-strong" href="${buildHref("register.html")}">Register</a>`}
       ${user ? `<button class="global-auth-logout" type="button">Logout</button>` : ""}
@@ -49,13 +48,19 @@ function renderAuthBar() {
       ["leaderboard", "scoreboard.html"],
       ["scoreboard", "scoreboard.html"],
       ["profile", "profile.html"],
-      ["settings", "settings.html"],
       ["arcade", "arcade.html"]
     ];
     const match = routes.find(([label]) => label.includes(query) || query.includes(label));
     if (match) window.location.href = buildHref(match[1]);
   });
 }
+
+// Global Mobile Sidebar Toggle
+document.addEventListener("click", (e) => {
+  if (e.target.closest(".mobile-menu-btn")) {
+    document.querySelector(".dashboard-platform-shell")?.classList.toggle("sidebar-open");
+  }
+});
 
 applySavedTheme();
 renderAuthBar();

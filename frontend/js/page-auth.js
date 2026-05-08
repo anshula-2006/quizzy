@@ -21,8 +21,11 @@ function renderAuthBar() {
 
   bar.innerHTML = `
     <a class="global-auth-home" href="${buildHref("index.html")}">Quizzy</a>
+    <label class="global-auth-search"><span>Search</span><input type="search" placeholder="Jump to dashboard, quiz, leaderboard" /></label>
     <div class="global-auth-actions">
       ${user ? `<span class="global-auth-user">Hi, ${user.name}</span>` : ""}
+      ${user ? `<a class="global-auth-link" href="${buildHref("profile.html")}">Profile</a>` : ""}
+      ${user ? `<a class="global-auth-link" href="${buildHref("settings.html")}">Settings</a>` : ""}
       ${user ? "" : `<a class="global-auth-link" href="${buildHref("login.html")}">Login</a>`}
       ${user ? "" : `<a class="global-auth-link global-auth-link-strong" href="${buildHref("register.html")}">Register</a>`}
       ${user ? `<button class="global-auth-logout" type="button">Logout</button>` : ""}

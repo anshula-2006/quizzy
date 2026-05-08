@@ -1,5 +1,6 @@
 import API_BASE from "./js/config.js";
 import auth from "./auth.js";
+import { getBadgeCatalog as getSharedBadgeCatalog, getResolvedBadges as resolvePersistentBadges, getGamificationSummary as getPersistentGamification, mergeBadgesFromSources } from "./js/gamification.js";
 
 const authUser = document.getElementById("authUser");
 const loginLink = document.getElementById("loginLink");
@@ -24,6 +25,9 @@ let cloudProfile = null;
 let cloudLeaderboard = [];
 let activeReviewAttemptIndex = 0;
 let currentLeaderboardPage = 1;
+let leaderboardFilter = "all";
+let leaderboardSort = "score";
+let leaderboardSearch = "";
 const LEADERBOARD_PAGE_SIZE = 10;
 
 function getAttemptXp(entry) {
@@ -99,28 +103,7 @@ function getBadgeCatalog(entries) {
 }
 
 function getGamification(entries) {
-  const list = Array.isArray(entries) ? entries : [];
-  const latest = list[0] || null;
-  const bonusXp = getBonusXp();
-  const gameStats = getMiniGameStats();
-  const quizXp = list.reduce((sum, entry) => sum + getAttemptXp(entry), 0);
-  const totalXp = quizXp + bonusXp;
-  const streak = getStreak(list);
-  const best = list.length ? Math.max(...list.map((entry) => Number(entry.percentage || 0))) : 0;
-  const badges = getBadgeCatalog(list).filter((badge) => badge.unlocked);
-
-  return {
-    totalXp,
-    quizXp,
-    bonusXp,
-    level: getLevelFromXp(totalXp),
-    progress: getLevelProgress(totalXp),
-    streak,
-    best,
-    gameStats,
-    badges,
-    latestXp: latest ? getAttemptXp(latest) : 0
-  };
+  return getPersistentGamification(entries, cloudProfile);
 }
 
 function getScopeId() {
@@ -376,6 +359,7 @@ async function cloudRequest(path, options = {}) {
 
 async function syncFromCloud() {
   if (!isLoggedIn()) return;
+  console.debug("[Quizzy badges] fetching scoreboard bootstrap");
   const result = await cloudRequest("/data/bootstrap");
   if (!result.ok) return;
   const attempts = Array.isArray(result.data?.attempts) ? result.data.attempts : [];
@@ -383,10 +367,12 @@ async function syncFromCloud() {
   const flashDecks = Array.isArray(result.data?.flashDecks) ? result.data.flashDecks : [];
   cloudProfile = result.data?.profile || null;
   cloudLeaderboard = Array.isArray(result.data?.leaderboard) ? result.data.leaderboard : [];
+  console.debug("[Quizzy badges] scoreboard API response", { achievements: cloudProfile?.achievements, attempts: attempts.length });
   saveHistory(attempts);
   saveSavedQuestions(savedQuestions);
   saveFlashDecks(flashDecks);
   if (result.data?.miniGameStats) saveMiniGameStats(result.data.miniGameStats);
+  mergeBadgesFromSources(attempts, cloudProfile, cloudProfile?.achievements || []);
 }
 
 function renderAuthNav() {
@@ -600,7 +586,7 @@ function applySavedTheme() {
 }
 
 function renderProgressExtras(entries) {
-  const badges = getBadgeCatalog(entries);
+  const badges = resolvePersistentBadges(entries, cloudProfile);
   const game = getGamification(entries);
   const unlocked = badges.filter((badge) => badge.unlocked).length;
 
@@ -642,6 +628,45 @@ function renderProgressExtras(entries) {
   `;
 }
 
+function getLeaderboardBadges(player) {
+  const ids = Array.isArray(player?.achievements) ? player.achievements : [];
+  const mapped = ids.map((id) => ({
+    first_quiz: "starter",
+    streak_3: "streak",
+    perfect_score: "perfect-shot",
+    quiz_master: "scholar",
+    xp_500: "xp-hunter",
+    flash_fan: "flash-fan",
+    memory_master: "memory-master",
+    speedster: "speedster"
+  }[id] || id));
+  return getSharedBadgeCatalog([], { ...player, achievements: ids })
+    .map((badge) => ({ ...badge, unlocked: badge.unlocked || mapped.includes(badge.id) }))
+    .filter((badge) => badge.unlocked)
+    .slice(0, 4);
+}
+
+function getVisibleLeaderboard() {
+  const session = auth?.getSession?.();
+  const currentEmail = session?.email || session?.user?.email || "";
+  const query = leaderboardSearch.trim().toLowerCase();
+  const scoped = cloudLeaderboard.filter((player) => {
+    if (leaderboardFilter === "friends") return player.email === currentEmail;
+    return true;
+  });
+  const searched = query
+    ? scoped.filter((player) => String(player.name || "").toLowerCase().includes(query) || String(player.email || "").toLowerCase().includes(query))
+    : scoped;
+  const sorters = {
+    xp: (a, b) => Number(b.totalXp || 0) - Number(a.totalXp || 0),
+    accuracy: (a, b) => Number(b.accuracy || b.bestPercentage || 0) - Number(a.accuracy || a.bestPercentage || 0),
+    streak: (a, b) => Number(b.currentStreak || 0) - Number(a.currentStreak || 0),
+    quizzes: (a, b) => Number(b.totalQuizzes || 0) - Number(a.totalQuizzes || 0),
+    score: (a, b) => Number(b.leaderboardScore || 0) - Number(a.leaderboardScore || 0)
+  };
+  return [...searched].sort(sorters[leaderboardSort] || sorters.score).map((player, index) => ({ ...player, displayRank: index + 1 }));
+}
+
 function renderBoard() {
   const entries = getHistory();
   activeReviewAttemptIndex = Math.max(0, Math.min(activeReviewAttemptIndex, Math.max(0, entries.length - 1)));
@@ -650,40 +675,99 @@ function renderBoard() {
   const sourceStatus = getAttemptSourceStatus(reviewEntry);
   const flashDecks = getFlashDecks();
   const savedQuestions = getSavedQuestions();
-  const totalLeaderboardPages = Math.ceil(cloudLeaderboard.length / LEADERBOARD_PAGE_SIZE) || 1;
-  const paginatedLeaderboard = cloudLeaderboard.slice((currentLeaderboardPage - 1) * LEADERBOARD_PAGE_SIZE, currentLeaderboardPage * LEADERBOARD_PAGE_SIZE);
+  const visibleLeaderboard = getVisibleLeaderboard();
+  const totalLeaderboardPages = Math.ceil(visibleLeaderboard.length / LEADERBOARD_PAGE_SIZE) || 1;
+  currentLeaderboardPage = Math.max(1, Math.min(currentLeaderboardPage, totalLeaderboardPages));
+  const paginatedLeaderboard = visibleLeaderboard.slice((currentLeaderboardPage - 1) * LEADERBOARD_PAGE_SIZE, currentLeaderboardPage * LEADERBOARD_PAGE_SIZE);
 
-  const leaderboardMarkup = cloudLeaderboard.length
+  const hasPodium = currentLeaderboardPage === 1 && visibleLeaderboard.length >= 3;
+  const p1 = visibleLeaderboard[0] || {};
+  const p2 = visibleLeaderboard[1] || {};
+  const p3 = visibleLeaderboard[2] || {};
+
+  const leaderboardMarkup = visibleLeaderboard.length
     ? `
-      <section class="panel flow-card scoreboard-table-wrap">
-        <div class="table-header-block" style="margin-bottom: 12px;">
-          <h3 style="font-size: 1.15rem;">Global Leaderboard</h3>
-          <p>Top players ranked by total points and XP.</p>
+      <section class="panel flow-card scoreboard-table-wrap esports-board">
+        <div class="table-header-block leaderboard-tools-head">
+          <div>
+            <h3>Esports leaderboard</h3>
+            <p>Search, filter, and inspect top Quizzy competitors.</p>
+          </div>
+          <button id="refreshBoardInlineBtn" class="ghost" type="button">Refresh</button>
         </div>
-        <div class="dashboard-list">
+        <div class="leaderboard-controls">
+          <div class="segmented-control" role="tablist">
+            ${["weekly", "monthly", "all", "friends", "global"].map((item) => `<button class="${leaderboardFilter === item ? "active" : ""}" data-board-filter="${item}" type="button">${item}</button>`).join("")}
+          </div>
+          <input id="leaderboardSearch" class="leaderboard-search" type="search" value="${escapeHtml(leaderboardSearch)}" placeholder="Search player" />
+          <select id="leaderboardSort" class="leaderboard-sort">
+            <option value="score" ${leaderboardSort === "score" ? "selected" : ""}>Sort by score</option>
+            <option value="xp" ${leaderboardSort === "xp" ? "selected" : ""}>Sort by XP</option>
+            <option value="accuracy" ${leaderboardSort === "accuracy" ? "selected" : ""}>Sort by accuracy</option>
+            <option value="streak" ${leaderboardSort === "streak" ? "selected" : ""}>Sort by streak</option>
+            <option value="quizzes" ${leaderboardSort === "quizzes" ? "selected" : ""}>Sort by quizzes</option>
+          </select>
+        </div>
+
+        ${hasPodium ? `
+        <div class="podium-wrapper fade-in">
+          <div class="podium-step rank-2">
+            <div class="podium-avatar">🥈</div>
+            <div class="podium-name">${escapeHtml(p2.name || 'Player')}</div>
+            <div class="podium-score">${p2.totalXp || 0} XP</div>
+            <div class="podium-bar"></div>
+          </div>
+          <div class="podium-step rank-1">
+            <div class="podium-avatar glow">🥇</div>
+            <div class="podium-name">${escapeHtml(p1.name || 'Player')}</div>
+            <div class="podium-score">${p1.totalXp || 0} XP</div>
+            <div class="podium-bar"></div>
+          </div>
+          <div class="podium-step rank-3">
+            <div class="podium-avatar">🥉</div>
+            <div class="podium-name">${escapeHtml(p3.name || 'Player')}</div>
+            <div class="podium-score">${p3.totalXp || 0} XP</div>
+            <div class="podium-bar"></div>
+          </div>
+        </div>
+        ` : ""}
+
+        <div class="compact-leaderboard-list custom-scrollbar">
           ${paginatedLeaderboard.map((player, idx) => {
-            const rank = player.rank || ((currentLeaderboardPage - 1) * LEADERBOARD_PAGE_SIZE + idx + 1);
+            const rank = player.displayRank || player.rank || ((currentLeaderboardPage - 1) * LEADERBOARD_PAGE_SIZE + idx + 1);
+            if (hasPodium && rank <= 3) return ""; 
+            const rowBadges = getLeaderboardBadges(player);
+            
+            let rankIcon = `#${rank}`;
+            if (rank === 1) rankIcon = "🥇";
+            if (rank === 2) rankIcon = "🥈";
+            if (rank === 3) rankIcon = "🥉";
+
             return `
-            <div class="answer-option fade-in" style="display: flex; align-items: center; gap: 12px; padding: 12px; min-height: 60px; animation-delay: ${idx * 0.05}s">
-              <span class="rank-badge ${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other'}" style="min-height: 32px; padding: 0 10px;">#${rank}</span>
-              <div style="flex: 1; min-width: 0;">
-                <strong style="display:block; color:var(--text); font-size:0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${player.name}</strong>
-                <span style="font-size:0.8rem; color:var(--muted);">${player.totalXp} XP • 🔥 ${player.currentStreak}</span>
+            <div class="lb-row fade-in" style="animation-delay: ${idx * 0.04}s">
+              <div class="lb-rank ${rank <= 3 ? 'top-rank' : ''}">${rankIcon}</div>
+              <div class="lb-details">
+                <strong class="lb-name">${escapeHtml(player.name || "Player")}</strong>
+                <span class="lb-meta">${player.totalXp} XP • 🔥 ${player.currentStreak}</span>
               </div>
-              <span class="score-pill" style="min-height: 32px; padding: 0 10px; font-size: 0.8rem;">${player.leaderboardScore}</span>
+              <div class="row-badges">${rowBadges.length ? rowBadges.map((badge) => `<img class="row-badge ${badge.rarity}" src="${badge.icon}" alt="${escapeHtml(badge.label)}" title="${escapeHtml(badge.label)}" loading="lazy" />`).join("") : `<span class="no-badges">No badges</span>`}</div>
+              <div class="lb-score">${player.leaderboardScore || 0} <span style="font-size: 0.7rem; color: var(--muted); font-weight: normal; -webkit-text-fill-color: initial;">pts</span></div>
             </div>
           `}).join("")}
         </div>
         ${totalLeaderboardPages > 1 ? `
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px;">
-          <button class="ghost leaderboard-prev-btn" style="min-height: 36px; padding: 0 12px;" ${currentLeaderboardPage === 1 ? "disabled" : ""}>Prev</button>
-          <span class="helper-text">${currentLeaderboardPage} / ${totalLeaderboardPages}</span>
-          <button class="ghost leaderboard-next-btn" ${currentLeaderboardPage === totalLeaderboardPages ? "disabled" : ""}>Next</button>
+        <div class="lb-pagination">
+          <button class="ghost leaderboard-prev-btn" style="min-height: 32px; padding: 0 12px; font-size: 0.8rem;" ${currentLeaderboardPage === 1 ? "disabled" : ""}>Prev</button>
+          <span class="helper-text" style="font-size: 0.8rem;">${currentLeaderboardPage} / ${totalLeaderboardPages}</span>
+          <button class="ghost leaderboard-next-btn" style="min-height: 32px; padding: 0 12px; font-size: 0.8rem;" ${currentLeaderboardPage === totalLeaderboardPages ? "disabled" : ""}>Next</button>
         </div>
         ` : ""}
       </section>
     `
-    : `<div class="panel flow-card empty-state"><h3>No Leaderboard Data</h3><p>Be the first to get on the board!</p></div>`;
+    : `<div class="panel flow-card empty-state" style="padding: 32px; text-align: center;">
+         <h3 style="font-size: 1.2rem; margin-bottom: 8px;">No Leaderboard Data</h3>
+         <p style="color: var(--muted); font-size: 0.9rem;">Be the first to get on the board!</p>
+       </div>`;
 
   if (!entries.length) {
     scoreboardContent.innerHTML = `
@@ -867,6 +951,31 @@ function renderBoard() {
       currentLeaderboardPage += 1;
       renderBoard();
     }
+  });
+
+  document.querySelectorAll("[data-board-filter]").forEach((btnNode) => {
+    btnNode.addEventListener("click", () => {
+      leaderboardFilter = btnNode.dataset.boardFilter || "all";
+      currentLeaderboardPage = 1;
+      renderBoard();
+    });
+  });
+
+  document.getElementById("leaderboardSearch")?.addEventListener("input", (event) => {
+    leaderboardSearch = event.target.value || "";
+    currentLeaderboardPage = 1;
+    renderBoard();
+  });
+
+  document.getElementById("leaderboardSort")?.addEventListener("change", (event) => {
+    leaderboardSort = event.target.value || "score";
+    currentLeaderboardPage = 1;
+    renderBoard();
+  });
+
+  document.getElementById("refreshBoardInlineBtn")?.addEventListener("click", async () => {
+    await syncFromCloud();
+    renderBoard();
   });
 
   document.querySelectorAll(".attempt-review-btn").forEach((btnNode) => {

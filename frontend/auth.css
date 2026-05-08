@@ -409,17 +409,17 @@ body {
 /* Strict Quizzy auth palette */
 :root,
 body.dark {
-  --auth-bg: #0B1220;
-  --auth-bg-deep: #070c16;
-  --auth-panel: #111827;
+  --auth-bg: #080c14;
+  --auth-bg-deep: #05070d;
+  --auth-panel: rgba(16, 22, 34, 0.9);
   --auth-panel-soft: rgba(255,255,255,0.04);
   --auth-border: rgba(255,255,255,0.08);
-  --auth-text: #E5E7EB;
-  --auth-muted: #9CA3AF;
-  --auth-accent-1: #7C3AED;
-  --auth-accent-2: #06B6D4;
-  --auth-link: #06B6D4;
-  --auth-label: #E5E7EB;
+  --auth-text: #f3f6fb;
+  --auth-muted: #8f9bad;
+  --auth-accent-1: #5b8cff;
+  --auth-accent-2: #7c6df2;
+  --auth-link: #93a4ff;
+  --auth-label: #c9d2e3;
   --auth-input-bg: rgba(255,255,255,0.04);
 }
 
@@ -435,5 +435,64 @@ body {
 .global-auth-bar {
   background: var(--auth-panel);
   border-color: var(--auth-border);
-  border-radius: 12px;
+  border-radius: 16px;
+}
+
+.auth-shell {
+  grid-template-columns: minmax(360px, 0.95fr) minmax(340px, 410px);
+  align-items: stretch;
+}
+
+.auth-hero h1 {
+  font-size: clamp(2.25rem, 4.5vw, 4rem);
+}
+
+.auth-brand-icon,
+.auth-btn,
+.global-auth-link-strong {
+  background: linear-gradient(135deg, var(--auth-accent-1), var(--auth-accent-2));
+  box-shadow: 0 12px 26px rgba(91, 140, 255, 0.18);
+}
+
+.auth-field input,
+.auth-btn {
+  border-radius: 10px;
+}
+
+.auth-pill,
+.auth-eyebrow,
+.auth-feature-card,
+.global-auth-home,
+.global-auth-link,
+.global-auth-logout,
+.global-auth-user {
+  border-radius: 10px;
+}
+
+.password-strength {
+  display: grid;
+  gap: 6px;
+}
+
+.password-strength::before {
+  content: "";
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.06);
+}
+
+.password-strength span {
+  display: block;
+  height: 6px;
+  width: 10%;
+  margin-top: -12px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--auth-accent-1), var(--auth-accent-2));
+  transition: width 0.2s ease;
+}
+
+.password-strength em {
+  color: var(--auth-muted);
+  font-size: 0.78rem;
+  font-style: normal;
 }

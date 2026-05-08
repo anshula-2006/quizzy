@@ -24,19 +24,19 @@
         </nav>
       </header>
 
-      <main class="split-grid two-col">
-        <section class="panel flow-card page-fade">
+      <main class="split-grid two-col generate-workspace">
+        <section class="panel flow-card page-fade generate-composer">
           <p class="eyebrow">Generate</p>
           <h1 class="section-title">Create your quiz</h1>
-          <p class="section-copy">Pick a source, add your content, and generate only when you are ready. No preloaded quiz content appears here.</p>
+          <p class="section-copy">Choose a source, tune the assessment, and launch a focused quiz without leaving the workflow.</p>
 
           <form id="generateForm" class="field-stack" style="margin-top:28px;">
             <div>
               <label class="field-label">Step 1 - Choose Source</label>
               <div class="source-grid">
-                <button type="button" class="source-card is-active" data-source="text"><strong>Topic</strong><span>Type a topic or paste notes.</span></button>
-                <button type="button" class="source-card" data-source="pdf"><strong>PDF</strong><span>Upload your study document.</span></button>
-                <button type="button" class="source-card" data-source="url"><strong>URL</strong><span>Convert an article into a quiz.</span></button>
+                <button type="button" class="source-card is-active" data-source="text"><strong>Topic</strong><span>Prompt or pasted notes.</span></button>
+                <button type="button" class="source-card" data-source="pdf"><strong>PDF</strong><span>Upload source material.</span></button>
+                <button type="button" class="source-card" data-source="url"><strong>URL</strong><span>Parse a public article.</span></button>
               </div>
             </div>
 
@@ -99,13 +99,13 @@
           </form>
         </section>
 
-        <aside class="panel game-card page-fade">
-          <p class="eyebrow">Fast Track</p>
-          <h2 class="section-title" style="font-size:2.4rem;">Ready in three moves</h2>
-          <div class="field-stack" style="margin-top:24px;">
-            <div class="setting-card"><strong>1. Pick input</strong><p class="helper-text">Topic, PDF, or URL.</p></div>
-            <div class="setting-card"><strong>2. Generate</strong><p class="helper-text">Quizzy calls your real backend only after you click.</p></div>
-            <div class="setting-card"><strong>3. Start quiz</strong><p class="helper-text">You jump straight to the dedicated quiz page.</p></div>
+        <aside class="panel game-card page-fade workflow-sidebar">
+          <p class="eyebrow">Workspace</p>
+          <h2 class="section-title" style="font-size:1.8rem;">Assessment setup</h2>
+          <div class="field-stack" style="margin-top:18px;">
+            <div class="setting-card"><strong>Input</strong><p class="helper-text">Topic, PDF, or URL source.</p></div>
+            <div class="setting-card"><strong>Generation</strong><p class="helper-text">Backend call starts only on command.</p></div>
+            <div class="setting-card"><strong>Analytics</strong><p class="helper-text">Results feed XP, badges, and history.</p></div>
           </div>
         </aside>
       </main>

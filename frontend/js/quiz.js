@@ -129,11 +129,19 @@ function render() {
     : "No timer";
 
   quizRoot.innerHTML = `
-    <section class="panel quiz-card page-fade">
-      <p class="eyebrow">Quiz Mode</p>
-      <div class="split-grid two-col" style="margin-top:20px;">
+    <section class="panel quiz-card page-fade quiz-focus-shell">
+      <div class="quiz-focus-head">
         <div>
+          <p class="eyebrow">Focus mode</p>
           <h1 class="section-title" style="margin-top:0;">Question ${quizState.currentIndex + 1}</h1>
+        </div>
+        <div class="quiz-focus-meta">
+          <span class="pill">${question.type.toUpperCase()}</span>
+          <span class="pill" id="timerPill">${answer ? "Answered" : timerLabel}</span>
+        </div>
+      </div>
+      <div class="split-grid two-col quiz-focus-grid" style="margin-top:18px;">
+        <div>
           <div class="progress-wrap">
             <div class="progress-head">
               <span>Progress</span>
@@ -144,13 +152,9 @@ function render() {
             </div>
           </div>
           <div class="question-panel" style="margin-top:22px;">
-            <p class="eyebrow">Focus Prompt</p>
+            <p class="eyebrow">Prompt</p>
             <h2 class="question-text">${question.question}</h2>
-            <p class="section-copy">One question at a time. Keep the pace and lock in your answer.</p>
-            <div class="game-status-row" style="margin-top:18px;">
-              <span class="pill">${question.type.toUpperCase()}</span>
-              <span class="pill" id="timerPill">${answer ? "Answered" : timerLabel}</span>
-            </div>
+            <p class="section-copy">One question at a time. Select with intent, then move forward.</p>
           </div>
         </div>
         <div>

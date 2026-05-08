@@ -9,6 +9,15 @@ import { generateFlashcards, generateQuizSession } from "../services/quizGenerat
 import { toClientDoc } from "../utils/text.js";
 import { AppError } from "../utils/AppError.js";
 
+function ensureAchievements(user, ids = []) {
+  const current = Array.isArray(user.stats?.achievements) ? user.stats.achievements : [];
+  const merged = [...new Set([...current, ...ids.filter(Boolean)])];
+  user.stats = {
+    ...(user.stats || {}),
+    achievements: merged
+  };
+}
+
 export async function extractContent(req, res) {
   const payload = await extractSourceContent({
     file: req.file,
@@ -115,9 +124,15 @@ export async function bootstrapUserData(req, res) {
       email: item.email,
       totalPoints: Number(item.stats?.totalPoints || 0),
       totalXp: Number(item.stats?.totalXp || 0),
+      totalQuizzes: Number(item.stats?.totalQuizzes || 0),
+      accuracy: Number(item.stats?.totalQuestions || 0)
+        ? Math.round((Number(item.stats?.totalCorrectAnswers || 0) / Number(item.stats?.totalQuestions || 0)) * 100)
+        : 0,
       currentStreak: Number(item.stats?.currentStreak || 0),
       bestStreak: Number(item.stats?.bestStreak || 0),
-      leaderboardScore: Number(item.stats?.leaderboardScore || 0)
+      bestPercentage: Number(item.stats?.bestPercentage || 0),
+      leaderboardScore: Number(item.stats?.leaderboardScore || 0),
+      achievements: Array.isArray(item.stats?.achievements) ? item.stats.achievements : []
     }))
   });
 }
@@ -154,6 +169,9 @@ export async function createFlashDeck(req, res) {
     flashcards: cards
   });
 
+  ensureAchievements(req.user, ["flash_fan"]);
+  await req.user.save();
+
   res.status(201).json({ flashDeck: toClientDoc(doc.toObject()) });
 }
 
@@ -189,10 +207,12 @@ export async function updateMiniGameStats(req, res) {
     next.memoryWins = Math.max(0, Number(current.memoryWins || 0)) + 1;
     next.memoryBestMoves = current.memoryBestMoves ? Math.min(current.memoryBestMoves, moves) : moves;
     next.memoryBestTime = current.memoryBestTime ? Math.min(current.memoryBestTime, seconds) : seconds;
+    ensureAchievements(req.user, ["memory_master"]);
   } else if (type === "reaction") {
     const reaction = Math.max(0, Number(payload.reaction || 0));
     next.reactionRuns = Math.max(0, Number(current.reactionRuns || 0)) + 1;
     next.reactionBest = current.reactionBest ? Math.min(current.reactionBest, reaction) : reaction;
+    if (next.reactionBest > 0 && next.reactionBest <= 350) ensureAchievements(req.user, ["speedster"]);
   } else if (type === "recall") {
     const level = Math.max(0, Number(payload.level || 0));
     next.recallRuns = Math.max(0, Number(current.recallRuns || 0)) + 1;

@@ -14,7 +14,7 @@
         <span class="auth-brand-icon" aria-hidden="true">Q</span>
         <span>Quizzy</span>
       </a>
-      <span class="auth-pill">Quizzy</span>
+      <span class="auth-pill">Start workspace</span>
       <h1>Create your Quizzy account</h1>
       <p>Generate quizzes, track performance, and save your progress.</p>
 
@@ -55,6 +55,10 @@
         <div class="auth-field">
           <label for="password">Password</label>
           <input id="password" name="password" type="password" autocomplete="new-password" placeholder="At least 6 characters" required />
+          <div class="password-strength" aria-live="polite">
+            <span></span>
+            <em id="passwordStrengthText">Use 6+ characters</em>
+          </div>
         </div>
         <button id="registerSubmitBtn" class="auth-btn" type="submit">Create Account</button>
         <p id="message" class="auth-msg"></p>

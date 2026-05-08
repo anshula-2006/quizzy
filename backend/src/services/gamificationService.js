@@ -60,6 +60,7 @@ export function applyGamificationToUser(user, evaluatedAttempt) {
 
 export function buildProfileSummary(user) {
   const stats = user?.stats || {};
+  const miniGameStats = stats.miniGameStats || {};
   return {
     totalQuizzes: Number(stats.totalQuizzes || 0),
     totalQuestions: Number(stats.totalQuestions || 0),
@@ -70,6 +71,15 @@ export function buildProfileSummary(user) {
     currentStreak: Number(stats.currentStreak || 0),
     bestStreak: Number(stats.bestStreak || 0),
     bestPercentage: Number(stats.bestPercentage || 0),
-    achievements: Array.isArray(stats.achievements) ? stats.achievements : []
+    achievements: Array.isArray(stats.achievements) ? stats.achievements : [],
+    miniGameStats: {
+      memoryWins: Number(miniGameStats.memoryWins || 0),
+      memoryBestMoves: Number(miniGameStats.memoryBestMoves || 0),
+      memoryBestTime: Number(miniGameStats.memoryBestTime || 0),
+      reactionBest: Number(miniGameStats.reactionBest || 0),
+      reactionRuns: Number(miniGameStats.reactionRuns || 0),
+      recallBestLevel: Number(miniGameStats.recallBestLevel || 0),
+      recallRuns: Number(miniGameStats.recallRuns || 0)
+    }
   };
 }

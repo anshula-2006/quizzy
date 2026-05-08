@@ -10,11 +10,13 @@ if (!resultState) {
 
 if (resultState) {
   resultRoot.innerHTML = `
-    <section class="panel result-card page-fade" style="text-align:center;">
-      <p class="eyebrow">Result</p>
-      <h1 class="score-big">${resultState.score}/${resultState.total} \u{1F3AF}</h1>
-      <p class="page-subtitle" style="margin-top:14px;">${feedbackText(resultState.percentage)}</p>
-      <p class="meta-copy" style="margin-top:12px;">Accuracy: ${resultState.percentage}%</p>
+    <section class="panel result-card page-fade result-summary-card">
+      <div>
+        <p class="eyebrow">Result</p>
+        <h1 class="score-big">${resultState.score}/${resultState.total}</h1>
+        <p class="page-subtitle" style="margin-top:14px;">${feedbackText(resultState.percentage)}</p>
+        <p class="meta-copy" style="margin-top:12px;">Accuracy: ${resultState.percentage}%</p>
+      </div>
 
       <div class="result-stats">
         <article class="stat-card">
@@ -34,6 +36,7 @@ if (resultState) {
       <div class="button-row landing-actions">
         <button class="btn" id="retryBtn">Retry Quiz</button>
         <button class="btn-outline" id="newQuizBtn">New Quiz</button>
+        <a class="btn-outline" href="./dashboard.html">Dashboard</a>
       </div>
     </section>
   `;

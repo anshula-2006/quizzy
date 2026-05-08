@@ -21,6 +21,8 @@ export default defineConfig({
         recall: resolve(rootDir, "games/recall.html"),
         login: resolve(rootDir, "login.html"),
         register: resolve(rootDir, "register.html"),
+        profile: resolve(rootDir, "profile.html"),
+        settings: resolve(rootDir, "settings.html"),
         scoreboard: resolve(rootDir, "scoreboard.html")
       }
     }

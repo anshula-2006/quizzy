@@ -16,9 +16,15 @@ export async function getLeaderboard(req, res) {
       email: user.email,
       totalPoints: Number(user.stats?.totalPoints || 0),
       totalXp: Number(user.stats?.totalXp || 0),
+      totalQuizzes: Number(user.stats?.totalQuizzes || 0),
+      accuracy: Number(user.stats?.totalQuestions || 0)
+        ? Math.round((Number(user.stats?.totalCorrectAnswers || 0) / Number(user.stats?.totalQuestions || 0)) * 100)
+        : 0,
       currentStreak: Number(user.stats?.currentStreak || 0),
       bestStreak: Number(user.stats?.bestStreak || 0),
-      leaderboardScore: Number(user.stats?.leaderboardScore || 0)
+      bestPercentage: Number(user.stats?.bestPercentage || 0),
+      leaderboardScore: Number(user.stats?.leaderboardScore || 0),
+      achievements: Array.isArray(user.stats?.achievements) ? user.stats.achievements : []
     }))
   });
 }

@@ -870,33 +870,31 @@ function renderSidebar() {
   if (attemptList) {
     attemptList.innerHTML = entries.length
       ? entries.slice(0, 8).map((e) => `
-          <article class="rounded-2xl border border-white/10 bg-white/6 p-3 text-white">
-            <div class="flex items-center justify-between gap-2">
-              <strong class="text-lg font-black">${e.percentage}%</strong>
-              <span class="rounded-full bg-white/10 px-2 py-1 text-[11px] font-semibold tracking-[0.18em] text-white/70">${getSourceEmoji(e.sourceType)}</span>
+          <article class="timeline-item" style="grid-template-columns: 1fr;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <strong style="font-size: 1.1rem; color: var(--text);">${e.percentage}%</strong>
+              <span class="meta-chip">${getSourceEmoji(e.sourceType)}</span>
             </div>
-            <p class="mt-2 text-xs text-white/65">${e.score}/${e.total} • ${formatShortDate(e.createdAt)}</p>
-            <p class="mt-1 text-xs text-white/50">${(e.settings?.difficulty || "moderate").toUpperCase()} • ${(e.settings?.questionMode || "mcq").toUpperCase()} • ${(e.settings?.outputLanguage || "English").toUpperCase()}</p>
+            <span style="margin-top: 4px;">${e.score}/${e.total} • ${formatShortDate(e.createdAt)}</span>
+            <span style="font-size: 0.75rem;">${(e.settings?.difficulty || "moderate").toUpperCase()} • ${(e.settings?.questionMode || "mcq").toUpperCase()} • ${(e.settings?.outputLanguage || "English").toUpperCase()}</span>
           </article>
         `).join("")
-      : `<p class="rounded-2xl border border-dashed border-white/10 bg-white/5 px-4 py-5 text-sm text-white/55">No attempts yet. Your latest runs will appear here.</p>`;
+      : `<p class="empty-state-mini" style="padding: 16px; text-align: center; border: 1px dashed var(--line); border-radius: 12px;"><span>No attempts yet. Your latest runs will appear here.</span></p>`;
     if (entries.length) {
       attemptList.insertAdjacentHTML(
         "afterbegin",
-        `<article class="rounded-3xl border border-cyan-300/20 bg-gradient-to-r from-violet-500/20 to-cyan-400/15 p-4 text-white">
-          <div class="flex items-center justify-between gap-3">
+        `<article class="saas-stat-card" style="margin-bottom: 12px; background: rgba(34, 211, 238, 0.05); border-color: rgba(34, 211, 238, 0.2);">
+          <div style="display: flex; justify-content: space-between;">
             <div>
-              <p class="text-xs uppercase tracking-[0.25em] text-cyan-100/80">Current level</p>
-              <strong class="mt-1 block text-2xl font-black">Lvl ${game.level}</strong>
+              <span class="saas-stat-label">Current level</span>
+              <strong class="saas-stat-value">Lvl ${game.level}</strong>
             </div>
-            <div class="text-right">
-              <p class="text-sm font-bold">${game.totalXp} XP</p>
-              <p class="text-xs text-white/60">${game.badges.length} badge(s) unlocked</p>
+            <div style="text-align: right;">
+              <span class="saas-stat-label" style="color: var(--text);">${game.totalXp} XP</span>
+              <span class="saas-stat-helper" style="display: block;">${game.badges.length} badges</span>
             </div>
           </div>
-          <div class="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
-            <span class="block h-full rounded-full bg-gradient-to-r from-violet-300 to-cyan-300" style="width:${game.progress}%"></span>
-          </div>
+          <div class="mini-progress"><span style="width:${game.progress}%"></span></div>
         </article>`
       );
     }
@@ -905,26 +903,26 @@ function renderSidebar() {
   if (savedList) {
     savedList.innerHTML = saved.length
       ? saved.slice(0, 10).map((item) => `
-          <details class="rounded-2xl border border-white/10 bg-white/6 p-3 text-white/80">
-            <summary class="cursor-pointer list-none text-sm font-semibold text-white">${item.question}</summary>
-            <p class="mt-3 text-xs"><strong class="text-white">Answer:</strong> ${item.correct}</p>
-            <p class="mt-2 text-xs leading-5 text-white/60">${item.explanation || ""}</p>
+          <details class="timeline-item" style="grid-template-columns: 1fr; cursor: pointer;">
+            <summary style="font-weight: 700; color: var(--text); outline: none;">${item.question}</summary>
+            <p style="margin: 8px 0 0; font-size: 0.85rem;"><strong style="color: var(--text);">Answer:</strong> ${item.correct}</p>
+            <p style="margin: 4px 0 0; font-size: 0.8rem; color: var(--muted);">${item.explanation || ""}</p>
           </details>
         `).join("")
-      : `<p class="rounded-2xl border border-dashed border-white/10 bg-white/5 px-4 py-5 text-sm text-white/55">No saved questions yet.</p>`;
+      : `<p class="empty-state-mini" style="padding: 16px; text-align: center; border: 1px dashed var(--line); border-radius: 12px;"><span>No saved questions yet.</span></p>`;
   }
 
   if (flashList) {
     flashList.innerHTML = decks.length
       ? decks.slice(0, 6).map((deck) => `
-          <details class="rounded-2xl border border-white/10 bg-white/6 p-3 text-white/80">
-            <summary class="cursor-pointer list-none text-sm font-semibold text-white">${deck.title} (${deck.flashcards.length})</summary>
-            <div class="mt-3 space-y-2">
-              ${deck.flashcards.slice(0, 3).map((c) => `<p class="rounded-xl bg-black/20 px-3 py-2 text-xs"><strong class="text-white">${c.front}</strong><br/>${c.back}</p>`).join("")}
+          <details class="timeline-item" style="grid-template-columns: 1fr; cursor: pointer;">
+            <summary style="font-weight: 700; color: var(--text); outline: none;">${deck.title} (${deck.flashcards.length})</summary>
+            <div style="margin-top: 8px; display: grid; gap: 6px;">
+              ${deck.flashcards.slice(0, 3).map((c) => `<p style="margin:0; padding: 6px 8px; background: rgba(0,0,0,0.2); border-radius: 6px; font-size: 0.8rem;"><strong style="color: var(--text); display: block;">${c.front}</strong>${c.back}</p>`).join("")}
             </div>
           </details>
         `).join("")
-      : `<p class="rounded-2xl border border-dashed border-white/10 bg-white/5 px-4 py-5 text-sm text-white/55">No flashcard decks generated yet.</p>`;
+      : `<p class="empty-state-mini" style="padding: 16px; text-align: center; border: 1px dashed var(--line); border-radius: 12px;"><span>No flashcard decks generated yet.</span></p>`;
   }
 
 }
@@ -975,14 +973,14 @@ function renderEvaluationBoard() {
 
   if (entries.length === 0) {
     evaluationBoard.innerHTML = `
-      <div class="rounded-[28px] border border-dashed border-white/15 bg-white/5 p-6 text-white">
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div class="panel flow-card" style="border-style: dashed;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
           <div>
-            <p class="text-xs font-semibold uppercase tracking-[0.25em] text-violet-200">${labels.dashboard}</p>
-            <h3 class="mt-2 text-2xl font-black">No runs yet</h3>
-            <p class="mt-2 max-w-xl text-sm leading-6 text-white/60">Generate your first quiz and this area will turn into a progress snapshot with streaks, XP, and review notes.</p>
+            <span class="saas-stat-label">${labels.dashboard}</span>
+            <h3 style="margin: 6px 0; font-size: 1.5rem;">No runs yet</h3>
+            <p style="margin: 0; color: var(--muted); max-width: 500px;">Generate your first quiz and this area will turn into a progress snapshot with streaks, XP, and review notes.</p>
           </div>
-          <button id="clearHistoryBtn" class="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-white/75 transition hover:text-white" type="button">Clear History</button>
+          <button id="clearHistoryBtn" class="btn-outline" type="button">Clear History</button>
         </div>
       </div>
     `;
@@ -1003,98 +1001,73 @@ function renderEvaluationBoard() {
   `).join("");
 
   evaluationBoard.innerHTML = `
-    <div class="space-y-4">
-      <div class="grid gap-4 md:grid-cols-[1.1fr_0.9fr]">
-        <div class="rounded-[28px] border border-white/10 bg-gradient-to-br from-violet-500/18 to-cyan-400/10 p-5 text-white">
-          <div class="flex items-start justify-between gap-4">
+    <div style="display: grid; gap: 16px;">
+      <div style="display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
+        <div class="panel flow-card" style="background: linear-gradient(145deg, rgba(124, 58, 237, 0.05), rgba(6, 182, 212, 0.05)); border-color: rgba(124, 58, 237, 0.2);">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
             <div>
-              <p class="text-xs font-semibold uppercase tracking-[0.25em] text-violet-200">${labels.dashboard}</p>
-              <h3 class="mt-2 text-3xl font-black">${latest.percentage}% latest score</h3>
-              <p class="mt-2 text-sm leading-6 text-white/65">${getFeedback(entries)}</p>
+              <span class="saas-stat-label">${labels.dashboard}</span>
+              <h3 style="margin: 4px 0 8px; font-size: 2rem; color: var(--text);">${latest.percentage}% latest score</h3>
+              <p style="margin: 0; color: var(--muted); font-size: 0.9rem;">${getFeedback(entries)}</p>
             </div>
-            <button id="clearHistoryBtn" class="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-white/75 transition hover:text-white" type="button">Clear</button>
+            <button id="clearHistoryBtn" class="btn-outline" style="min-height: 32px; padding: 0 12px; font-size: 0.8rem;" type="button">Clear</button>
           </div>
-          <div class="mt-5 grid gap-3 sm:grid-cols-4">
-            <div class="rounded-2xl bg-black/20 p-4">
-              <p class="text-xs uppercase tracking-[0.18em] text-white/45">Level</p>
-              <strong class="mt-2 block text-2xl font-black">${game.level}</strong>
-            </div>
-            <div class="rounded-2xl bg-black/20 p-4">
-              <p class="text-xs uppercase tracking-[0.18em] text-white/45">XP</p>
-              <strong class="mt-2 block text-2xl font-black">${game.totalXp}</strong>
-            </div>
-            <div class="rounded-2xl bg-black/20 p-4">
-              <p class="text-xs uppercase tracking-[0.18em] text-white/45">Streak</p>
-              <strong class="mt-2 block text-2xl font-black">${streak}</strong>
-            </div>
-            <div class="rounded-2xl bg-black/20 p-4">
-              <p class="text-xs uppercase tracking-[0.18em] text-white/45">Best</p>
-              <strong class="mt-2 block text-2xl font-black">${best}%</strong>
-            </div>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 24px;">
+            <div><span class="saas-stat-label">Level</span><strong class="saas-stat-value" style="display:block; margin-top:4px;">${game.level}</strong></div>
+            <div><span class="saas-stat-label">XP</span><strong class="saas-stat-value" style="display:block; margin-top:4px;">${game.totalXp}</strong></div>
+            <div><span class="saas-stat-label">Streak</span><strong class="saas-stat-value" style="display:block; margin-top:4px;">${streak}</strong></div>
+            <div><span class="saas-stat-label">Best</span><strong class="saas-stat-value" style="display:block; margin-top:4px;">${best}%</strong></div>
           </div>
-          <div class="mt-5 h-3 overflow-hidden rounded-full bg-white/10">
-            <div class="h-full rounded-full bg-gradient-to-r from-violet-300 via-fuchsia-300 to-cyan-300" style="width:${game.progress}%"></div>
-          </div>
-          <div class="mt-4 flex flex-wrap gap-2">
-            ${unlockedBadges || `<span class="rounded-full border border-white/10 bg-white/8 px-3 py-1 text-xs font-semibold text-white/70">No badges yet</span>`}
+          <div class="mini-progress" style="margin-top: 20px;"><span style="width:${game.progress}%"></span></div>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px;">
+            ${unlockedBadges || `<span class="meta-chip">No badges yet</span>`}
           </div>
         </div>
-        <div class="rounded-[28px] border border-white/10 bg-white/6 p-5 text-white">
-          <p class="text-xs font-semibold uppercase tracking-[0.25em] text-cyan-200">Snapshot</p>
-          <div class="mt-4 grid grid-cols-2 gap-3">
-            <div class="rounded-2xl bg-black/20 p-4">
-              <p class="text-xs uppercase tracking-[0.18em] text-white/45">Average</p>
-              <strong class="mt-2 block text-2xl font-black">${avg}%</strong>
-            </div>
-            <div class="rounded-2xl bg-black/20 p-4">
-              <p class="text-xs uppercase tracking-[0.18em] text-white/45">Need review</p>
-              <strong class="mt-2 block text-2xl font-black">${wrongCount}</strong>
-            </div>
-            <div class="rounded-2xl bg-black/20 p-4">
-              <p class="text-xs uppercase tracking-[0.18em] text-white/45">Band</p>
-              <strong class="mt-2 block text-lg font-black">${getBandLabel(latest.percentage)}</strong>
-            </div>
-            <div class="rounded-2xl bg-black/20 p-4">
-              <p class="text-xs uppercase tracking-[0.18em] text-white/45">Trend</p>
-              <strong class="mt-2 block text-sm font-bold">${getTrend(entries).label}</strong>
-            </div>
+        
+        <div class="panel flow-card">
+          <span class="saas-stat-label">Snapshot</span>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+            <div><span class="saas-stat-label">Average</span><strong class="saas-stat-value" style="display:block; margin-top:4px;">${avg}%</strong></div>
+            <div><span class="saas-stat-label">Need Review</span><strong class="saas-stat-value" style="display:block; margin-top:4px;">${wrongCount}</strong></div>
+            <div><span class="saas-stat-label">Band</span><strong class="saas-stat-value" style="display:block; margin-top:4px; font-size: 1.1rem;">${getBandLabel(latest.percentage)}</strong></div>
+            <div><span class="saas-stat-label">Trend</span><strong class="saas-stat-value" style="display:block; margin-top:4px; font-size: 1.1rem;">${getTrend(entries).label}</strong></div>
           </div>
-          <div class="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
-            <p class="text-sm font-semibold text-white">Latest attempt</p>
-            <p class="mt-2 text-sm text-white/65">${latest.score}/${latest.total} • ${formatShortDate(latest.createdAt)} • ${(latest.settings?.outputLanguage || "English").toUpperCase()}</p>
+          <div style="margin-top: 24px; padding: 12px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--line);">
+            <strong style="font-size: 0.9rem;">Latest attempt</strong>
+            <p style="margin: 4px 0 0; font-size: 0.85rem; color: var(--muted);">${latest.score}/${latest.total} • ${formatShortDate(latest.createdAt)} • ${(latest.settings?.outputLanguage || "English").toUpperCase()}</p>
           </div>
         </div>
       </div>
 
-      <div class="grid gap-4 lg:grid-cols-[0.92fr_1.08fr]">
-        <div class="rounded-[28px] border border-white/10 bg-white/6 p-5 text-white">
-          <div class="flex items-center justify-between gap-3">
-            <h4 class="text-lg font-black">Recent attempts</h4>
-            <span class="rounded-full bg-white/8 px-3 py-1 text-xs font-semibold text-white/60">${entries.length} total</span>
+      <div style="display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
+        <div class="panel flow-card">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h4 style="margin: 0; font-size: 1.1rem;">Recent attempts</h4>
+            <span class="meta-chip">${entries.length} total</span>
           </div>
-          <div class="mt-4 space-y-3">
+          <div style="display: grid; gap: 10px; margin-top: 16px;">
             ${recent.map((e) => `
-              <div class="rounded-2xl border border-white/10 bg-black/20 p-4">
-                <div class="flex items-center justify-between gap-3">
-                  <strong class="text-lg font-black">${e.percentage}%</strong>
-                  <span class="text-xs uppercase tracking-[0.18em] text-white/45">${(e.settings?.difficulty || "moderate").toUpperCase()}</span>
+              <div style="padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <strong style="font-size: 1.2rem;">${e.percentage}%</strong>
+                  <p style="margin: 4px 0 0; font-size: 0.8rem; color: var(--muted);">${e.score}/${e.total} • ${formatShortDate(e.createdAt)}</p>
                 </div>
-                <p class="mt-2 text-sm text-white/65">${e.score}/${e.total} • ${formatShortDate(e.createdAt)}</p>
+                <span class="saas-stat-label">${(e.settings?.difficulty || "moderate").toUpperCase()}</span>
               </div>
             `).join("")}
           </div>
         </div>
 
-        <div class="rounded-[28px] border border-white/10 bg-white/6 p-5 text-white">
-          <h4 class="text-lg font-black">Question review</h4>
-          <div class="mt-4 flex flex-wrap gap-2">
+        <div class="panel flow-card">
+          <h4 style="margin: 0; font-size: 1.1rem;">Question review</h4>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px;">
             ${latestAnswers.map((a, i) => `
-              <button class="review-q-btn rounded-full border px-4 py-2 text-sm font-semibold ${a.isCorrect ? "border-emerald-300/30 bg-emerald-400/15 text-emerald-100" : "border-rose-300/30 bg-rose-400/15 text-rose-100"}" data-review-index="${i}">
+              <button class="review-q-btn btn-outline" style="min-height: 32px; padding: 0 12px; font-size: 0.8rem; ${a.isCorrect ? 'border-color: rgba(34,197,94,0.4); background: rgba(34,197,94,0.1); color: #fff;' : 'border-color: rgba(248,113,113,0.4); background: rgba(248,113,113,0.1); color: #fff;'}" data-review-index="${i}">
                 Q${i + 1}
               </button>
             `).join("")}
           </div>
-          <div id="reviewDetail" class="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4 text-sm leading-6 text-white/70">Click a question chip to view the explanation.</div>
+          <div id="reviewDetail" style="margin-top: 16px; padding: 16px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--line); font-size: 0.9rem; color: var(--muted); line-height: 1.6;">Click a question chip to view the explanation.</div>
         </div>
       </div>
     </div>
@@ -1223,34 +1196,36 @@ function renderBadgeCabinet() {
   const unlockedCount = badgeList.filter((badge) => badge.unlocked).length;
 
   badgeCabinet.innerHTML = `
-    <div class="space-y-5 text-white">
-      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div class="panel flow-card">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
         <div>
-          <h3 class="text-xl font-black">Badge cabinet</h3>
-          <p class="mt-2 text-sm leading-6 text-white/60">Collect playful rewards while you quiz, review, and explore bonus modes.</p>
+          <h3 style="margin: 0; font-size: 1.5rem;">Badge cabinet</h3>
+          <p style="margin: 8px 0 0; color: var(--muted);">Collect playful rewards while you quiz, review, and explore bonus modes.</p>
         </div>
-        <div class="rounded-2xl border border-white/10 bg-white/8 px-4 py-3 text-center">
-          <strong class="block text-2xl font-black">${unlockedCount}/${badgeList.length}</strong>
-          <span class="text-xs uppercase tracking-[0.22em] text-white/45">Unlocked</span>
+        <div class="saas-stat-card" style="text-align: center; min-width: 100px;">
+          <strong class="saas-stat-value">${unlockedCount}/${badgeList.length}</strong>
+          <span class="saas-stat-label" style="display: block;">Unlocked</span>
         </div>
       </div>
-      <div class="flex flex-wrap gap-2 text-xs font-semibold">
-        <span class="rounded-full border border-white/10 bg-white/8 px-3 py-1">Quiz XP ${game.quizXp}</span>
-        <span class="rounded-full border border-white/10 bg-white/8 px-3 py-1">Bonus XP ${game.bonusXp}</span>
-        <span class="rounded-full border border-white/10 bg-white/8 px-3 py-1">Level ${game.level}</span>
-        <span class="rounded-full border border-white/10 bg-white/8 px-3 py-1">Speed Best ${game.gameStats.speedBest}</span>
+      
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0;">
+        <span class="meta-chip">Quiz XP ${game.quizXp}</span>
+        <span class="meta-chip">Bonus XP ${game.bonusXp}</span>
+        <span class="meta-chip">Level ${game.level}</span>
+        <span class="meta-chip">Speed Best ${game.gameStats.speedBest}</span>
       </div>
-      <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+
+      <div class="premium-badges" style="display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
         ${badgeList.map((badge) => `
-          <article class="rounded-[26px] border p-4 ${badge.unlocked ? "border-white/12 bg-white/8 text-white" : "border-white/8 bg-white/[0.04] text-white/65"}">
-            <div class="flex items-start justify-between gap-3">
-              <span class="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10">
-                <img src="${badge.icon}" alt="${badge.label}" loading="lazy" class="h-11 w-11 object-contain" />
+          <article class="badge-card ${badge.unlocked ? "is-unlocked" : "is-locked"} ${badge.rarity}" style="min-height: auto; padding: 16px; border-radius: 16px; background: rgba(255,255,255,0.02); border: 1px solid var(--line);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <span class="badge-icon" style="width: 48px; height: 48px; margin: 0; box-shadow: none; background: rgba(255,255,255,0.05); border: none;">
+                <img src="${badge.icon}" alt="${badge.label}" loading="lazy" style="width: 28px; height: 28px;" />
               </span>
-              <span class="rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] ${badge.unlocked ? "bg-emerald-400/15 text-emerald-100" : "bg-white/8 text-white/45"}">${badge.rarity}</span>
+              <span class="meta-chip" style="${badge.unlocked ? 'background: rgba(34,197,94,0.15); color: var(--green);' : ''}">${badge.rarity}</span>
             </div>
-            <strong class="mt-4 block text-base font-black">${badge.label}</strong>
-            <small class="mt-2 block text-sm leading-6">${badge.unlocked ? `${badge.rarity.toUpperCase()} reward unlocked` : badge.hint}</small>
+            <strong style="display: block; margin-top: 16px; font-size: 1.1rem; color: ${badge.unlocked ? 'var(--text)' : 'var(--muted)'};">${badge.label}</strong>
+            <small style="display: block; margin-top: 6px; font-size: 0.85rem; color: var(--muted);">${badge.unlocked ? `${badge.rarity.toUpperCase()} reward unlocked` : badge.hint}</small>
           </article>
         `).join("")}
       </div>
@@ -2181,10 +2156,10 @@ if (btn) {
     } catch (err) {
       loader.classList.add("hidden");
       quiz.innerHTML = `
-        <div class="fade-in-up mx-auto w-full max-w-3xl rounded-[36px] border border-dashed border-rose-400/20 bg-white/5 p-10 text-center text-white shadow-lg">
-          <span class="inline-flex rounded-full bg-rose-400/20 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-rose-200">Error</span>
-          <h2 class="mt-5 text-2xl font-black sm:text-3xl">Try again next time</h2>
-          <p class="mt-3 text-base leading-7 text-white/65">Quiz generation encountered an issue. Please try again later.</p>
+        <div class="panel flow-card fade-in" style="max-width: 600px; margin: 0 auto; text-align: center; border-style: dashed; border-color: rgba(248, 113, 113, 0.4);">
+          <span class="meta-chip" style="background: rgba(248, 113, 113, 0.15); color: var(--red);">Error</span>
+          <h2 style="margin: 16px 0 0; font-size: 2rem; font-weight: 900;">Try again next time</h2>
+          <p style="margin: 12px 0 0; color: var(--muted);">Quiz generation encountered an issue. Please try again later.</p>
         </div>
       `;
     } finally {
@@ -2356,10 +2331,10 @@ flashcardsBtn?.addEventListener("click", async () => {
   } catch (err) {
     flashcardsBoard.innerHTML = `
       <div class="evaluation-wrap">
-        <div class="rounded-[28px] border border-dashed border-white/20 bg-white/5 p-8 text-center text-white shadow-lg">
-          <span class="inline-flex rounded-full bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-white/80">Coming Soon</span>
-          <h3 class="mt-4 text-2xl font-black">Future Enhancement</h3>
-          <p class="mt-3 text-sm leading-6 text-white/65">Flashcard generation is temporarily unavailable. Please try again later.</p>
+        <div class="panel flow-card" style="text-align: center; border-style: dashed;">
+          <span class="meta-chip">Coming Soon</span>
+          <h3 style="margin: 16px 0 0; font-size: 1.5rem; font-weight: 900;">Future Enhancement</h3>
+          <p style="margin: 12px 0 0; color: var(--muted);">Flashcard generation is temporarily unavailable. Please try again later.</p>
         </div>
       </div>
     `;
@@ -2371,10 +2346,10 @@ flashcardsBtn?.addEventListener("click", async () => {
 
 function renderShortAnswerInput() {
   return `
-    <div class="space-y-4">
-      <label class="block text-sm font-bold text-white" for="shortAnswerInput">Your answer</label>
-      <textarea id="shortAnswerInput" class="min-h-[150px] w-full rounded-[28px] border border-white/12 bg-slate-950/35 px-5 py-4 text-base text-white outline-none placeholder:text-white/30 focus:border-cyan-300/60" placeholder="Type your answer here..."></textarea>
-      <button id="submitShortBtn" class="rounded-full bg-gradient-to-r from-violet-500 to-cyan-400 px-6 py-3 text-sm font-black text-white transition hover:-translate-y-0.5 hover:scale-[1.02]" type="button">Lock Answer</button>
+    <div style="display: grid; gap: 12px;">
+      <label class="saas-stat-label" for="shortAnswerInput">Your answer</label>
+      <textarea id="shortAnswerInput" class="text-input" style="min-height: 140px; border-radius: 20px;" placeholder="Type your answer here..."></textarea>
+      <button id="submitShortBtn" class="btn" type="button">Lock Answer</button>
     </div>
   `;
 }
@@ -2387,57 +2362,53 @@ function showQuestion() {
   const progress = Math.round(((index + 1) / questions.length) * 100);
 
   quiz.innerHTML = `
-    <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 px-4 py-4 backdrop-blur-md sm:px-6 sm:py-6">
-      <div class="mx-auto flex min-h-full max-w-5xl items-center justify-center">
-        <div class="quiz-card fade-in-up w-full rounded-[36px] border border-white/12 bg-[linear-gradient(180deg,rgba(16,23,42,0.95),rgba(11,18,32,0.98))] p-5 text-white shadow-[0_24px_80px_rgba(0,0,0,0.45)] sm:p-8">
-          <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <p class="text-xs font-semibold uppercase tracking-[0.32em] text-violet-200">Quiz mode</p>
-              <h2 class="mt-2 text-2xl font-black sm:text-3xl">Question ${index + 1} of ${questions.length}</h2>
-            </div>
-            <div class="flex flex-wrap gap-2">
-              <span class="rounded-full border border-white/10 bg-white/8 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/70">${q.type.toUpperCase()}</span>
-              <span id="quizTimerChip" class="rounded-full border border-white/10 bg-white/8 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/70">${isShort ? "No timer" : `${timeLeft}s left`}</span>
-            </div>
+    <div style="position: fixed; inset: 0; z-index: 50; overflow-y: auto; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); padding: 24px; display: grid; place-items: center;">
+      <div class="panel quiz-card fade-in" style="width: 100%; max-width: 900px; box-shadow: var(--shadow);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+          <div>
+            <span class="saas-stat-label">Quiz mode</span>
+            <h2 style="margin: 8px 0 0; font-size: clamp(1.5rem, 3vw, 2.2rem); font-weight: 900; letter-spacing: -0.03em;">Question ${index + 1} of ${questions.length}</h2>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <span class="meta-chip">${q.type.toUpperCase()}</span>
+            <span id="quizTimerChip" class="meta-chip">${isShort ? "No timer" : `${timeLeft}s left`}</span>
+          </div>
+        </div>
+
+        <div style="margin-top: 24px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span class="saas-stat-label">Progress</span>
+            <span class="saas-stat-label">${progress}%</span>
+          </div>
+          <div class="mini-progress"><span style="width:${progress}%"></span></div>
+        </div>
+
+        <div style="display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); margin-top: 32px;">
+          <div style="padding: 24px; background: rgba(255,255,255,0.03); border-radius: 20px; border: 1px solid var(--line);">
+            <span class="saas-stat-label">Focus prompt</span>
+            <h3 style="margin: 12px 0 0; font-size: clamp(1.4rem, 2.5vw, 2rem); font-weight: 900; line-height: 1.3;">${q.question}</h3>
+            <p style="margin: 16px 0 0; color: var(--muted); font-size: 0.9rem; line-height: 1.6;">Choose your answer and move to the next challenge. Smooth and fast, one step at a time.</p>
           </div>
 
-          <div class="mt-5">
-            <div class="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-[0.2em] text-white/45">
-              <span>Progress</span>
-              <span>${progress}%</span>
-            </div>
-            <div class="h-3 overflow-hidden rounded-full bg-white/10">
-              <div class="h-full rounded-full bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-300 transition-all duration-300" style="width:${progress}%"></div>
-            </div>
+          <div style="display: grid; gap: 12px; align-content: start;">
+            ${q.type === "mcq"
+              ? q.options.map((o, i) => `
+                <button class="answer-option option quiz-option" data-o="${String.fromCharCode(65 + i)}" type="button" style="border-radius: 20px; padding: 16px 20px;">
+                  <span class="answer-key">${String.fromCharCode(65 + i)}</span>
+                  <span style="font-weight: 600;">${o}</span>
+                </button>`).join("")
+              : renderShortAnswerInput()}
           </div>
+        </div>
 
-          <div class="mt-6 grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-            <div class="rounded-[30px] bg-gradient-to-br from-violet-500/16 to-cyan-400/10 p-6">
-              <p class="text-sm font-semibold uppercase tracking-[0.22em] text-cyan-100/80">Focus prompt</p>
-              <h3 class="mt-4 text-2xl font-black leading-tight sm:text-3xl">${q.question}</h3>
-              <p class="mt-4 text-sm leading-6 text-white/60">Choose your answer and move to the next challenge. Smooth and fast, one step at a time.</p>
-            </div>
-
-            <div class="space-y-4">
-              ${q.type === "mcq"
-                ? q.options.map((o, i) => `
-                  <button class="option quiz-option flex w-full items-center gap-4 rounded-[28px] border border-white/12 bg-white/6 px-5 py-5 text-left" data-o="${String.fromCharCode(65 + i)}" type="button">
-                    <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-sm font-black text-cyan-100">${String.fromCharCode(65 + i)}</span>
-                    <span class="text-base font-semibold text-white">${o}</span>
-                  </button>`).join("")
-                : renderShortAnswerInput()}
-            </div>
+        <div class="button-row" style="margin-top: 32px; justify-content: space-between;">
+          <div class="button-row">
+            <button id="prevBtn" class="btn-outline" ${index === 0 ? "disabled" : ""}>Previous</button>
+            <button id="moreQuestionsBtn" class="btn-outline" ${isLoadingMoreQuestions ? "disabled" : ""}>${isLoadingMoreQuestions ? "Loading..." : "More Questions"}</button>
           </div>
-
-          <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div class="flex flex-wrap gap-3">
-              <button id="prevBtn" class="rounded-full border border-white/12 bg-white/8 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/12" ${index === 0 ? "disabled" : ""}>Previous</button>
-              <button id="moreQuestionsBtn" class="rounded-full border border-white/12 bg-white/8 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/12" ${isLoadingMoreQuestions ? "disabled" : ""}>${isLoadingMoreQuestions ? "Loading..." : "More Questions"}</button>
-            </div>
-            <div class="flex flex-wrap gap-3">
-              <button id="finishBtn" class="rounded-full border border-rose-300/20 bg-rose-400/10 px-5 py-3 text-sm font-semibold text-rose-100 transition hover:bg-rose-400/15">Finish</button>
-              <button id="nextBtn" class="rounded-full bg-gradient-to-r from-violet-500 to-cyan-400 px-6 py-3 text-sm font-black text-white transition hover:-translate-y-0.5 hover:scale-[1.02]">Next</button>
-            </div>
+          <div class="button-row">
+            <button id="finishBtn" class="ghost" style="color: var(--red);">Finish</button>
+            <button id="nextBtn" class="btn">Next</button>
           </div>
         </div>
       </div>
@@ -2558,23 +2529,23 @@ function reveal(q, choice, isReview) {
   if (!quiz.querySelector(".explanation")) {
     const answerText = isShort ? `Correct answer: ${q.shortAnswer || q.correct}` : `Correct option: ${q.correct}`;
     const wrongBlock = !isCorrect
-      ? `<p class="text-sm leading-6 text-rose-100"><strong>Why your answer was wrong:</strong> ${q.wrongExplanation || "Your selected answer does not match the validated correct answer and supporting concept."}</p>`
+      ? `<p style="margin: 12px 0 0; padding: 12px; background: rgba(248, 113, 113, 0.1); border-radius: 12px; color: #fee2e2;"><strong>Why your answer was wrong:</strong> ${q.wrongExplanation || "Your selected answer does not match the validated correct answer and supporting concept."}</p>`
       : "";
     const imageBlock = q.image && /^https:\/\/upload\.wikimedia\.org\/.+\.(png|jpg)$/i.test(q.image)
-      ? `<div class="explain-image-wrap"><img class="explain-image" src="${q.image}" alt="Explanation visual" loading="lazy" onerror="this.closest('.explain-image-wrap')?.remove()" /></div>`
+      ? `<div class="explain-image-wrap" style="margin-top:12px;"><img class="explain-image" src="${q.image}" alt="Explanation visual" loading="lazy" onerror="this.closest('.explain-image-wrap')?.remove()" style="border-radius: 12px; max-width: 100%;" /></div>`
       : "";
 
     quiz.querySelector(".quiz-card").insertAdjacentHTML(
       "beforeend",
-      `<div class="explanation mt-6 rounded-[28px] border border-white/12 bg-black/20 p-5 text-white">
-        <div class="explanation-head flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <span class="inline-flex w-fit rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] ${isCorrect ? "bg-emerald-400/15 text-emerald-100" : "bg-rose-400/15 text-rose-100"}">${isCorrect ? "Correct" : "Wrong"}</span>
-          <strong class="text-sm text-white/85">${answerText}</strong>
+      `<div class="explanation" style="margin-top: 24px; padding: 24px; background: rgba(0,0,0,0.3); border: 1px solid var(--line); border-radius: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <span class="meta-chip" style="${isCorrect ? 'background: rgba(34,197,94,0.15); color: var(--green);' : 'background: rgba(248,113,113,0.15); color: var(--red);'}">${isCorrect ? "Correct" : "Wrong"}</span>
+          <strong style="font-size: 0.95rem;">${answerText}</strong>
         </div>
-        <p class="mt-4 text-sm leading-6 text-white/70">${q.explanation || ""}</p>
+        <p style="margin: 16px 0 0; color: var(--muted); line-height: 1.6;">${q.explanation || ""}</p>
         ${wrongBlock}
         ${imageBlock}
-        <button id="saveQuestionBtn" class="mt-4 rounded-full border border-white/12 bg-white/8 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/12" type="button">Save Question</button>
+        <button id="saveQuestionBtn" class="btn-outline" style="margin-top: 20px;" type="button">Save Question</button>
       </div>`
     );
     document.getElementById("saveQuestionBtn")?.addEventListener("click", () => {
@@ -2740,59 +2711,55 @@ async function finish() {
   revealNewBadges(previousBadgeIds, allEntries);
 
   quiz.innerHTML = `
-    <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 px-4 py-4 backdrop-blur-md sm:px-6 sm:py-6">
-      <div class="mx-auto flex min-h-full max-w-4xl items-center justify-center">
-        <div class="fade-in-up w-full rounded-[36px] border border-white/12 bg-[linear-gradient(180deg,rgba(16,23,42,0.95),rgba(11,18,32,0.98))] p-6 text-white shadow-[0_24px_80px_rgba(0,0,0,0.45)] sm:p-8">
-          <div class="text-center">
-            <span class="inline-flex rounded-full bg-emerald-400/15 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-emerald-100">Quiz completed</span>
-            <h2 class="mt-4 text-3xl font-black sm:text-5xl">You scored ${score}/${questions.length} 🎯</h2>
-            <p class="mt-3 text-base leading-7 text-white/65">${assessment}. Your run has been added to your progress history.</p>
+    <div style="position: fixed; inset: 0; z-index: 50; overflow-y: auto; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); padding: 24px; display: grid; place-items: center;">
+      <div class="panel flow-card fade-in" style="width: 100%; max-width: 800px; padding: 32px;">
+        <div style="text-align: center;">
+          <span class="meta-chip" style="background: rgba(34, 197, 94, 0.15); color: var(--green);">Quiz completed</span>
+          <h2 style="margin: 16px 0 0; font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 900; letter-spacing: -0.04em;">You scored ${score}/${questions.length} 🎯</h2>
+          <p style="margin: 12px 0 0; color: var(--muted); font-size: 1.1rem;">${assessment}. Your run has been added to your progress history.</p>
+        </div>
+
+        <div style="display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-top: 32px; align-items: center;">
+          <div style="padding: 24px; background: linear-gradient(145deg, rgba(124, 58, 237, 0.1), rgba(6, 182, 212, 0.05)); border-radius: 24px; text-align: center; border: 1px solid var(--line);">
+            <span class="saas-stat-label">Final score</span>
+            <strong style="display: block; margin-top: 12px; font-size: 4rem; font-weight: 900; line-height: 1;">${entry.percentage}%</strong>
+            <p style="margin: 12px 0 0; font-size: 0.9rem; color: var(--muted);">${Math.max(0, questions.length - score)} miss(es) • ${entry.gamification?.xp || getAttemptXp(entry)} XP earned</p>
           </div>
 
-          <div class="mt-8 grid gap-4 md:grid-cols-[0.9fr_1.1fr] md:items-center">
-            <div class="rounded-[30px] bg-gradient-to-br from-violet-500/18 to-cyan-400/10 p-6 text-center">
-              <p class="text-xs font-semibold uppercase tracking-[0.24em] text-violet-200">Final score</p>
-              <strong class="mt-3 block text-6xl font-black">${entry.percentage}%</strong>
-              <p class="mt-3 text-sm text-white/65">${Math.max(0, questions.length - score)} miss(es) • ${entry.gamification?.xp || getAttemptXp(entry)} XP earned</p>
+          <div style="display: grid; gap: 12px; grid-template-columns: 1fr 1fr;">
+            <div class="saas-stat-card">
+              <span class="saas-stat-label">Correct</span>
+              <strong class="saas-stat-value">${score}</strong>
             </div>
-
-            <div class="grid gap-3 sm:grid-cols-2">
-              <div class="rounded-2xl border border-white/10 bg-white/6 p-4">
-                <p class="text-xs uppercase tracking-[0.18em] text-white/45">Correct</p>
-                <strong class="mt-2 block text-2xl font-black">${score}</strong>
-              </div>
-              <div class="rounded-2xl border border-white/10 bg-white/6 p-4">
-                <p class="text-xs uppercase tracking-[0.18em] text-white/45">Wrong</p>
-                <strong class="mt-2 block text-2xl font-black">${Math.max(0, questions.length - score)}</strong>
-              </div>
-              <div class="rounded-2xl border border-white/10 bg-white/6 p-4">
-                <p class="text-xs uppercase tracking-[0.18em] text-white/45">Streak</p>
-                <strong class="mt-2 block text-2xl font-black">${entry.gamification?.streak || game.streak || 0}</strong>
-              </div>
-              <div class="rounded-2xl border border-white/10 bg-white/6 p-4">
-                <p class="text-xs uppercase tracking-[0.18em] text-white/45">Level</p>
-                <strong class="mt-2 block text-2xl font-black">${game.level}</strong>
-              </div>
+            <div class="saas-stat-card">
+              <span class="saas-stat-label">Wrong</span>
+              <strong class="saas-stat-value">${Math.max(0, questions.length - score)}</strong>
+            </div>
+            <div class="saas-stat-card">
+              <span class="saas-stat-label">Streak</span>
+              <strong class="saas-stat-value">${entry.gamification?.streak || game.streak || 0}</strong>
+            </div>
+            <div class="saas-stat-card">
+              <span class="saas-stat-label">Level</span>
+              <strong class="saas-stat-value">${game.level}</strong>
             </div>
           </div>
+        </div>
 
-          <div class="mt-6 flex flex-wrap gap-2">
-            <span class="rounded-full border border-white/10 bg-white/8 px-3 py-1 text-xs font-semibold">Mode ${(entry.settings?.difficulty || "moderate").toUpperCase()}</span>
-            <span class="rounded-full border border-white/10 bg-white/8 px-3 py-1 text-xs font-semibold">Type ${(entry.settings?.questionMode || "mcq").toUpperCase()}</span>
-            <span class="rounded-full border border-white/10 bg-white/8 px-3 py-1 text-xs font-semibold">Language ${entry.settings?.outputLanguage || "English"}</span>
-            ${entry.confidence ? `<span class="rounded-full border border-white/10 bg-white/8 px-3 py-1 text-xs font-semibold">Confidence ${entry.confidence}%</span>` : ""}
-          </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px;">
+          <span class="meta-chip">Mode ${(entry.settings?.difficulty || "moderate").toUpperCase()}</span>
+          <span class="meta-chip">Type ${(entry.settings?.questionMode || "mcq").toUpperCase()}</span>
+          <span class="meta-chip">Language ${entry.settings?.outputLanguage || "English"}</span>
+          ${entry.confidence ? `<span class="meta-chip">Confidence ${entry.confidence}%</span>` : ""}
+        </div>
 
-          <div class="mt-5 h-3 overflow-hidden rounded-full bg-white/10">
-            <span class="block h-full rounded-full bg-gradient-to-r from-violet-300 via-fuchsia-300 to-cyan-300" style="width:${game.progress}%"></span>
-          </div>
+        <div class="mini-progress" style="margin-top: 20px;"><span style="width:${game.progress}%"></span></div>
 
-          <p class="mt-5 text-sm leading-6 text-white/70">${newBadges.length ? `New badges unlocked: ${newBadges.map((badge) => badge.label).join(", ")}` : `Badges unlocked: ${game.badges.map((badge) => badge.label).join(", ") || "None yet"}`}</p>
+        <p style="margin: 20px 0 0; font-size: 0.9rem; color: var(--muted); line-height: 1.5;">${newBadges.length ? `New badges unlocked: ${newBadges.map((badge) => badge.label).join(", ")}` : `Badges unlocked: ${game.badges.map((badge) => badge.label).join(", ") || "None yet"}`}</p>
 
-          <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-            <button id="retryQuizBtn" class="rounded-full bg-gradient-to-r from-violet-500 to-cyan-400 px-6 py-3 text-sm font-black text-white transition hover:-translate-y-0.5 hover:scale-[1.02]" type="button">Retry</button>
-            <button id="goDashboardBtn" class="rounded-full border border-white/12 bg-white/8 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/12" type="button">New Quiz</button>
-          </div>
+        <div class="button-row" style="margin-top: 32px; justify-content: center;">
+          <button id="retryQuizBtn" class="btn" type="button">Retry</button>
+          <button id="goDashboardBtn" class="btn-outline" type="button">New Quiz</button>
         </div>
       </div>
     </div>

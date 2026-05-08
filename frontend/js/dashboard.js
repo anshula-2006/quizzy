@@ -1,6 +1,87 @@
 import auth from "../auth.js";
-import { getFlashDecks, getMiniGameStats, getSavedQuizHistory, saveFlashDecks, setMiniGameStats, apiRequest, escapeHtml } from "./shared.js";
-import { getAttemptXp, getGamificationSummary, getResolvedBadges, getStreak, mergeBadgesFromSources } from "./gamification.js";
+import { apiRequest, escapeHtml } from "./shared.js";
+
+function getScopeId() {
+  const session = auth?.getSession?.();
+  return session?.email || "guest";
+}
+
+function getHistory() {
+  try {
+    const raw = localStorage.getItem(`quizzy-history-v2-${getScopeId()}`);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function getFlashDecks() {
+  try {
+    const raw = localStorage.getItem(`quizzy-flash-v1-${getScopeId()}`);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function getMiniGameStats() {
+  try {
+    const raw = localStorage.getItem(`quizzy-mini-games-v1-${getScopeId()}`);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function getBonusXp() {
+  try {
+    const raw = localStorage.getItem(`quizzy-bonus-xp-v1-${getScopeId()}`);
+    return raw ? Math.max(0, Number(JSON.parse(raw)?.total || 0)) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function getAttemptXp(entry) {
+  if (!entry) return 0;
+  const difficultyBonusMap = { easy: 8, moderate: 14, tough: 22, super: 32 };
+  const modeBonusMap = { mcq: 8, mixed: 14, short: 18 };
+  const base = 20;
+  const accuracyBonus = Math.round(Number(entry.percentage || 0));
+  const difficultyBonus = difficultyBonusMap[entry.settings?.difficulty] || 10;
+  const modeBonus = modeBonusMap[entry.settings?.questionMode] || 8;
+  const perfectBonus = Number(entry.percentage || 0) === 100 ? 30 : 0;
+  return base + accuracyBonus + difficultyBonus + modeBonus + perfectBonus;
+}
+
+function getStreak(entries) {
+  let streak = 0;
+  for (const item of entries) {
+    if ((item.percentage || 0) >= 70) streak++;
+    else break;
+  }
+  return streak;
+}
+
+function getBadgeCatalog(entries) {
+  const streak = getStreak(entries);
+  const best = entries.length ? Math.max(...entries.map((entry) => Number(entry.percentage || 0))) : 0;
+  return [
+    { id: "starter", label: "First Spark", rarity: "bronze", unlocked: entries.length >= 1, hint: "Finish your first quiz." },
+    { id: "streak", label: "Hot Streak", rarity: "silver", unlocked: streak >= 3, hint: "Win 3 quizzes in a row." },
+    { id: "scholar", label: "Quiz Boss", rarity: "gold", unlocked: best >= 90, hint: "Reach 90% on a quiz." }
+  ];
+}
+
+function getGamification(entries, profile) {
+  const totalXp = entries.reduce((sum, entry) => sum + getAttemptXp(entry), 0) + getBonusXp();
+  return {
+    totalXp: profile?.totalXp || totalXp,
+    level: Math.max(1, Math.floor(totalXp / 180) + 1),
+    progress: Math.round(((totalXp % 180) / 180) * 100),
+    streak: profile?.currentStreak ?? getStreak(entries)
+  };
+}
 
 const root = document.getElementById("dashboardRoot");
 const SESSION_KEY = "quizzy-session-v2";
@@ -151,8 +232,8 @@ function renderDashboard(data) {
   const mini = data?.miniGameStats || {};
   const profile = data?.profile || null;
   const leaderboard = Array.isArray(data?.leaderboard) ? data.leaderboard : [];
-  const game = getGamificationSummary(attempts, profile);
-  const badges = getResolvedBadges(attempts, profile);
+  const game = getGamification(attempts, profile);
+  const badges = getBadgeCatalog(attempts);
   const unlockedBadges = badges.filter((badge) => badge.unlocked);
   const weekly = getWeeklyData(attempts);
   const avg = averageScore(attempts);
@@ -347,9 +428,9 @@ async function initDashboard() {
       data = await apiRequest("/data/bootstrap");
     } else {
       data = {
-        attempts: typeof getSavedQuizHistory === 'function' ? getSavedQuizHistory() : [],
-        flashDecks: typeof getFlashDecks === 'function' ? getFlashDecks() : [],
-        miniGameStats: typeof getMiniGameStats === 'function' ? getMiniGameStats() : {},
+        attempts: getHistory(),
+        flashDecks: getFlashDecks(),
+        miniGameStats: getMiniGameStats(),
         profile: null,
         leaderboard: []
       };

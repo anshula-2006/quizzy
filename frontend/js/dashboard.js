@@ -203,7 +203,7 @@ function renderDashboard(data) {
           </div>
         </div>
         <div class="profile-metrics">
-          <div class="profile-metric"><span>Global Rank</span><strong>${rank === "--" ? "--" : `#${rank}`}</strong></div>
+          <div class="profile-metric"><span>Global Rank</span><strong>${rank === "--" ? "--" : "#" + rank}</strong></div>
           <div class="profile-metric border-left"><span>Total XP</span><strong>${game.totalXp}</strong></div>
           <div class="profile-metric border-left"><span>Streak</span><strong>${game.streak} 🔥</strong></div>
         </div>
@@ -211,9 +211,9 @@ function renderDashboard(data) {
 
       <section class="hero-stats-grid">
         ${statCard("Quizzes", attempts.length || Number(profile?.totalQuizzes || 0), "total attempts")}
-        ${statCard("Accuracy", `${avg}%`, `${best}% best`)}
-        ${statCard("Flashcards", cardCount, `${flashDecks.length} decks`)}
-        ${statCard("Badges", unlockedBadges.length, `${badges.length} available`)}
+        ${statCard("Accuracy", avg + "%", best + "% best")}
+        ${statCard("Flashcards", cardCount, flashDecks.length + " decks")}
+        ${statCard("Badges", unlockedBadges.length, badges.length + " available")}
       </section>
 
       <div class="dashboard-content-grid">

@@ -1,4 +1,4 @@
-t import { clearQuizFlow, feedbackText, getQuizState, getResultState, setQuizState, setResultState, escapeHtml } from "./shared.js";
+import { clearQuizFlow, feedbackText, getQuizState, getResultState, setQuizState, setResultState, escapeHtml } from "./shared.js";
 
 const resultRoot = document.getElementById("resultRoot");
 const resultState = getResultState();

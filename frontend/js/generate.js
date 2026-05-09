@@ -63,7 +63,7 @@ form?.addEventListener("submit", async (event) => {
       answers: [],
       generatedAt: new Date().toISOString(),
       settings,
-      meta: {
+      meta: quizPayload.meta || {
         sourceType: contentPayload.sourceType,
         sourceInput: contentPayload.sourceInput
       }
@@ -106,7 +106,8 @@ flashcardsBtn?.addEventListener("click", async (event) => {
       id: Date.now(),
       createdAt: new Date().toISOString(),
       title: (contentPayload.topic || contentPayload.sourceInput || "Study Deck").slice(0, 60),
-      sourceType: contentPayload.sourceType,
+      sourceType: data.meta?.sourceType || contentPayload.sourceType,
+      sourceInput: data.meta?.sourceInput || contentPayload.sourceInput,
       flashcards: cards.map(c => ({ front: c.front || "", back: c.back || "", hint: c.hint || "" }))
     };
 

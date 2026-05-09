@@ -1,6 +1,6 @@
 import { QuizSession } from "../models/QuizSession.js";
 import { createJsonCompletion } from "./aiProviderService.js";
-import { resolveFullExtractedText } from "./contentExtractionService.js";
+import { resolveFullExtractedText, extractFromWikipedia } from "./contentExtractionService.js";
 import { AppError } from "../utils/AppError.js";
 
 function normalizeQuestionType(type) {
@@ -205,7 +205,17 @@ async function parseJsonCompletion(prompt, sanitizer, retries = 2) {
 
 export async function generateQuizSession({ userId = null, topic = "", text = "", difficulty = "moderate", learnerMode = "student", questionMode = "mcq", outputLanguage = "English", extractionId = "", preferFull = false, sourceType = "topic", sourceInput = "", questionCount = 5, variation = null }) {
   const resolvedCount = Math.max(1, Math.min(10, Math.floor(Number(questionCount) || 5)));
-  const effectiveText = resolveFullExtractedText(extractionId, text, preferFull);
+  let effectiveText = resolveFullExtractedText(extractionId, text, preferFull);
+
+  // Automatically fetch Wikipedia context for bare topics
+  if (!effectiveText && topic) {
+    const wikiData = await extractFromWikipedia(topic);
+    if (wikiData && wikiData.text) {
+      effectiveText = wikiData.text;
+      sourceType = "wikipedia";
+      sourceInput = wikiData.url;
+    }
+  }
 
   if (!effectiveText && !topic) {
     throw new AppError("Text or topic is required", 400);
@@ -253,20 +263,34 @@ export async function generateQuizSession({ userId = null, topic = "", text = ""
 
   return {
     quizId: quizSession._id.toString(),
-    questions
+    questions,
+    meta: { sourceType, sourceInput }
   };
 }
 
 export async function generateFlashcards({ topic = "", text = "", difficulty = "moderate", learnerMode = "student", outputLanguage = "English" }) {
-  if (!text && !topic) {
+  let effectiveText = text;
+  let meta = null;
+
+  // Automatically fetch Wikipedia context for bare topics
+  if (!effectiveText && topic) {
+    const wikiData = await extractFromWikipedia(topic);
+    if (wikiData && wikiData.text) {
+      effectiveText = wikiData.text;
+      meta = { sourceType: "wikipedia", sourceInput: wikiData.url };
+    }
+  }
+
+  if (!effectiveText && !topic) {
     throw new AppError("Text or topic is required", 400);
   }
 
-  const prompt = buildFlashcardPrompt({ topic, text, difficulty, learnerMode, outputLanguage });
+  const prompt = buildFlashcardPrompt({ topic, text: effectiveText, difficulty, learnerMode, outputLanguage });
   const response = await parseJsonCompletion(prompt, (parsed) => parsed);
   const flashcards = Array.isArray(response?.flashcards) ? response.flashcards : [];
 
   return {
+    meta,
     flashcards: flashcards
       .map((card) => ({
         front: String(card?.front || "").trim(),

@@ -539,7 +539,7 @@ export async function requestQuiz(payload) {
     .map(normalizeQuestion)
     .filter(Boolean);
   if (!questions.length) throw new Error("No quiz questions were returned.");
-  return { quizId: data.quizId || null, questions };
+  return { quizId: data.quizId || null, questions, meta: data.meta };
 }
 
 export async function requestFlashcards(payload) {

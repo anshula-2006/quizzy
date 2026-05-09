@@ -1,4 +1,4 @@
-import { clearQuizFlow, feedbackText, getQuizState, getResultState, setQuizState, setResultState, escapeHtml } from "./shared.js";
+t import { clearQuizFlow, feedbackText, getQuizState, getResultState, setQuizState, setResultState, escapeHtml } from "./shared.js";
 
 const resultRoot = document.getElementById("resultRoot");
 const resultState = getResultState();
@@ -9,6 +9,9 @@ if (!resultState) {
 }
 
 if (resultState) {
+  const isWiki = quizState?.meta?.sourceType === "wikipedia";
+  const wikiLink = isWiki ? `<p class="meta-copy" style="margin-top:12px;"><a href="${escapeHtml(quizState.meta.sourceInput)}" target="_blank" style="color: #3b82f6; text-decoration: underline;">Read Wikipedia Article</a></p>` : "";
+
   resultRoot.innerHTML = `
     <section class="panel result-card page-fade result-summary-card">
       <div>
@@ -16,6 +19,7 @@ if (resultState) {
         <h1 class="score-big">${resultState.score}/${resultState.total}</h1>
         <p class="page-subtitle" style="margin-top:14px;">${feedbackText(resultState.percentage)}</p>
         <p class="meta-copy" style="margin-top:12px;">Accuracy: ${resultState.percentage}%</p>
+        ${wikiLink}
       </div>
 
       <div class="result-stats">

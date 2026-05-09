@@ -220,6 +220,38 @@ async function extractFromUrl(rawUrl) {
   }
 }
 
+export async function extractFromWikipedia(topic) {
+  try {
+    // 1. Search for the closest Wikipedia article title
+    const searchRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(topic)}&utf8=&format=json`, {
+      headers: { "User-Agent": "QuizzyApp/1.0 (contact@example.com)" }
+    });
+    const searchData = await searchRes.json();
+    const firstResult = searchData?.query?.search?.[0];
+
+    if (!firstResult) return null; // No match found
+
+    // 2. Fetch the summary of that specific article
+    const summaryRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(firstResult.title)}`, {
+      headers: { "User-Agent": "QuizzyApp/1.0 (contact@example.com)" }
+    });
+    const summaryData = await summaryRes.json();
+
+    // Handle disambiguation pages or missing extracts
+    if (summaryData.type === "disambiguation" || !summaryData.extract) {
+      return null;
+    }
+
+    return {
+      text: cleanExtractedText(summaryData.extract),
+      url: `https://en.wikipedia.org/wiki/${encodeURIComponent(firstResult.title.replace(/ /g, "_"))}`
+    };
+  } catch (error) {
+    console.error("Wikipedia extraction failed:", error);
+    return null;
+  }
+}
+
 export async function extractSourceContent({ file, text, url }) {
   let sourceType = "";
   let extractedText = "";

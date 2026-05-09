@@ -5,6 +5,7 @@ import {
   saveQuizAttemptLocal,
   setQuizState,
   setResultState,
+  escapeHtml,
   submitQuizAttempt
 } from "./shared.js";
 
@@ -127,6 +128,8 @@ function render() {
   const timerLabel = question.type === "mcq"
     ? `${timerForQuestion(question)}s left`
     : "No timer";
+  const isWiki = quizState.meta?.sourceType === "wikipedia";
+  const wikiLink = isWiki ? `<a href="${escapeHtml(quizState.meta.sourceInput)}" target="_blank" class="pill" style="text-decoration:none; background:rgba(59,130,246,0.15); color:#3b82f6;">Wikipedia</a>` : "";
 
   quizRoot.innerHTML = `
     <section class="panel quiz-card page-fade quiz-focus-shell">
@@ -137,6 +140,7 @@ function render() {
         </div>
         <div class="quiz-focus-meta">
           <span class="pill">${question.type.toUpperCase()}</span>
+          ${wikiLink}
           <span class="pill" id="timerPill">${answer ? "Answered" : timerLabel}</span>
         </div>
       </div>

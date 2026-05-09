@@ -36,12 +36,16 @@ function init() {
 
   function render() {
     const card = activeDeck.flashcards[currentIndex];
+    const isWiki = activeDeck.sourceType === "wikipedia";
+    const wikiLink = isWiki && activeDeck.sourceInput ? `<a href="${escapeHtml(activeDeck.sourceInput)}" target="_blank" style="display:inline-block; margin-top:8px; font-size:0.85rem; color:#3b82f6; text-decoration:underline;">Read Wikipedia Article</a>` : "";
+
     root.innerHTML = `
       <div style="max-width: 720px; margin: 0 auto; padding-top: 2vh;">
         <div style="text-align: center; margin-bottom: 32px;">
           <span class="saas-stat-label">Study Deck</span>
           <h1 style="font-size: 2rem; font-weight: 700; margin: 8px 0 0; letter-spacing: -0.03em;">${escapeHtml(activeDeck.title || "Flashcards")}</h1>
           <p style="color: var(--muted); font-size: 0.95rem; margin: 8px 0 0;">Tap the card to reveal the answer.</p>
+          ${wikiLink}
         </div>
         
         <div style="perspective: 1000px; width: 100%; height: min(400px, 60vh); cursor: pointer;" id="fcContainer">

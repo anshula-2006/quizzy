@@ -1,4 +1,4 @@
-const difficultyBonusMap = { easy: 8, moderate: 14, tough: 22, super: 32 };
+const difficultyBonusMap = { easy: 8, moderate: 14, tough: 22, super: 32, current_events: 20 };
 const modeBonusMap = { mcq: 8, mixed: 14, short: 18 };
 
 const achievementRules = [

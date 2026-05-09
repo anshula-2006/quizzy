@@ -104,7 +104,11 @@ function hasModeMismatch(questions, questionMode, questionCount) {
   return false;
 }
 
-function buildQuizPrompt({ topic, text, difficulty, learnerMode, questionMode, outputLanguage, questionCount, variation }) {
+function buildQuizPrompt({ topic, text, difficulty, learnerMode, questionMode, outputLanguage, questionCount, variation, userLocalTime, userTimezone }) {
+  const today = userLocalTime || new Date().toLocaleString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const locationContext = userTimezone ? ` in the ${userTimezone} timezone` : "";
+  const difficultyRule = difficulty === "current_events" ? 'Difficulty: "Current Events". Focus heavily on recent news, dynamic updates, and the latest established context for the topic.' : `Difficulty: "${difficulty}".`;
+
   const roleGuide = learnerMode === "teacher"
     ? "Teacher mode: include misconception-focused prompts, concise justifications, and assessment wording suitable for class review."
     : learnerMode === "self-study"
@@ -139,11 +143,17 @@ Format:
 }
 
 Rules:
+- Today's date and time${locationContext} is ${today}. Use this exact date to correctly frame questions about current events, past events, and future schedules.
 - Questions must be factually correct and grounded in the provided topic/content.
 - Avoid ambiguity and avoid opinion-based prompts.
 - Explanation must clearly justify the correct answer.
+- The "explanation" MUST provide a detailed, factual justification for why the correct answer is right.
+- The "wrongExplanation" MUST explicitly address common misconceptions or clarify exactly why a specific distractor is wrong.
+- Focus on highly specific, varied, and insightful facts. Do NOT generate generic, repetitive, or obvious questions.
+- For topics involving future dates (e.g., 2026), rely strictly on established structural rules, schedules, term limits, and current contexts rather than substituting past events.
+- If the topic involves dates around or after ${today}, rely on established schedules, laws, and the most current data available.
 - If unsure, choose safer facts.
-- Difficulty: "${difficulty}".
+- ${difficultyRule}
 - Learner mode: "${learnerMode}". ${roleGuide}
 - Question mode: "${questionMode}". ${strictModeNote}
 - Output language: "${outputLanguage}".
@@ -151,13 +161,17 @@ Rules:
 - Vary the questions every time.
 - Image URL must start with https://upload.wikimedia.org/ and end with .jpg or .png, otherwise use null.
 
+Current Date: ${today}
 Variation ID: ${variation}
 Topic: "${topic || "General knowledge"}"
 Content: ${text || "Use general knowledge"}
 `;
 }
 
-function buildFlashcardPrompt({ topic, text, difficulty, learnerMode, outputLanguage }) {
+function buildFlashcardPrompt({ topic, text, difficulty, learnerMode, outputLanguage, userLocalTime, userTimezone }) {
+  const today = userLocalTime || new Date().toLocaleString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const locationContext = userTimezone ? ` in the ${userTimezone} timezone` : "";
+
   return `
 Generate exactly 12 study flashcards in JSON.
 Return ONLY valid JSON.
@@ -175,6 +189,7 @@ Format:
 }
 
 Rules:
+- Today's date and time${locationContext} is ${today}. Frame your facts and tenses accordingly.
 - learnerMode: "${learnerMode}"
 - difficulty: "${difficulty}"
 - outputLanguage: "${outputLanguage}"
@@ -203,8 +218,8 @@ async function parseJsonCompletion(prompt, sanitizer, retries = 2) {
   throw new AppError(lastError?.message || "AI generation failed", 502);
 }
 
-export async function generateQuizSession({ userId = null, topic = "", text = "", difficulty = "moderate", learnerMode = "student", questionMode = "mcq", outputLanguage = "English", extractionId = "", preferFull = false, sourceType = "topic", sourceInput = "", questionCount = 5, variation = null }) {
-  const resolvedCount = Math.max(1, Math.min(10, Math.floor(Number(questionCount) || 5)));
+export async function generateQuizSession({ userId = null, topic = "", text = "", difficulty = "moderate", learnerMode = "student", questionMode = "mcq", outputLanguage = "English", extractionId = "", preferFull = false, sourceType = "topic", sourceInput = "", questionCount = 5, variation = null, userLocalTime = "", userTimezone = "" }) {
+  const resolvedCount = Math.max(1, Math.min(30, Math.floor(Number(questionCount) || 5)));
   let effectiveText = resolveFullExtractedText(extractionId, text, preferFull);
 
   // Automatically fetch Wikipedia context for bare topics
@@ -229,7 +244,9 @@ export async function generateQuizSession({ userId = null, topic = "", text = ""
     questionMode,
     outputLanguage,
     questionCount: resolvedCount,
-    variation: Number.isFinite(Number(variation)) ? Number(variation) : Math.floor(Math.random() * 100000)
+    variation: Number.isFinite(Number(variation)) ? Number(variation) : Math.floor(Math.random() * 100000),
+    userLocalTime,
+    userTimezone
   });
 
   let questions = await parseJsonCompletion(prompt, (parsed) => sanitizeQuestions(parsed?.questions, questionMode, resolvedCount));
@@ -268,7 +285,7 @@ export async function generateQuizSession({ userId = null, topic = "", text = ""
   };
 }
 
-export async function generateFlashcards({ topic = "", text = "", difficulty = "moderate", learnerMode = "student", outputLanguage = "English" }) {
+export async function generateFlashcards({ topic = "", text = "", difficulty = "moderate", learnerMode = "student", outputLanguage = "English", userLocalTime = "", userTimezone = "" }) {
   let effectiveText = text;
   let meta = null;
 
@@ -285,7 +302,7 @@ export async function generateFlashcards({ topic = "", text = "", difficulty = "
     throw new AppError("Text or topic is required", 400);
   }
 
-  const prompt = buildFlashcardPrompt({ topic, text: effectiveText, difficulty, learnerMode, outputLanguage });
+  const prompt = buildFlashcardPrompt({ topic, text: effectiveText, difficulty, learnerMode, outputLanguage, userLocalTime, userTimezone });
   const response = await parseJsonCompletion(prompt, (parsed) => parsed);
   const flashcards = Array.isArray(response?.flashcards) ? response.flashcards : [];
 

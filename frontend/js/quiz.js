@@ -28,6 +28,10 @@ function getCurrentAnswer() {
 
 function timerForQuestion(question) {
   if (question.type !== "mcq") return null;
+  const customTimer = quizState.settings?.customTimer;
+  if (customTimer === "off") return null;
+  if (customTimer && customTimer !== "auto") return Number(customTimer);
+
   if (quizState.settings?.difficulty === "easy") return 36;
   if (quizState.settings?.difficulty === "tough") return 24;
   if (quizState.settings?.difficulty === "super") return 20;
@@ -125,8 +129,9 @@ function render() {
   const question = getCurrentQuestion();
   const answer = getCurrentAnswer();
   const progress = Math.round(((quizState.currentIndex + 1) / quizState.questions.length) * 100);
-  const timerLabel = question.type === "mcq"
-    ? `${timerForQuestion(question)}s left`
+  const timerSeconds = timerForQuestion(question);
+  const timerLabel = timerSeconds !== null
+    ? `${timerSeconds}s left`
     : "No timer";
   const isWiki = quizState.meta?.sourceType === "wikipedia";
   const wikiLink = isWiki ? `<a href="${escapeHtml(quizState.meta.sourceInput)}" target="_blank" class="pill" style="text-decoration:none; background:rgba(59,130,246,0.15); color:#3b82f6;">Wikipedia</a>` : "";

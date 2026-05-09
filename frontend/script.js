@@ -289,6 +289,8 @@ function getSettings() {
     learnerMode: learner,
     questionMode: questionMode?.value || "mcq",
     outputLanguage: languageMode?.value || "English",
+    userTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    userLocalTime: new Date().toLocaleString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZoneName: 'short' }),
     roleProfile: {
       timerBias: preset.timerBias,
       flavor: ROLE_FLAVORS[learner] || ROLE_FLAVORS.student
@@ -343,6 +345,17 @@ function wireModeControls() {
       });
     });
   });
+
+  const diffGroup = document.querySelector('.mode-group[data-target="difficultyMode"]');
+  if (diffGroup && !diffGroup.querySelector('[data-value="current_events"]')) {
+    const btn = document.createElement("button");
+    btn.className = "mode-option";
+    btn.type = "button";
+    btn.dataset.value = "current_events";
+    btn.textContent = "Current Events";
+    btn.addEventListener("click", () => setGroupValue("difficultyMode", "current_events"));
+    diffGroup.appendChild(btn);
+  }
 
   document.querySelectorAll(".role-card").forEach((node) => {
     node.addEventListener("click", () => {
@@ -1811,7 +1824,7 @@ function normalizeShortAnswer(value) {
 
 function getAttemptXp(entry) {
   if (!entry) return 0;
-  const difficultyBonusMap = { easy: 8, moderate: 14, tough: 22, super: 32 };
+  const difficultyBonusMap = { easy: 8, moderate: 14, tough: 22, super: 32, current_events: 20 };
   const modeBonusMap = { mcq: 8, mixed: 14, short: 18 };
   const base = 20;
   const accuracyBonus = Math.round(Number(entry.percentage || 0));

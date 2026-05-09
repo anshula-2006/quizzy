@@ -52,7 +52,7 @@ export function getScopeId() {
 
 export function getAttemptXp(entry) {
   if (!entry) return 0;
-  const difficultyBonusMap = { easy: 8, moderate: 14, tough: 22, super: 32 };
+  const difficultyBonusMap = { easy: 8, moderate: 14, tough: 22, super: 32, current_events: 20 };
   const modeBonusMap = { mcq: 8, mixed: 14, short: 18 };
   const perfectBonus = Number(entry.percentage || 0) === 100 ? 30 : 0;
   return 20 + Math.round(Number(entry.percentage || 0)) + (difficultyBonusMap[entry.settings?.difficulty] || 10) + (modeBonusMap[entry.settings?.questionMode] || 8) + perfectBonus;

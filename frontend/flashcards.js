@@ -18,13 +18,13 @@ function init() {
   if (!activeDeck || !activeDeck.flashcards || activeDeck.flashcards.length === 0) {
     root.innerHTML = `
       <div class="center-page">
-        <div class="panel flow-card empty-state" style="padding: 48px 32px; text-align: center; border: 1px dashed var(--line); max-width: 500px; width: 100%;">
-          <div style="width: 48px; height: 48px; background: var(--panel-soft); border-radius: 50%; display: grid; place-items: center; margin: 0 auto 16px; border: 1px solid var(--line);">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
+        <div class="panel flow-card empty-state glass-card glow-hover" style="padding: 48px 32px; text-align: center; border: 1px dashed rgba(139, 92, 246, 0.3); background: rgba(17, 24, 39, 0.4); max-width: 500px; width: 100%;">
+          <div style="width: 64px; height: 64px; background: rgba(139, 92, 246, 0.1); border-radius: 50%; display: grid; place-items: center; margin: 0 auto 20px; border: 1px solid rgba(139, 92, 246, 0.3); box-shadow: 0 0 25px rgba(139, 92, 246, 0.2);">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
           </div>
-          <h3 style="font-size: 1.25rem; margin: 0 0 8px; font-weight: 600;">No Flashcards</h3>
-          <p style="color: var(--muted); font-size: 0.9rem; margin: 0 0 24px;">Generate a deck from a topic, URL, or PDF to start studying.</p>
-          <a href="./generate.html" class="btn">Create Deck</a>
+          <h3 class="neon-text" style="font-size: 1.8rem; margin: 0 0 12px; font-weight: 800;">No Flashcards</h3>
+          <p style="color: var(--muted); font-size: 0.95rem; margin: 0 auto 24px; line-height: 1.6;">Generate a deck from a topic, URL, or PDF to start studying.</p>
+          <a href="./generate.html" class="btn" style="color: #ffffff !important; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);">Create Deck</a>
         </div>
       </div>
     `;

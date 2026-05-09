@@ -425,7 +425,12 @@ async function loadCloudDataIntoLocal() {
   const savedQuestions = Array.isArray(data.savedQuestions) ? data.savedQuestions : [];
   const flashDecks = Array.isArray(data.flashDecks) ? data.flashDecks : [];
   cloudProfile = data.profile || null;
-  cloudLeaderboard = Array.isArray(data.leaderboard) ? data.leaderboard : [];
+  cloudLeaderboard = Array.isArray(data.leaderboard) ? data.leaderboard.filter(user => {
+    if (!user) return false;
+    const name = String(user.name || '').toLowerCase();
+    const email = String(user.email || '').toLowerCase();
+    return !user.isDummy && !user.isFake && !name.includes('dummy') && !name.includes('fake') && !email.includes('dummy');
+  }) : [];
   saveHistory(attempts);
   saveSavedQuestions(savedQuestions);
   saveFlashDecks(flashDecks);
@@ -909,7 +914,7 @@ function renderSidebar() {
             <span style="font-size: 0.75rem;">${(e.settings?.difficulty || "moderate").toUpperCase()} • ${(e.settings?.questionMode || "mcq").toUpperCase()} • ${(e.settings?.outputLanguage || "English").toUpperCase()}</span>
           </article>
         `).join("")
-      : `<p class="empty-state-mini" style="padding: 16px; text-align: center; border: 1px dashed var(--line); border-radius: 12px;"><span>No attempts yet. Your latest runs will appear here.</span></p>`;
+      : `<p class="empty-state-mini glass-card" style="padding: 24px 16px; text-align: center; border: 1px dashed rgba(139, 92, 246, 0.3); border-radius: 16px; background: rgba(17, 24, 39, 0.4); box-shadow: 0 0 15px rgba(139, 92, 246, 0.05);"><span style="color: var(--muted); font-size: 0.85rem; line-height: 1.5; display: block;">No recent activity available.<br>Your latest runs will appear here.</span></p>`;
     if (entries.length) {
       attemptList.insertAdjacentHTML(
         "afterbegin",
@@ -939,7 +944,7 @@ function renderSidebar() {
             <p style="margin: 4px 0 0; font-size: 0.8rem; color: var(--muted);">${item.explanation || ""}</p>
           </details>
         `).join("")
-      : `<p class="empty-state-mini" style="padding: 16px; text-align: center; border: 1px dashed var(--line); border-radius: 12px;"><span>No saved questions yet.</span></p>`;
+      : `<p class="empty-state-mini glass-card" style="padding: 24px 16px; text-align: center; border: 1px dashed rgba(6, 182, 212, 0.3); border-radius: 16px; background: rgba(17, 24, 39, 0.4); box-shadow: 0 0 15px rgba(6, 182, 212, 0.05);"><span style="color: var(--muted); font-size: 0.85rem; line-height: 1.5; display: block;">No saved questions yet.</span></p>`;
   }
 
   if (flashList) {
@@ -952,7 +957,7 @@ function renderSidebar() {
             </div>
           </details>
         `).join("")
-      : `<p class="empty-state-mini" style="padding: 16px; text-align: center; border: 1px dashed var(--line); border-radius: 12px;"><span>No flashcard decks generated yet.</span></p>`;
+      : `<p class="empty-state-mini glass-card" style="padding: 24px 16px; text-align: center; border: 1px dashed rgba(236, 72, 153, 0.3); border-radius: 16px; background: rgba(17, 24, 39, 0.4); box-shadow: 0 0 15px rgba(236, 72, 153, 0.05);"><span style="color: var(--muted); font-size: 0.85rem; line-height: 1.5; display: block;">No flashcard decks generated yet.</span></p>`;
   }
 
 }
@@ -1003,15 +1008,14 @@ function renderEvaluationBoard() {
 
   if (entries.length === 0) {
     evaluationBoard.innerHTML = `
-      <div class="panel flow-card">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
-          <div>
-            <span class="saas-stat-label">${labels.dashboard}</span>
-            <h3 style="margin: 6px 0; font-size: 1.5rem;">No runs yet</h3>
-            <p style="margin: 0; color: var(--muted); max-width: 500px;">Generate your first quiz and this area will turn into a progress snapshot with streaks, XP, and review notes.</p>
-          </div>
-          <button id="clearHistoryBtn" class="btn-outline" type="button">Clear History</button>
+      <div class="panel flow-card glass-card glow-hover" style="text-align: center; padding: 48px 24px; border: 1px dashed rgba(139, 92, 246, 0.3); background: rgba(17, 24, 39, 0.4);">
+        <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.3); display: grid; place-items: center; margin: 0 auto 20px; box-shadow: 0 0 25px rgba(139, 92, 246, 0.2);">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
         </div>
+        <span class="saas-stat-label" style="display: block; margin-bottom: 8px;">${labels.dashboard}</span>
+        <h3 class="neon-text" style="margin: 0 0 12px; font-size: 1.8rem; font-weight: 800;">No recent activity available</h3>
+        <p style="margin: 0 auto 24px; color: var(--muted); max-width: 460px; font-size: 0.95rem; line-height: 1.6;">Generate your first quiz and this area will turn into a progress snapshot with streaks, XP, and review notes.</p>
+        <button id="clearHistoryBtn" class="btn-outline" type="button" style="border-color: rgba(239, 68, 68, 0.5) !important; color: #fca5a5 !important; background: rgba(239, 68, 68, 0.1) !important;">Clear History</button>
       </div>
     `;
     document.getElementById("clearHistoryBtn")?.addEventListener("click", clearDashboardHistory);
@@ -2186,10 +2190,10 @@ if (btn) {
     } catch (err) {
       loader.classList.add("hidden");
       quiz.innerHTML = `
-        <div class="panel flow-card fade-in" style="max-width: 600px; margin: 0 auto; text-align: center; border-style: dashed; border-color: rgba(248, 113, 113, 0.4);">
-          <span class="meta-chip" style="background: rgba(248, 113, 113, 0.15); color: var(--red);">Error</span>
-          <h2 style="margin: 16px 0 0; font-size: 2rem; font-weight: 900;">Try again next time</h2>
-          <p style="margin: 12px 0 0; color: var(--muted);">Quiz generation encountered an issue. Please try again later.</p>
+        <div class="panel flow-card fade-in glass-card glow-hover" style="max-width: 600px; margin: 0 auto; text-align: center; border-style: dashed; border-color: rgba(239, 68, 68, 0.4); background: rgba(17, 24, 39, 0.4); box-shadow: 0 0 20px rgba(239, 68, 68, 0.1);">
+          <span class="meta-chip" style="background: rgba(239, 68, 68, 0.15); color: var(--red); border: 1px solid rgba(239, 68, 68, 0.3);">Error</span>
+          <h2 style="margin: 16px 0 0; font-size: 2rem; font-weight: 900; color: #fca5a5;">Try again next time</h2>
+          <p style="margin: 12px 0 0; color: var(--muted); line-height: 1.6;">Quiz generation encountered an issue. Please try again later.</p>
         </div>
       `;
     } finally {
@@ -2361,10 +2365,10 @@ flashcardsBtn?.addEventListener("click", async () => {
   } catch (err) {
     flashcardsBoard.innerHTML = `
       <div class="evaluation-wrap">
-        <div class="panel flow-card" style="text-align: center; border-style: dashed;">
-          <span class="meta-chip">Coming Soon</span>
-          <h3 style="margin: 16px 0 0; font-size: 1.5rem; font-weight: 900;">Future Enhancement</h3>
-          <p style="margin: 12px 0 0; color: var(--muted);">Flashcard generation is temporarily unavailable. Please try again later.</p>
+        <div class="panel flow-card glass-card glow-hover" style="text-align: center; border: 1px dashed rgba(236, 72, 153, 0.3); background: rgba(17, 24, 39, 0.4);">
+          <span class="meta-chip" style="background: rgba(236, 72, 153, 0.15); color: var(--accent); border: 1px solid rgba(236, 72, 153, 0.3);">Coming Soon</span>
+          <h3 class="neon-text" style="margin: 16px 0 0; font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, var(--accent), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Future Enhancement</h3>
+          <p style="margin: 12px auto 0; color: var(--muted); max-width: 400px; line-height: 1.6;">Flashcard generation is temporarily unavailable. Please try again later.</p>
         </div>
       </div>
     `;

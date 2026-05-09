@@ -381,7 +381,12 @@ async function syncFromCloud() {
   const savedQuestions = Array.isArray(result.data?.savedQuestions) ? result.data.savedQuestions : [];
   const flashDecks = Array.isArray(result.data?.flashDecks) ? result.data.flashDecks : [];
   cloudProfile = result.data?.profile || null;
-  cloudLeaderboard = Array.isArray(result.data?.leaderboard) ? result.data.leaderboard : [];
+  cloudLeaderboard = Array.isArray(result.data?.leaderboard) ? result.data.leaderboard.filter(user => {
+    if (!user) return false;
+    const name = String(user.name || '').toLowerCase();
+    const email = String(user.email || '').toLowerCase();
+    return !user.isDummy && !user.isFake && !name.includes('dummy') && !name.includes('fake') && !email.includes('dummy');
+  }) : [];
   saveHistory(attempts);
   saveSavedQuestions(savedQuestions);
   saveFlashDecks(flashDecks);
@@ -715,28 +720,32 @@ function renderBoard() {
         ` : ""}
       </section>
     `
-    : `<div class="panel flow-card empty-state" style="padding: 48px 32px; text-align: center;">
-         <div style="width: 48px; height: 48px; background: var(--panel-soft); border-radius: 50%; display: grid; place-items: center; margin: 0 auto 16px; border: 1px solid var(--line);">
-           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+    : `<div class="panel flow-card empty-state glass-card glow-hover" style="padding: 48px 32px; text-align: center; border: 1px dashed rgba(139, 92, 246, 0.3); background: rgba(17, 24, 39, 0.4);">
+         <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.3); display: grid; place-items: center; margin: 0 auto 20px; box-shadow: 0 0 25px rgba(139, 92, 246, 0.2);">
+           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
          </div>
-         <h3 style="font-size: 1.25rem; margin: 0 0 8px; font-weight: 600;">No rankings yet</h3>
-         <p style="color: var(--muted); font-size: 0.9rem; max-width: 300px; margin: 0 auto;">The leaderboard is currently empty. Complete your first quiz to set the benchmark and claim the #1 spot.</p>
+         <h3 class="neon-text" style="font-size: 1.8rem; margin: 0 0 12px; font-weight: 800;">No leaderboard data yet</h3>
+         <p style="color: var(--muted); font-size: 0.95rem; max-width: 400px; margin: 0 auto 24px; line-height: 1.6;">No recent activity available. Complete your first quiz to set the benchmark and claim the #1 spot.</p>
+         <a href="./generate.html" class="btn" style="color: #ffffff !important; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);">Start Quiz</a>
        </div>`;
 
   if (!entries.length) {
     scoreboardContent.innerHTML = `
       <div class="dashboard-content-grid" style="grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);">
         <div style="display: grid; gap: 24px; align-content: start;">
-          <div class="panel flow-card empty-state" style="padding: 48px 32px; text-align: center; border: 1px dashed var(--line);">
-            <div style="width: 48px; height: 48px; background: var(--panel-soft); border-radius: 50%; display: grid; place-items: center; margin: 0 auto 16px; border: 1px solid var(--line);">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          <div class="panel flow-card empty-state glass-card glow-hover" style="padding: 48px 32px; text-align: center; border: 1px dashed rgba(6, 182, 212, 0.3); background: rgba(17, 24, 39, 0.4);">
+            <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.3); display: grid; place-items: center; margin: 0 auto 20px; box-shadow: 0 0 25px rgba(6, 182, 212, 0.2);">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
             </div>
-            <h3 style="font-size: 1.25rem; margin: 0 0 8px; font-weight: 600;">No Performance Data</h3>
-            <p style="color: var(--muted); font-size: 0.9rem; max-width: 300px; margin: 0 auto;">${isLoggedIn() ? "Take at least one quiz from the home page to populate your scoreboard." : "Log in or register first, then your quiz and arcade progress will start saving here."}</p>
+            <h3 class="neon-text" style="font-size: 1.8rem; margin: 0 0 12px; font-weight: 800;">No recent activity</h3>
+            <p style="color: var(--muted); font-size: 0.95rem; max-width: 400px; margin: 0 auto 24px; line-height: 1.6;">${isLoggedIn() ? "Take at least one quiz from the home page to populate your scoreboard." : "Log in or register first, then your quiz and arcade progress will start saving here."}</p>
+            ${isLoggedIn() 
+              ? `<a href="./generate.html" class="btn" style="color: #ffffff !important; box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);">Start Quiz</a>`
+              : `<a href="./login.html" class="btn" style="color: #ffffff !important; box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);">Log In</a>`
+            }
           </div>
         </div>
         <div style="display: grid; gap: 24px; align-content: start;">
-          ${leaderboardMarkup}
           ${renderProgressExtras(entries)}
         </div>
       </div>
@@ -745,7 +754,7 @@ function renderBoard() {
   }
 
   const latest = entries[0]?.percentage || 0;
-  const avg = Math.round(entries.reduce((sum, e) => sum + (e.percentage || 0), 0) / entries.length);
+  const avg = Math.round(entries.reduce((sum, e) => sum + (e.percentage || 0), 0) / entries.length) || 0;
   const best = Math.max(...entries.map((e) => e.percentage || 0));
   const trend = getTrend(entries);
   const streak = getStreak(entries);

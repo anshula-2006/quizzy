@@ -342,7 +342,7 @@ function renderDashboard(data) {
               </div>
               <div style="display: flex; flex-direction: column; gap: 6px;">
                 ${categoryStats.length ? categoryStats.slice(0,4).map(c => `
-                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255, 255, 255, 0.02); border-radius: var(--radius-md); border: 1px solid var(--line);">
+                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--bg-secondary); border-radius: var(--radius-md); border: 1px solid var(--line);">
                     <span style="font-size: 0.85rem; text-transform: capitalize; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(c.label)}</span>
                     <strong style="font-size: 0.9rem; color: var(--primary);">${c.average}%</strong>
                   </div>
@@ -357,7 +357,7 @@ function renderDashboard(data) {
               </div>
               <div style="display: flex; flex-direction: column; gap: 6px;">
                 ${insights.slice(0, 3).map(i => `
-                  <div style="padding: 8px 12px; background: rgba(255, 255, 255, 0.02); border-radius: var(--radius-md); border: 1px solid var(--line);">
+                  <div style="padding: 8px 12px; background: var(--bg-secondary); border-radius: var(--radius-md); border: 1px solid var(--line);">
                     <span style="color: var(--text); font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 2px;">${i.label}</span>
                     <span style="font-size: 0.8rem; color: var(--muted); line-height: 1.4;">${i.value}</span>
                   </div>
@@ -380,7 +380,7 @@ function renderDashboard(data) {
             </div>
             <div style="display: flex; flex-direction: column; gap: 8px;">
               ${recent.length ? recent.slice(0,4).map(a => `
-                <div style="padding: 10px 12px; background: rgba(255, 255, 255, 0.02); border-radius: var(--radius-md); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 4px;">
+                <div style="padding: 10px 12px; background: var(--bg-secondary); border-radius: var(--radius-md); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 4px;">
                   <div style="display: flex; justify-content: space-between; align-items: center;">
                     <strong style="color: var(--text); font-size: 0.9rem; font-weight: 700;">${a.percentage}% Score</strong>
                     <span style="font-size: 0.7rem; background: var(--panel-soft); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--line); color: var(--muted);">${a.settings?.difficulty?.toUpperCase() || 'MODERATE'}</span>
@@ -404,7 +404,7 @@ function renderDashboard(data) {
             </div>
             <div style="display: flex; flex-direction: column; gap: 6px;">
                ${topPlayers.length ? topPlayers.slice(0, 4).map((p, idx) => `
-                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255, 255, 255, 0.02); border-radius: var(--radius-md); border: 1px solid var(--line); ${p.email === auth?.getSession?.()?.email ? 'border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.05);' : ''}">
+                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--bg-secondary); border-radius: var(--radius-md); border: 1px solid var(--line); ${p.email === auth?.getSession?.()?.email ? 'border-color: var(--primary); box-shadow: var(--glow-shadow);' : ''}">
                     <div style="display: flex; align-items: center; gap: 12px;">
                       <span style="font-size: 0.8rem; font-weight: 700; color: var(--muted); width: 16px; text-align: center;">${idx + 1}</span>
                       <strong style="font-size: 0.85rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px;">${escapeHtml(p.name)}</strong>
@@ -422,7 +422,7 @@ function renderDashboard(data) {
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                ${unlockedBadges.length ? unlockedBadges.slice(0, 4).map(b => `
-                 <div style="display: flex; align-items: center; gap: 8px; padding: 8px; background: rgba(255, 255, 255, 0.02); border-radius: var(--radius-md); border: 1px solid var(--line);">
+                 <div style="display: flex; align-items: center; gap: 8px; padding: 8px; background: var(--bg-secondary); border-radius: var(--radius-md); border: 1px solid var(--line);">
                     <span style="font-size: 1rem;">${b.rarity === 'gold' ? '🥇' : b.rarity === 'silver' ? '🥈' : '🥉'}</span>
                     <strong style="font-size: 0.8rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(b.label)}</strong>
                  </div>

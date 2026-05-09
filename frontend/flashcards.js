@@ -52,14 +52,14 @@ function init() {
           <div id="fcInner" style="position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; ${isFlipped ? 'transform: rotateY(180deg);' : ''}">
             
             <!-- Front -->
-            <div class="panel" style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px; border-radius: var(--radius-xl);">
+            <div class="panel glass-card" style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px; border-radius: var(--radius-xl);">
               <span class="meta-chip" style="position: absolute; top: 24px; left: 24px;">Question</span>
               <h2 style="font-size: clamp(1.5rem, 4vw, 2.2rem); font-weight: 600; line-height: 1.4;">${escapeHtml(card.front)}</h2>
             </div>
 
             <!-- Back -->
-            <div class="panel" style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px; border-radius: var(--radius-xl); transform: rotateY(180deg); background: var(--panel-soft);">
-              <span class="meta-chip" style="position: absolute; top: 24px; left: 24px; background: rgba(34, 197, 94, 0.15); color: var(--green);">Answer</span>
+            <div class="panel glass-card" style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px; border-radius: var(--radius-xl); transform: rotateY(180deg);">
+              <span class="meta-chip" style="position: absolute; top: 24px; left: 24px; background: rgba(34, 197, 94, 0.15); color: var(--success);">Answer</span>
               <h2 style="font-size: clamp(1.5rem, 4vw, 2.2rem); font-weight: 600; line-height: 1.4;">${escapeHtml(card.back)}</h2>
               ${card.hint ? `<p style="margin: 24px 0 0; font-size: 0.95rem; color: var(--muted); padding: 12px 16px; background: rgba(255,255,255,0.03); border-radius: var(--radius-md); border: 1px solid var(--line);">💡 ${escapeHtml(card.hint)}</p>` : ""}
             </div>

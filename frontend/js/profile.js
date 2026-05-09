@@ -220,8 +220,8 @@ async function init() {
           </div>
           <div class="premium-badges" style="display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-top: 16px;">
              ${unlocked.length ? unlocked.slice(0, 4).map(badge => `
-               <article class="badge-card is-unlocked ${badge.rarity}" style="min-height: auto; padding: 16px; border-radius: var(--radius-md); background: var(--panel-soft); border: 1px solid var(--line); display: flex; align-items: center; gap: 12px;">
-                 <span class="badge-icon" style="width: 40px; height: 40px; margin: 0; box-shadow: none; background: rgba(255,255,255,0.05); border: none; display: grid; place-items: center; border-radius: 8px; flex-shrink: 0;">
+                 <article class="badge-card is-unlocked glass-card ${badge.rarity}" style="min-height: auto; padding: 16px; border-radius: var(--radius-md); display: flex; align-items: center; gap: 12px;">
+                   <span class="badge-icon" style="width: 40px; height: 40px; margin: 0; box-shadow: none; background: var(--bg-secondary); border: none; display: grid; place-items: center; border-radius: 8px; flex-shrink: 0;">
                    <img src="${badge.icon}" alt="${badge.label}" loading="lazy" style="width: 24px; height: 24px;" />
                  </span>
                  <div style="min-width: 0;">

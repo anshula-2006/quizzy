@@ -2569,7 +2569,7 @@ function reveal(q, choice, isReview) {
       "beforeend",
       `<div class="explanation" style="margin-top: 24px; padding: 24px; background: var(--panel-soft); border: 1px solid var(--line); border-radius: var(--radius-lg);">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-          <span class="meta-chip" style="${isCorrect ? 'background: rgba(34,197,94,0.15); color: var(--green);' : 'background: rgba(248,113,113,0.15); color: var(--red);'}">${isCorrect ? "Correct" : "Wrong"}</span>
+          <span class="meta-chip" style="${isCorrect ? 'background: rgba(34,197,94,0.15); color: var(--success);' : 'background: rgba(239,68,68,0.15); color: var(--error);'}">${isCorrect ? "Correct" : "Wrong"}</span>
           <strong style="font-size: 0.95rem;">${answerText}</strong>
         </div>
         <p style="margin: 16px 0 0; color: var(--muted); line-height: 1.6;">${q.explanation || ""}</p>

@@ -13,18 +13,18 @@ toggleStyles.textContent = `
 
   :root {
     --bg: #F5F7FB;
-    --bg-secondary: #EEF2FF;
-    --panel-soft: #FFFFFF;
-    --glass-overlay: rgba(0, 0, 0, 0.02);
-    --line: #E5E7EB;
+    --bg-secondary: #E2E8F0;
+    --panel-soft: rgba(255, 255, 255, 0.7);
+    --glass-overlay: rgba(255, 255, 255, 0.5);
+    --line: rgba(0, 0, 0, 0.08);
     --primary: #7C3AED;
     --secondary: #0891B2;
     --accent: #DB2777;
-    --success: #22C55E;
-    --warning: #F59E0B;
-    --error: #EF4444;
-    --text: #111827;
-    --muted: #6B7280;
+    --success: #16A34A;
+    --warning: #D97706;
+    --error: #DC2626;
+    --text: #1E293B;
+    --muted: #64748B;
     --radius-md: 12px;
     --radius-lg: 16px;
     --radius-xl: 24px;
@@ -36,15 +36,18 @@ toggleStyles.textContent = `
   body.dark {
     --bg: #050816;
     --bg-secondary: #0B1120;
-    --panel-soft: #111827;
+    --panel-soft: rgba(17, 24, 39, 0.75);
     --glass-overlay: rgba(255, 255, 255, 0.05);
-    --line: #1F2937;
+    --line: rgba(255, 255, 255, 0.1);
     --primary: #8B5CF6;
     --secondary: #06B6D4;
     --accent: #EC4899;
+    --success: #22C55E;
+    --warning: #F59E0B;
+    --error: #EF4444;
     --text: #F9FAFB;
     --muted: #94A3B8;
-    --glow-shadow: 0 4px 20px rgba(139, 92, 246, 0.25);
+    --glow-shadow: 0 4px 20px rgba(139, 92, 246, 0.2);
   }
 
   body {

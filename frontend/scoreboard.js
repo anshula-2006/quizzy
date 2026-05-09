@@ -649,10 +649,10 @@ function renderBoard() {
 
   const leaderboardMarkup = cloudLeaderboard.length
     ? `
-      <section class="panel flow-card scoreboard-table-wrap" style="padding: 24px; border: 1px solid var(--border-main);">
+      <section class="panel flow-card scoreboard-table-wrap glass-card" style="padding: 32px; position: relative;">
         <div class="table-header-block" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; text-align: left; padding: 0; border: none;">
           <div>
-            <h3 style="font-size: 1.3rem; font-weight: 600; color: var(--text); margin: 0;">Global Leaderboard</h3>
+            <h3 style="font-size: 1.5rem; font-weight: 800; color: var(--text); margin: 0;">Global Leaderboard</h3>
             <p style="color: var(--muted); font-size: 0.85rem; margin: 4px 0 0;">Top players ranked by total points and XP.</p>
           </div>
           <div class="segmented-control" style="background: transparent; border: none; padding: 0;">
@@ -663,22 +663,22 @@ function renderBoard() {
         ${hasPodium ? `
         <div class="podium-wrapper fade-in" style="display: flex; justify-content: center; align-items: flex-end; gap: 12px; margin-bottom: 32px; min-height: 160px;">
           <div class="podium-step rank-2" style="display: flex; flex-direction: column; align-items: center; width: 30%; max-width: 100px;">
-            <div class="podium-avatar" style="font-size: 1.2rem; font-weight: 700; color: var(--muted); background: var(--panel-soft); width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--line); margin-bottom: 12px;">2</div>
+            <div class="podium-avatar glow-hover" style="font-size: 1.2rem; font-weight: 800; color: #fff; background: linear-gradient(135deg, #9ca3af, #d1d5db); width: 48px; height: 48px; display: grid; place-items: center; border-radius: 50%; border: 2px solid var(--glass-border); margin-bottom: 12px; box-shadow: 0 4px 12px rgba(156, 163, 175, 0.4);">2</div>
             <div class="podium-name" style="font-size: 0.9rem; font-weight: 600; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; color: var(--text); padding: 0 4px;">${escapeHtml(p2.name || 'Player')}</div>
-            <div class="podium-score" style="font-size: 0.8rem; color: var(--muted); margin: 4px 0 12px;">${p2.totalXp || 0} XP</div>
-            <div class="podium-bar" style="width: 100%; height: 60px; border-radius: 8px 8px 0 0; background: linear-gradient(180deg, rgba(255,255,255,0.06), transparent); border: 1px solid var(--line); border-bottom: none;"></div>
+            <div class="podium-score" style="font-size: 0.8rem; color: var(--secondary); font-weight: 700; margin: 4px 0 12px;">${p2.totalXp || 0} XP</div>
+            <div class="podium-bar" style="width: 100%; height: 60px; border-radius: 12px 12px 0 0; background: linear-gradient(180deg, rgba(156, 163, 175, 0.2), transparent); border: 1px solid rgba(156, 163, 175, 0.3); border-bottom: none;"></div>
           </div>
           <div class="podium-step rank-1" style="display: flex; flex-direction: column; align-items: center; width: 30%; max-width: 110px; z-index: 2;">
-            <div class="podium-avatar" style="font-size: 1.4rem; font-weight: 800; color: #000; background: #ededed; width: 60px; height: 60px; display: grid; place-items: center; border-radius: 50%; margin-bottom: 12px; box-shadow: 0 4px 16px rgba(255,255,255,0.15);">1</div>
+            <div class="podium-avatar glow-hover" style="font-size: 1.5rem; font-weight: 900; color: #fff; background: linear-gradient(135deg, #fbbf24, #f59e0b); width: 64px; height: 64px; display: grid; place-items: center; border-radius: 50%; margin-bottom: 12px; border: 2px solid #fef3c7; box-shadow: 0 4px 20px rgba(245, 158, 11, 0.5);">1</div>
             <div class="podium-name" style="font-size: 1rem; font-weight: 700; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; color: var(--text); padding: 0 4px;">${escapeHtml(p1.name || 'Player')}</div>
-            <div class="podium-score" style="font-size: 0.85rem; color: var(--text); font-weight: 600; margin: 4px 0 12px;">${p1.totalXp || 0} XP</div>
-            <div class="podium-bar" style="width: 100%; height: 90px; border-radius: 8px 8px 0 0; background: linear-gradient(180deg, rgba(255,255,255,0.15), transparent); border: 1px solid rgba(255,255,255,0.25); border-bottom: none;"></div>
+            <div class="podium-score" style="font-size: 0.9rem; color: var(--primary); font-weight: 800; margin: 4px 0 12px; text-shadow: 0 0 10px rgba(139, 92, 246, 0.4);">${p1.totalXp || 0} XP</div>
+            <div class="podium-bar" style="width: 100%; height: 90px; border-radius: 12px 12px 0 0; background: linear-gradient(180deg, rgba(245, 158, 11, 0.25), transparent); border: 1px solid rgba(245, 158, 11, 0.4); border-bottom: none;"></div>
           </div>
           <div class="podium-step rank-3" style="display: flex; flex-direction: column; align-items: center; width: 30%; max-width: 100px;">
-            <div class="podium-avatar" style="font-size: 1.2rem; font-weight: 700; color: var(--muted); background: var(--panel-soft); width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--line); margin-bottom: 12px;">3</div>
+            <div class="podium-avatar glow-hover" style="font-size: 1.2rem; font-weight: 800; color: #fff; background: linear-gradient(135deg, #b45309, #d97706); width: 48px; height: 48px; display: grid; place-items: center; border-radius: 50%; border: 2px solid var(--glass-border); margin-bottom: 12px; box-shadow: 0 4px 12px rgba(217, 119, 6, 0.4);">3</div>
             <div class="podium-name" style="font-size: 0.9rem; font-weight: 600; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; color: var(--text); padding: 0 4px;">${escapeHtml(p3.name || 'Player')}</div>
-            <div class="podium-score" style="font-size: 0.8rem; color: var(--muted); margin: 4px 0 12px;">${p3.totalXp || 0} XP</div>
-            <div class="podium-bar" style="width: 100%; height: 40px; border-radius: 8px 8px 0 0; background: linear-gradient(180deg, rgba(255,255,255,0.04), transparent); border: 1px solid var(--line); border-bottom: none;"></div>
+            <div class="podium-score" style="font-size: 0.8rem; color: var(--secondary); font-weight: 700; margin: 4px 0 12px;">${p3.totalXp || 0} XP</div>
+            <div class="podium-bar" style="width: 100%; height: 40px; border-radius: 12px 12px 0 0; background: linear-gradient(180deg, rgba(217, 119, 6, 0.2), transparent); border: 1px solid rgba(217, 119, 6, 0.3); border-bottom: none;"></div>
           </div>
         </div>
         ` : ""}
@@ -691,17 +691,17 @@ function renderBoard() {
             const isMe = (player.email === auth?.getSession?.()?.email);
 
             return `
-            <div class="lb-row fade-in" style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: ${isMe ? 'rgba(255, 255, 255, 0.08)' : 'var(--panel-soft)'}; border: 1px solid ${isMe ? 'rgba(255, 255, 255, 0.2)' : 'var(--line)'}; border-radius: var(--radius-md); animation-delay: ${idx * 0.04}s">
+            <div class="lb-row fade-in glass-card glow-hover" style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; animation-delay: ${idx * 0.04}s; ${isMe ? 'border-color: var(--primary) !important; box-shadow: var(--glow-shadow) !important;' : ''}">
               <div style="display: flex; align-items: center; gap: 18px; flex: 1; min-width: 0;">
-                <div style="font-size: 1rem; font-weight: 700; color: var(--muted); width: 28px; text-align: center;">${rank}</div>
+                <div style="font-size: 1.1rem; font-weight: 800; color: var(--muted); width: 32px; text-align: center;">${rank}</div>
                 <div style="display: flex; flex-direction: column; min-width: 0; gap: 4px;">
-                  <strong style="font-size: 1rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(player.name)} ${isMe ? '<span style="font-size:0.7rem; background:#ededed; color:#000; padding:2px 6px; border-radius:4px; margin-left:8px; font-weight: 700;">You</span>' : ''}</strong>
+                  <strong style="font-size: 1.05rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700;">${escapeHtml(player.name)} ${isMe ? '<span style="font-size:0.75rem; background: var(--primary); color: #fff; padding:2px 8px; border-radius:12px; margin-left:8px; font-weight: 700; box-shadow: 0 2px 8px rgba(124,58,237,0.4);">You</span>' : ''}</strong>
                   <span style="font-size: 0.85rem; color: var(--muted);">Streak: 🔥 ${player.currentStreak || 0}</span>
                 </div>
               </div>
               <div style="text-align: right; display: flex; flex-direction: column; gap: 4px;">
-                <div style="font-size: 1.05rem; font-weight: 600; color: var(--text);">${player.totalXp || 0} XP</div>
-                <div style="font-size: 0.8rem; color: var(--muted);">${player.leaderboardScore || 0} pts</div>
+                <div style="font-size: 1.1rem; font-weight: 800; color: var(--primary);">${player.totalXp || 0} XP</div>
+                <div style="font-size: 0.8rem; color: var(--muted); font-weight: 500;">${player.leaderboardScore || 0} pts</div>
               </div>
             </div>
           `}).join("")}
@@ -761,31 +761,31 @@ function renderBoard() {
         <div class="panel flow-card">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
             <div>
-              <h2 style="font-size: 1.8rem; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.03em;">Performance Overview</h2>
+              <h2 style="font-size: 2rem; font-weight: 800; margin: 0 0 4px; letter-spacing: -0.03em;">Performance Overview</h2>
               <p style="margin: 0; color: var(--muted); font-size: 0.9rem;">Analyze your recent results and trends.</p>
             </div>
             <div style="text-align: right;">
-              <div class="meta-chip" style="font-size: 1.1rem; padding: 6px 12px; background: var(--panel-soft); color: var(--text);">${latest}% Latest</div>
+              <div class="meta-chip" style="font-size: 1.1rem; padding: 8px 16px; background: var(--primary); color: #fff; border: none; box-shadow: var(--glow-shadow); font-weight: 700;">${latest}% Latest</div>
               <div style="margin-top: 8px; color: var(--muted); font-size: 0.8rem;">Trend: ${trend.label}</div>
             </div>
           </div>
           
           <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 32px;">
-            <div class="saas-stat-card" style="padding: 12px; border-radius: 8px;">
+            <div class="saas-stat-card glass-card glow-hover" style="padding: 16px;">
               <span class="saas-stat-label">Total XP</span>
-              <strong class="saas-stat-value" style="font-size: 1.4rem;">${cloudProfile?.totalXp ?? game.totalXp}</strong>
+              <strong class="saas-stat-value neon-text" style="font-size: 1.6rem; font-weight: 800;">${cloudProfile?.totalXp ?? game.totalXp}</strong>
             </div>
-            <div class="saas-stat-card" style="padding: 12px; border-radius: 8px;">
+            <div class="saas-stat-card glass-card glow-hover" style="padding: 16px;">
               <span class="saas-stat-label">Level</span>
-              <strong class="saas-stat-value" style="font-size: 1.4rem;">${game.level}</strong>
+              <strong class="saas-stat-value" style="font-size: 1.6rem; font-weight: 800;">${game.level}</strong>
             </div>
-            <div class="saas-stat-card" style="padding: 12px; border-radius: 8px;">
+            <div class="saas-stat-card glass-card glow-hover" style="padding: 16px;">
               <span class="saas-stat-label">Best Score</span>
-              <strong class="saas-stat-value" style="font-size: 1.4rem;">${best}%</strong>
+              <strong class="saas-stat-value" style="font-size: 1.6rem; font-weight: 800;">${best}%</strong>
             </div>
-            <div class="saas-stat-card" style="padding: 12px; border-radius: 8px;">
+            <div class="saas-stat-card glass-card glow-hover" style="padding: 16px;">
               <span class="saas-stat-label">Avg Score</span>
-              <strong class="saas-stat-value" style="font-size: 1.4rem;">${avg}%</strong>
+              <strong class="saas-stat-value" style="font-size: 1.6rem; font-weight: 800;">${avg}%</strong>
             </div>
           </div>
 

@@ -199,14 +199,16 @@ function getCompactIcon(type) {
 
 function compactStatCard(label, value, helper, iconType) {
   return `
-    <article class="panel" style="padding: 16px; border-radius: var(--radius-md); background: var(--panel-soft); border: 1px solid var(--line); display: flex; align-items: flex-start; gap: 12px; min-width: 0;">
-      <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: grid; place-items: center; color: var(--text); flex-shrink: 0;">
-        ${getCompactIcon(iconType)}
+    <article class="panel glass-card glow-hover" style="padding: 20px; display: flex; align-items: flex-start; gap: 16px; min-width: 0;">
+      <div style="width: 40px; height: 40px; border-radius: 12px; background: var(--primary); color: white; display: grid; place-items: center; flex-shrink: 0; opacity: 0.9; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);">
+        <div style="width: 20px; height: 20px;">
+          ${getCompactIcon(iconType)}
+        </div>
       </div>
       <div style="min-width: 0; flex: 1;">
-        <span style="font-size: 0.7rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 2px;">${label}</span>
-        <strong style="font-size: 1.15rem; font-weight: 700; color: var(--text); display: block; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${value}</strong>
-        ${helper ? `<span style="font-size: 0.7rem; color: var(--muted); display: block; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${helper}</span>` : ''}
+        <span style="font-size: 0.75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">${label}</span>
+        <strong style="font-size: 1.4rem; font-weight: 800; color: var(--text); display: block; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${value}</strong>
+        ${helper ? `<span style="font-size: 0.8rem; color: var(--secondary); display: block; margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${helper}</span>` : ''}
       </div>
     </article>
   `;
@@ -264,18 +266,18 @@ function renderDashboard(data) {
 
   root.className = "dashboard-platform-shell page-fade";
   root.innerHTML = `
-    <aside class="dash-sidebar panel">
-      <a class="side-brand" href="./index.html"><span class="brand-badge">Q</span><strong>Quizzy</strong></a>
+    <aside class="dash-sidebar panel glass-card">
+      <a class="side-brand" href="./index.html"><span class="brand-badge" style="background: var(--primary); box-shadow: var(--glow-shadow);">Q</span><strong>Quizzy</strong></a>
       <nav class="side-nav">
-        <a class="active" href="./dashboard.html">Dashboard</a>
-        <a href="./generate.html">Generate</a>
-        <a href="./flashcards.html">Flashcards</a>
-        <a href="./scoreboard.html">Leaderboard</a>
-        <a href="./arcade.html">Arcade</a>
+        <a class="active glow-hover" href="./dashboard.html">Dashboard</a>
+        <a class="glow-hover" href="./generate.html">Generate</a>
+        <a class="glow-hover" href="./flashcards.html">Flashcards</a>
+        <a class="glow-hover" href="./scoreboard.html">Leaderboard</a>
+        <a class="glow-hover" href="./arcade.html">Arcade</a>
       </nav>
       <div class="side-progress">
         <span>Level ${game.level}</span>
-        <strong>${game.totalXp} XP</strong>
+        <strong class="neon-text">${game.totalXp} XP</strong>
         <div class="xp-progress" style="margin-top: 8px;"><span style="width:${game.progress}%"></span></div>
       </div>
     </aside>
@@ -297,7 +299,7 @@ function renderDashboard(data) {
       <!-- Welcome & Quick Actions -->
       <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 4px; flex-wrap: wrap; gap: 16px;">
         <div>
-          <h1 style="font-size: 1.5rem; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.02em; color: var(--text);">Welcome back, ${escapeHtml(auth?.getSession?.()?.name || "Player")}</h1>
+          <h1 style="font-size: 1.75rem; font-weight: 800; margin: 0 0 4px; letter-spacing: -0.02em; color: var(--text);">Welcome back, <span class="neon-text">${escapeHtml(auth?.getSession?.()?.name || "Player")}</span></h1>
           <p style="color: var(--muted); font-size: 0.9rem; margin: 0;">Here's what's happening with your learning progress.</p>
         </div>
         <div style="display: flex; gap: 8px;">
@@ -322,7 +324,7 @@ function renderDashboard(data) {
         <!-- Left Column: Performance & Insights -->
         <div style="display: flex; flex-direction: column; gap: 16px;">
           
-          <section class="panel flow-card" style="padding: 20px; border-radius: var(--radius-md);">
+          <section class="panel flow-card glass-card glow-hover" style="padding: 24px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
               <div>
                 <strong style="font-size:1.05rem; display:block;">Accuracy Trend</strong>
@@ -333,7 +335,7 @@ function renderDashboard(data) {
           </section>
 
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-            <section class="panel flow-card" style="padding: 20px; border-radius: var(--radius-md);">
+            <section class="panel flow-card glass-card glow-hover" style="padding: 24px;">
               <div style="margin-bottom: 12px;">
                 <strong style="font-size:1.05rem; display:block;">Category Mastery</strong>
                 <span style="font-size:0.8rem; color: var(--muted);">Accuracy by topic</span>
@@ -342,13 +344,13 @@ function renderDashboard(data) {
                 ${categoryStats.length ? categoryStats.slice(0,4).map(c => `
                   <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255, 255, 255, 0.02); border-radius: var(--radius-md); border: 1px solid var(--line);">
                     <span style="font-size: 0.85rem; text-transform: capitalize; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(c.label)}</span>
-                    <strong style="font-size: 0.9rem; color: var(--text);">${c.average}%</strong>
+                    <strong style="font-size: 0.9rem; color: var(--primary);">${c.average}%</strong>
                   </div>
                 `).join("") : `<div class="empty-state-mini" style="padding: 16px; text-align: center; border: 1px dashed var(--line); border-radius: var(--radius-md);"><span style="color: var(--muted); font-size: 0.8rem;">No categories yet.</span></div>`}
               </div>
             </section>
 
-            <section class="panel flow-card" style="padding: 20px; border-radius: var(--radius-md);">
+            <section class="panel flow-card glass-card glow-hover" style="padding: 24px;">
               <div style="margin-bottom: 12px;">
                 <strong style="font-size:1.05rem; display:block;">AI Insights</strong>
                 <span style="font-size:0.8rem; color: var(--muted);">Smart recommendations</span>
@@ -368,7 +370,7 @@ function renderDashboard(data) {
         <!-- Right Column: Activity, Achievements, Leaderboard -->
         <div style="display: flex; flex-direction: column; gap: 16px;">
           
-          <section class="panel flow-card" style="padding: 20px; border-radius: var(--radius-md);">
+          <section class="panel flow-card glass-card glow-hover" style="padding: 24px;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
               <div>
                 <strong style="font-size:1.05rem; display:block;">Recent Activity</strong>
@@ -380,7 +382,7 @@ function renderDashboard(data) {
               ${recent.length ? recent.slice(0,4).map(a => `
                 <div style="padding: 10px 12px; background: rgba(255, 255, 255, 0.02); border-radius: var(--radius-md); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 4px;">
                   <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <strong style="color: var(--text); font-size: 0.9rem; font-weight: 600;">${a.percentage}% Score</strong>
+                    <strong style="color: var(--text); font-size: 0.9rem; font-weight: 700;">${a.percentage}% Score</strong>
                     <span style="font-size: 0.7rem; background: var(--panel-soft); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--line); color: var(--muted);">${a.settings?.difficulty?.toUpperCase() || 'MODERATE'}</span>
                   </div>
                   <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -392,7 +394,7 @@ function renderDashboard(data) {
             </div>
           </section>
 
-          <section class="panel flow-card" style="padding: 20px; border-radius: var(--radius-md);">
+          <section class="panel flow-card glass-card glow-hover" style="padding: 24px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
               <div>
                 <strong style="font-size:1.05rem; display:block;">Top Players</strong>
@@ -407,13 +409,13 @@ function renderDashboard(data) {
                       <span style="font-size: 0.8rem; font-weight: 700; color: var(--muted); width: 16px; text-align: center;">${idx + 1}</span>
                       <strong style="font-size: 0.85rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px;">${escapeHtml(p.name)}</strong>
                     </div>
-                    <span style="font-size: 0.8rem; font-weight: 600; color: var(--muted);">${p.totalXp} XP</span>
+                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--secondary);">${p.totalXp} XP</span>
                  </div>
                `).join("") : `<div class="empty-state-mini" style="padding: 16px; text-align: center; border: 1px dashed var(--line); border-radius: var(--radius-md);"><span style="color: var(--muted); font-size: 0.8rem;">No players ranked yet.</span></div>`}
             </div>
           </section>
           
-          <section class="panel flow-card" style="padding: 20px; border-radius: var(--radius-md);">
+          <section class="panel flow-card glass-card glow-hover" style="padding: 24px;">
             <div style="margin-bottom: 12px;">
               <strong style="font-size:1.05rem; display:block;">Recent Badges</strong>
               <span style="font-size:0.8rem; color: var(--muted);">${unlockedBadges.length}/${badges.length} Unlocked</span>

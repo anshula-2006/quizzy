@@ -67,7 +67,7 @@ if (!document.getElementById("customControlsWrapper") && learnerSelect) {
       </div>
       <input type="range" id="customCountSlider" min="1" max="30" value="10" style="width: 100%; height: 6px; border-radius: 4px; outline: none; cursor: pointer; accent-color: var(--primary);">
     </div>
-    <div style="display: flex; flex-direction: column; gap: 10px; padding: 16px; background: var(--panel-soft); border: 1px solid var(--line); border-radius: var(--radius-md); box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+    <div style="display: flex; flex-direction: column; gap: 10px; padding: 16px; background: var(--bg-secondary); border: 1px solid var(--line); border-radius: var(--radius-md); box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <label for="timerToggle" style="font-size: 0.9rem; font-weight: 600; color: var(--text);">Enable Timer (MCQ)</label>
         <input type="checkbox" id="timerToggle" checked style="accent-color: var(--primary); width: 18px; height: 18px; outline: none; cursor: pointer;">

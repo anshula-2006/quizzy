@@ -722,12 +722,29 @@ function showToast(message, variant = "default") {
 
   const toast = document.createElement("div");
   toast.className = `toast-item ${variant}`;
-  toast.textContent = message;
+  
+  let iconSvg = '';
+  if (variant === 'success') {
+    iconSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+  } else if (variant === 'error') {
+    iconSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+  } else if (variant === 'xp') {
+    iconSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>`;
+  } else {
+    iconSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`;
+  }
+
+  toast.innerHTML = `
+    <div class="toast-icon">${iconSvg}</div>
+    <div class="toast-content"></div>
+  `;
+  toast.querySelector('.toast-content').textContent = message;
+
   rack.appendChild(toast);
   setTimeout(() => {
     toast.classList.add("leaving");
-    setTimeout(() => toast.remove(), 260);
-  }, 2600);
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
 }
 
 function awardBonusXp(amount, reason, rewardId = "") {
@@ -1016,20 +1033,20 @@ function renderEvaluationBoard() {
   evaluationBoard.innerHTML = `
     <div style="display: grid; gap: 16px;">
       <div style="display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
-        <div class="panel flow-card">
+        <div class="panel flow-card glass-card glow-hover" style="padding: 24px;">
           <div style="display: flex; justify-content: space-between; align-items: flex-start;">
             <div>
               <span class="saas-stat-label">${labels.dashboard}</span>
-              <h3 style="margin: 4px 0 8px; font-size: 1.8rem; font-weight: 600; color: var(--text);">${latest.percentage}% latest score</h3>
+              <h3 class="neon-text" style="margin: 4px 0 8px; font-size: 2.2rem; font-weight: 800;">${latest.percentage}% latest score</h3>
               <p style="margin: 0; color: var(--muted); font-size: 0.9rem;">${getFeedback(entries)}</p>
             </div>
             <button id="clearHistoryBtn" class="btn-outline" style="min-height: 32px; padding: 0 12px; font-size: 0.8rem;" type="button">Clear</button>
           </div>
           <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 24px;">
-            <div><span class="saas-stat-label">Level</span><strong class="saas-stat-value" style="display:block; margin-top:4px;">${game.level}</strong></div>
-            <div><span class="saas-stat-label">XP</span><strong class="saas-stat-value" style="display:block; margin-top:4px;">${game.totalXp}</strong></div>
-            <div><span class="saas-stat-label">Streak</span><strong class="saas-stat-value" style="display:block; margin-top:4px;">${streak}</strong></div>
-            <div><span class="saas-stat-label">Best</span><strong class="saas-stat-value" style="display:block; margin-top:4px;">${best}%</strong></div>
+            <div><span class="saas-stat-label">Level</span><strong class="saas-stat-value" style="display:block; margin-top:4px; font-size: 1.2rem;">${game.level}</strong></div>
+            <div><span class="saas-stat-label">XP</span><strong class="saas-stat-value neon-text" style="display:block; margin-top:4px; font-size: 1.2rem;">${game.totalXp}</strong></div>
+            <div><span class="saas-stat-label">Streak</span><strong class="saas-stat-value" style="display:block; margin-top:4px; font-size: 1.2rem;">${streak}</strong></div>
+            <div><span class="saas-stat-label">Best</span><strong class="saas-stat-value" style="display:block; margin-top:4px; font-size: 1.2rem;">${best}%</strong></div>
           </div>
           <div class="mini-progress" style="margin-top: 20px;"><span style="width:${game.progress}%"></span></div>
           <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px;">
@@ -1037,7 +1054,7 @@ function renderEvaluationBoard() {
           </div>
         </div>
         
-        <div class="panel flow-card">
+        <div class="panel flow-card glass-card glow-hover" style="padding: 24px;">
           <span class="saas-stat-label">Snapshot</span>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
             <div><span class="saas-stat-label">Average</span><strong class="saas-stat-value" style="display:block; margin-top:4px;">${avg}%</strong></div>
@@ -1053,9 +1070,9 @@ function renderEvaluationBoard() {
       </div>
 
       <div style="display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
-        <div class="panel flow-card">
+        <div class="panel flow-card glass-card glow-hover" style="padding: 24px;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h4 style="margin: 0; font-size: 1.1rem;">Recent attempts</h4>
+            <h4 style="margin: 0; font-size: 1.25rem; font-weight: 700;">Recent attempts</h4>
             <span class="meta-chip">${entries.length} total</span>
           </div>
           <div style="display: grid; gap: 10px; margin-top: 16px;">
@@ -1071,8 +1088,8 @@ function renderEvaluationBoard() {
           </div>
         </div>
 
-        <div class="panel flow-card">
-          <h4 style="margin: 0; font-size: 1.1rem;">Question review</h4>
+        <div class="panel flow-card glass-card glow-hover" style="padding: 24px;">
+          <h4 style="margin: 0; font-size: 1.25rem; font-weight: 700;">Question review</h4>
           <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px;">
             ${latestAnswers.map((a, i) => `
               <button class="review-q-btn btn-outline" style="min-height: 32px; padding: 0 12px; font-size: 0.8rem; ${a.isCorrect ? 'border-color: rgba(34,197,94,0.4); background: rgba(34,197,94,0.1); color: #fff;' : 'border-color: rgba(248,113,113,0.4); background: rgba(248,113,113,0.1); color: #fff;'}" data-review-index="${i}">
@@ -1230,9 +1247,9 @@ function renderBadgeCabinet() {
 
       <div class="premium-badges" style="display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
         ${badgeList.map((badge) => `
-          <article class="badge-card ${badge.unlocked ? "is-unlocked" : "is-locked"} ${badge.rarity}" style="min-height: auto; padding: 16px; border-radius: 16px; background: rgba(255,255,255,0.02); border: 1px solid var(--line);">
+          <article class="badge-card glass-card glow-hover ${badge.unlocked ? "is-unlocked" : "is-locked"} ${badge.rarity}" style="min-height: auto; padding: 20px; border-radius: 20px;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-              <span class="badge-icon" style="width: 48px; height: 48px; margin: 0; box-shadow: none; background: rgba(255,255,255,0.05); border: none;">
+              <span class="badge-icon" style="width: 48px; height: 48px; margin: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1); background: var(--panel-soft); border: 1px solid var(--line); border-radius: 12px;">
                 <img src="${badge.icon}" alt="${badge.label}" loading="lazy" style="width: 28px; height: 28px;" />
               </span>
               <span class="meta-chip" style="${badge.unlocked ? 'background: rgba(34,197,94,0.15); color: var(--green);' : ''}">${badge.rarity}</span>
@@ -1255,12 +1272,12 @@ function renderGameHub() {
   activeChallengeSet = getChallengeDeck(entries, gameStats);
 
   const challengeCards = activeChallengeSet.map((challenge) => `
-    <article class="challenge-card ${challenge.completed ? "done" : ""}">
+    <article class="challenge-card glass-card glow-hover ${challenge.completed ? "done" : ""}" style="padding: 20px; display: flex; flex-direction: column; gap: 12px;">
       <div class="challenge-top">
         <span class="meta-chip">${challenge.xp} XP</span>
         <span class="challenge-state">${challenge.completed ? "Completed" : "Active"}</span>
       </div>
-      <h4>${challenge.title}</h4>
+      <h4 style="margin: 0; font-size: 1.1rem; font-weight: 700;">${challenge.title}</h4>
       <p>${challenge.description}</p>
       <button
         type="button"
@@ -1272,10 +1289,10 @@ function renderGameHub() {
 
   const speedPrompt = speedRoundState
     ? `
-      <div class="mini-game-panel">
+      <div class="mini-game-panel glass-card glow-hover" style="padding: 24px;">
         <div class="mini-game-head">
           <div>
-            <h4>Speed Round</h4>
+            <h4 class="neon-text" style="font-size: 1.25rem; font-weight: 800; margin-bottom: 8px;">Speed Round</h4>
             <p>Your XP will get higher if you finish strong here. Chain correct answers before the timer runs out.</p>
           </div>
           <div class="speed-stats">
@@ -1297,13 +1314,13 @@ function renderGameHub() {
       </div>
     `
     : `
-      <div class="mini-game-panel">
+      <div class="mini-game-panel glass-card glow-hover" style="padding: 24px;">
         <div class="mini-game-head">
           <div>
-            <h4>Speed Round</h4>
+            <h4 class="neon-text" style="font-size: 1.25rem; font-weight: 800; margin-bottom: 8px;">Speed Round</h4>
             <p>Beat 4 correct answers in 45 seconds. XP jumps higher when you keep a streak alive.</p>
           </div>
-          <button type="button" id="startSpeedRoundBtn">Play for +40 XP</button>
+          <button type="button" id="startSpeedRoundBtn" class="btn">Play for +40 XP</button>
         </div>
         <p class="mini-game-note">Fast, fun, and perfect for kids who like game pressure more than long revision sessions.</p>
       </div>
@@ -1311,10 +1328,10 @@ function renderGameHub() {
 
   const memoryPrompt = memoryMatchState
     ? `
-      <div class="mini-game-panel">
+      <div class="mini-game-panel glass-card glow-hover" style="padding: 24px;">
         <div class="mini-game-head">
           <div>
-            <h4>Memory Match</h4>
+            <h4 class="neon-text" style="font-size: 1.25rem; font-weight: 800; margin-bottom: 8px;">Memory Match</h4>
             <p>Match study prompts with their answers. Clear the board for a fun XP boost.</p>
           </div>
           <div class="speed-stats">
@@ -1337,13 +1354,13 @@ function renderGameHub() {
       </div>
     `
     : `
-      <div class="mini-game-panel">
+      <div class="mini-game-panel glass-card glow-hover" style="padding: 24px;">
         <div class="mini-game-head">
           <div>
-            <h4>Memory Match</h4>
+            <h4 class="neon-text" style="font-size: 1.25rem; font-weight: 800; margin-bottom: 8px;">Memory Match</h4>
             <p>Flip and match terms with answers. A quick win here also levels you up faster.</p>
           </div>
-          <button type="button" id="startMemoryMatchBtn">Play for +35 XP</button>
+          <button type="button" id="startMemoryMatchBtn" class="btn">Play for +35 XP</button>
         </div>
         <p class="mini-game-note">This one works especially well for younger students and revision breaks.</p>
       </div>
@@ -1351,10 +1368,10 @@ function renderGameHub() {
 
   const scramblePrompt = wordScrambleState
     ? `
-      <div class="mini-game-panel">
+      <div class="mini-game-panel glass-card glow-hover" style="padding: 24px;">
         <div class="mini-game-head">
           <div>
-            <h4>Word Scramble</h4>
+            <h4 class="neon-text" style="font-size: 1.25rem; font-weight: 800; margin-bottom: 8px;">Word Scramble</h4>
             <p>Unscramble the study word. Solve it and your XP gets a nice little boost.</p>
           </div>
           <div class="speed-stats">
@@ -1372,13 +1389,13 @@ function renderGameHub() {
       </div>
     `
     : `
-      <div class="mini-game-panel">
+      <div class="mini-game-panel glass-card glow-hover" style="padding: 24px;">
         <div class="mini-game-head">
           <div>
-            <h4>Word Scramble</h4>
+            <h4 class="neon-text" style="font-size: 1.25rem; font-weight: 800; margin-bottom: 8px;">Word Scramble</h4>
             <p>Quick spelling and memory game built from your study words or flashcards.</p>
           </div>
-          <button type="button" id="startScrambleBtn">Play for +25 XP</button>
+          <button type="button" id="startScrambleBtn" class="btn">Play for +25 XP</button>
         </div>
         <p class="mini-game-note">A nice low-pressure game for younger learners.</p>
       </div>
@@ -1386,10 +1403,10 @@ function renderGameHub() {
 
   const trueFalsePrompt = trueFalseState
     ? `
-      <div class="mini-game-panel">
+      <div class="mini-game-panel glass-card glow-hover" style="padding: 24px;">
         <div class="mini-game-head">
           <div>
-            <h4>True or False Toss</h4>
+            <h4 class="neon-text" style="font-size: 1.25rem; font-weight: 800; margin-bottom: 8px;">True or False Toss</h4>
             <p>Pick fast. Your XP gets higher if you clear the whole round.</p>
           </div>
           <div class="speed-stats">
@@ -1407,13 +1424,13 @@ function renderGameHub() {
       </div>
     `
     : `
-      <div class="mini-game-panel">
+      <div class="mini-game-panel glass-card glow-hover" style="padding: 24px;">
         <div class="mini-game-head">
           <div>
-            <h4>True or False Toss</h4>
+            <h4 class="neon-text" style="font-size: 1.25rem; font-weight: 800; margin-bottom: 8px;">True or False Toss</h4>
             <p>Short fact-check game using quiz facts and simple knowledge prompts.</p>
           </div>
-          <button type="button" id="startTrueFalseBtn">Play for +30 XP</button>
+          <button type="button" id="startTrueFalseBtn" class="btn">Play for +30 XP</button>
         </div>
         <p class="mini-game-note">Great for quick energy and confidence boosts.</p>
       </div>
@@ -1421,10 +1438,10 @@ function renderGameHub() {
 
   const oddOneOutPrompt = oddOneOutState
     ? `
-      <div class="mini-game-panel">
+      <div class="mini-game-panel glass-card glow-hover" style="padding: 24px;">
         <div class="mini-game-head">
           <div>
-            <h4>Odd One Out</h4>
+            <h4 class="neon-text" style="font-size: 1.25rem; font-weight: 800; margin-bottom: 8px;">Odd One Out</h4>
             <p>Spot the item that does not belong. Easy to play, sneaky good for revision.</p>
           </div>
           <div class="speed-stats">
@@ -1445,13 +1462,13 @@ function renderGameHub() {
       </div>
     `
     : `
-      <div class="mini-game-panel">
+      <div class="mini-game-panel glass-card glow-hover" style="padding: 24px;">
         <div class="mini-game-head">
           <div>
-            <h4>Odd One Out</h4>
+            <h4 class="neon-text" style="font-size: 1.25rem; font-weight: 800; margin-bottom: 8px;">Odd One Out</h4>
             <p>Find the outsider in each set. Good for school kids and fast brain warmups.</p>
           </div>
-          <button type="button" id="startOddOneOutBtn">Play for +30 XP</button>
+          <button type="button" id="startOddOneOutBtn" class="btn">Play for +30 XP</button>
         </div>
         <p class="mini-game-note">Pattern spotting makes revision feel more like a puzzle app.</p>
       </div>
@@ -1460,24 +1477,24 @@ function renderGameHub() {
   gameHub.innerHTML = `
     <div class="evaluation-wrap">
       <div class="game-hub">
-        <div class="panel flow-card challenge-board" style="margin-bottom: 24px;">
+        <div class="panel flow-card challenge-board" style="margin-bottom: 24px; padding: 32px; border-radius: 24px;">
           <div class="evaluation-head">
             <div>
-              <h3>XP Missions</h3>
+              <h3 style="font-size: 1.75rem; font-weight: 800; margin-bottom: 8px;">XP Missions</h3>
               <p class="cabinet-note">Complete specific tasks to earn bonus XP and accelerate your progress.</p>
             </div>
             <div class="meta-chip">Bonus XP ${getBonusXp()}</div>
           </div>
-          <div class="challenge-grid">${challengeCards}</div>
+          <div class="challenge-grid" style="display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-top: 24px;">${challengeCards}</div>
         </div>
         <div class="panel flow-card mini-games-shell">
           <div class="evaluation-head">
             <div>
-              <h3>Mini Games</h3>
+              <h3 style="font-size: 1.75rem; font-weight: 800; margin-bottom: 8px;">Mini Games</h3>
               <p class="cabinet-note">Interactive challenges designed to test recall and reaction speed.</p>
             </div>
           </div>
-          <div class="mini-games-grid">
+          <div class="mini-games-grid" style="display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); margin-top: 24px;">
             ${speedPrompt}
             ${memoryPrompt}
             ${scramblePrompt}

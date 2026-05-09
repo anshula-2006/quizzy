@@ -13,7 +13,7 @@ if (resultState) {
   const wikiLink = isWiki ? `<p class="meta-copy" style="margin-top:12px;"><a href="${escapeHtml(quizState.meta.sourceInput)}" target="_blank" style="color: #3b82f6; text-decoration: underline;">Read Wikipedia Article</a></p>` : "";
 
   resultRoot.innerHTML = `
-    <section class="panel result-card page-fade result-summary-card">
+    <section class="panel result-card page-fade result-summary-card glass-card">
       <div>
         <p class="eyebrow">Result</p>
         <h1 class="score-big">${resultState.score}/${resultState.total}</h1>

@@ -61,7 +61,7 @@ function getCategoryStats(attempts) {
 
 function statCard(label, value, helper) {
   return `
-    <article class="saas-stat-card panel" style="padding: 16px; border-radius: var(--radius-md);">
+    <article class="saas-stat-card panel glass-card glow-hover" style="padding: 16px; border-radius: var(--radius-md);">
       <span class="saas-stat-label">${label}</span>
       <strong class="saas-stat-value" style="font-size: 1.5rem; margin: 4px 0;">${value}</strong>
       <span class="saas-stat-helper" style="font-size: 0.8rem;">${helper}</span>
@@ -125,7 +125,7 @@ async function init() {
   const avatarInitial = escapeHtml(name.slice(0, 1).toUpperCase());
 
   root.innerHTML = `
-    <section class="profile-header-compact panel" style="margin-bottom: 24px; padding: 24px;">
+    <section class="profile-header-compact panel glass-card" style="margin-bottom: 24px; padding: 24px;">
       <div class="profile-identity">
         <div class="profile-avatar-large" style="width: 64px; height: 64px; font-size: 2rem;">${avatarInitial}</div>
         <div class="profile-title">
@@ -149,14 +149,14 @@ async function init() {
     <div class="dashboard-content-grid" style="grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: 24px;">
       <!-- Left Column -->
       <div style="display: grid; gap: 24px; align-content: start;">
-        <section class="panel flow-card">
+        <section class="panel flow-card glass-card">
            <div class="card-title-row">
              <div><strong style="font-size:1.1rem;">Accuracy Trend</strong><span style="display:block; margin-top:2px; font-size:0.85rem;">Performance over the last 7 days</span></div>
            </div>
            ${renderLineChart(weeklyData)}
         </section>
         
-        <section class="panel flow-card">
+        <section class="panel flow-card glass-card">
            <div class="card-title-row">
              <div><strong style="font-size:1.1rem;">Category Performance</strong><span style="display:block; margin-top:2px; font-size:0.85rem;">Accuracy by subject or mode</span></div>
            </div>
@@ -173,7 +173,7 @@ async function init() {
            </div>
         </section>
         
-        <section class="panel flow-card">
+        <section class="panel flow-card glass-card">
            <div class="card-title-row">
              <div><strong style="font-size:1.1rem;">Activity Map</strong><span style="display:block; margin-top:2px; font-size:0.85rem;">Quiz completions in the last 28 days</span></div>
            </div>
@@ -183,7 +183,7 @@ async function init() {
 
       <!-- Right Column -->
       <div style="display: grid; gap: 24px; align-content: start;">
-        <section class="panel flow-card">
+        <section class="panel flow-card glass-card">
           <div class="card-title-row">
             <div><strong style="font-size:1.1rem;">Level Progress</strong><span style="display:block; margin-top:2px; font-size:0.85rem;">Journey to Level ${game.level + 1}</span></div>
           </div>
@@ -194,7 +194,7 @@ async function init() {
           </div>
         </section>
         
-        <section class="panel flow-card">
+        <section class="panel flow-card glass-card">
           <div class="card-title-row">
             <div><strong style="font-size:1.1rem;">Recent Activity</strong><span style="display:block; margin-top:2px; font-size:0.85rem;">Your latest sessions</span></div>
           </div>
@@ -214,7 +214,7 @@ async function init() {
           </div>
         </section>
 
-        <section class="panel flow-card">
+        <section class="panel flow-card glass-card">
           <div class="card-title-row">
             <div><strong style="font-size:1.1rem;">Top Achievements</strong><span style="display:block; margin-top:2px; font-size:0.85rem;">Your most recent badges</span></div>
           </div>

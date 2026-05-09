@@ -137,7 +137,7 @@ function render() {
   const wikiLink = isWiki ? `<a href="${escapeHtml(quizState.meta.sourceInput)}" target="_blank" class="pill" style="text-decoration:none; background:rgba(59,130,246,0.15); color:#3b82f6;">Wikipedia</a>` : "";
 
   quizRoot.innerHTML = `
-    <section class="panel quiz-card page-fade quiz-focus-shell">
+    <section class="panel quiz-card page-fade quiz-focus-shell glass-card">
       <div class="quiz-focus-head">
         <div>
           <p class="eyebrow">Focus mode</p>

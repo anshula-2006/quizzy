@@ -101,18 +101,6 @@ toggleStyles.textContent = `
     color: var(--primary) !important;
   }
 
-  .global-auth-bar {
-    background: var(--panel-soft);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--line);
-    padding: 12px 24px;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 16px;
-  }
-
   .glass-card {
     background: var(--panel-soft) !important;
     background-image: linear-gradient(135deg, var(--glass-overlay) 0%, transparent 100%) !important;
@@ -249,7 +237,6 @@ function renderAuthBar() {
 
   bar.innerHTML = `
     <a class="global-auth-home" href="${buildHref("index.html")}">Quizzy</a>
-    <label class="global-auth-search"><span>Search</span><input type="search" placeholder="Jump to dashboard, quiz, leaderboard" /></label>
     <div class="global-auth-actions">
       ${user ? `<span class="global-auth-user">Hi, ${user.name}</span>` : ""}
       ${user ? `<a class="global-auth-link" href="${buildHref("profile.html")}">Profile</a>` : ""}
@@ -269,23 +256,6 @@ function renderAuthBar() {
 
   bar.querySelector(".global-auth-logout")?.addEventListener("click", () => {
     auth?.logout?.();
-  });
-
-  bar.querySelector(".global-auth-search input")?.addEventListener("keydown", (event) => {
-    if (event.key !== "Enter") return;
-    const query = String(event.currentTarget.value || "").trim().toLowerCase();
-    const routes = [
-      ["dashboard", "dashboard.html"],
-      ["quiz", "generate.html"],
-      ["generate", "generate.html"],
-      ["flashcards", "flashcards.html"],
-      ["leaderboard", "scoreboard.html"],
-      ["scoreboard", "scoreboard.html"],
-      ["profile", "profile.html"],
-      ["arcade", "arcade.html"]
-    ];
-    const match = routes.find(([label]) => label.includes(query) || query.includes(label));
-    if (match) window.location.href = buildHref(match[1]);
   });
 }
 

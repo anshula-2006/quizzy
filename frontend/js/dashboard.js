@@ -283,15 +283,12 @@ function renderDashboard(data) {
     </aside>
 
     <main class="dash-main" style="display: flex; flex-direction: column; gap: 20px;">
-      <header class="dash-topbar panel">
+      <header class="dash-topbar panel glass-card">
         <button class="mobile-menu-btn" type="button" aria-label="Toggle sidebar">Menu</button>
         <label class="dash-search"><span>Search</span><input type="search" placeholder="Search quizzes, badges, rivals..." /></label>
         <div class="topbar-cluster">
           <span class="quick-pill">${game.totalXp} XP</span>
           <span class="quick-pill">${game.streak} streak</span>
-          <button class="icon-btn" type="button" title="Notifications">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-          </button>
           <div class="avatar-chip"><span>${escapeHtml((auth?.getSession?.()?.name || "Q").slice(0, 1).toUpperCase())}</span><strong>${escapeHtml(auth?.getSession?.()?.name || "Player")}</strong></div>
         </div>
       </header>

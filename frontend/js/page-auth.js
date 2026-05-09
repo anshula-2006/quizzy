@@ -12,19 +12,19 @@ toggleStyles.textContent = `
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800;900&display=swap');
 
   :root {
-    --bg: #F5F7FB;
-    --bg-secondary: #E2E8F0;
-    --panel-soft: rgba(255, 255, 255, 0.7);
-    --glass-overlay: rgba(255, 255, 255, 0.5);
-    --line: rgba(0, 0, 0, 0.08);
+    --bg: #F8FAFC;
+    --bg-secondary: #F1F5F9;
+    --panel-soft: rgba(255, 255, 255, 0.85);
+    --glass-overlay: rgba(255, 255, 255, 0.6);
+    --line: rgba(15, 23, 42, 0.1);
     --primary: #7C3AED;
     --secondary: #0891B2;
     --accent: #DB2777;
     --success: #16A34A;
     --warning: #D97706;
     --error: #DC2626;
-    --text: #1E293B;
-    --muted: #64748B;
+    --text: #0F172A;
+    --muted: #475569;
     --radius-md: 12px;
     --radius-lg: 16px;
     --radius-xl: 24px;
@@ -59,6 +59,58 @@ toggleStyles.textContent = `
 
   h1, h2, h3, h4, h5, h6, .poppins {
     font-family: var(--font-heading) !important;
+  }
+
+  /* Global Light/Dark Mode Styling Fixes */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) transparent;
+  }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+
+  .panel, .card, .dash-sidebar, .dash-topbar, .top-nav, .auth-card {
+    background-color: var(--panel-soft) !important;
+    border-color: var(--line) !important;
+    color: var(--text) !important;
+  }
+  
+  .text-input, .select-input, .file-wrap, .source-card, .search-bar, .dash-search input {
+    background-color: var(--bg-secondary) !important;
+    border-color: var(--line) !important;
+    color: var(--text) !important;
+  }
+
+  .btn-outline, .ghost {
+    color: var(--text) !important;
+    border-color: var(--line) !important;
+  }
+
+  .btn-outline:hover, .ghost:hover {
+    background-color: var(--bg-secondary) !important;
+    border-color: var(--primary) !important;
+    color: var(--primary) !important;
+  }
+
+  .nav-link, .side-nav a, .auth-brand, .brand, .global-auth-link {
+    color: var(--text) !important;
+  }
+
+  .nav-link:hover, .side-nav a:hover, .global-auth-link:hover, .side-nav a.active, .nav-link.is-active {
+    color: var(--primary) !important;
+  }
+
+  .global-auth-bar {
+    background: var(--panel-soft);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+    padding: 12px 24px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 16px;
   }
 
   .glass-card {

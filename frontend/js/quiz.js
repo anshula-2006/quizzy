@@ -253,7 +253,7 @@ function render() {
   if (answer) {
     if (isExam) {
       feedbackWrap.innerHTML = `
-        <div class="feedback-box" style="background: rgba(255,255,255,0.05); border-color: var(--line);">
+        <div class="feedback-box" style="background: var(--bg-secondary); border-color: var(--line);">
           <h3 class="feedback-title" style="color: var(--text);">Answer Recorded</h3>
           <p class="feedback-copy">Your response has been saved. Move to the next question.</p>
         </div>

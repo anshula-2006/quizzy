@@ -219,13 +219,10 @@ toggleStyles.textContent = `
   /* Global Responsive Adjustments */
   @media (max-width: 768px) {
     .dashboard-content-grid, .split-grid.two-col, .auth-hero-grid, .mini-games-grid {
-      grid-template-columns: 1fr !important;
+      grid-template-columns: 1fr;
     }
     .dash-main, .page-container {
-      padding: 16px !important;
-    }
-    .panel, .card, .glass-card {
-      padding: 16px !important;
+      padding: 16px;
     }
     .dash-sidebar {
       position: fixed;
@@ -235,9 +232,9 @@ toggleStyles.textContent = `
       width: 280px;
       z-index: 10000;
       transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      background: var(--panel-soft) !important;
+      background: var(--panel-soft);
       backdrop-filter: blur(24px);
-      border-right: 1px solid var(--line) !important;
+      border-right: 1px solid var(--line);
       box-shadow: 4px 0 24px rgba(0,0,0,0.5);
     }
     .dashboard-platform-shell.sidebar-open .dash-sidebar {

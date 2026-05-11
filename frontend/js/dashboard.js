@@ -334,14 +334,14 @@ function renderDashboard(data) {
     weakTopicsHtml = `
       <section class="panel flow-card glass-card glow-hover" style="padding: 24px; margin-top: 16px; border-color: rgba(239, 68, 68, 0.3);">
         <div style="margin-bottom: 12px;">
-          <strong style="font-size:1.05rem; display:block; color: #fca5a5;">Attention Required</strong>
+          <strong style="font-size:1.05rem; display:block; color: var(--error);">Attention Required</strong>
           <span style="font-size:0.8rem; color: var(--muted);">Weak topics & recommended revision</span>
         </div>
         <div style="display: flex; flex-direction: column; gap: 6px;">
           ${weakTopics.map(w => `
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(239, 68, 68, 0.05); border-radius: var(--radius-md); border: 1px solid rgba(239, 68, 68, 0.2);">
-              <span style="font-size: 0.85rem; font-weight: 600; color: #fca5a5; text-transform: capitalize;">${escapeHtml(w.label)}</span>
-              <a href="./generate.html?topic=${encodeURIComponent(w.label)}&mode=revision" class="btn-outline" style="min-height: 24px; padding: 0 8px; font-size: 0.7rem; border-color: rgba(239, 68, 68, 0.4); color: #fca5a5;">Revise</a>
+              <span style="font-size: 0.85rem; font-weight: 600; color: var(--error); text-transform: capitalize;">${escapeHtml(w.label)}</span>
+              <a href="./generate.html?topic=${encodeURIComponent(w.label)}&mode=revision" class="btn-outline" style="min-height: 24px; padding: 0 8px; font-size: 0.7rem; border-color: rgba(239, 68, 68, 0.4); color: var(--error);">Revise</a>
             </div>
           `).join("")}
         </div>

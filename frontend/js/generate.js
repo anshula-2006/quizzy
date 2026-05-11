@@ -1,7 +1,7 @@
 import { extractContent, requestQuiz, requestFlashcards, setQuizState, setResultState, addFlashDeck } from "./shared.js";
 
 const sourceCards = document.querySelectorAll("[data-source]");
-const topicInput = document.getElementById("topicInput");
+const topicInput = document.getElementById("topicInput") || document.getElementById("inputText");
 const urlInput = document.getElementById("urlInput");
 const pdfInput = document.getElementById("pdfInput");
 const difficultySelect = document.getElementById("difficultySelect");
@@ -18,13 +18,25 @@ let activeSource = "text";
 function setSource(source) {
   activeSource = source;
   sourceCards.forEach((card) => card.classList.toggle("is-active", card.dataset.source === source));
-  topicInput.hidden = source !== "text";
-  urlInput.hidden = source !== "url";
-  pdfInput.closest(".file-wrap").hidden = source !== "pdf";
+  if (topicInput) {
+    topicInput.hidden = source !== "text";
+    topicInput.style.display = source === "text" ? "" : "none";
+  }
+  if (urlInput) {
+    urlInput.hidden = source !== "url";
+    urlInput.style.display = source === "url" ? "" : "none";
+  }
+  if (pdfInput) {
+    const wrap = pdfInput.closest(".file-wrap") || pdfInput;
+    wrap.hidden = source !== "pdf";
+    wrap.style.display = source === "pdf" ? "" : "none";
+  }
 
-  if (source === "text") sourceHint.textContent = "Type a topic or paste your notes.";
-  if (source === "url") sourceHint.textContent = "Paste a public URL and Quizzy will extract the content.";
-  if (source === "pdf") sourceHint.textContent = "Upload a PDF file and Quizzy will extract the text.";
+  if (sourceHint) {
+    if (source === "text") sourceHint.textContent = "Type a topic or paste your notes.";
+    if (source === "url") sourceHint.textContent = "Paste a public URL and Quizzy will extract the content.";
+    if (source === "pdf") sourceHint.textContent = "Upload a PDF file and Quizzy will extract the text.";
+  }
 }
 
 if (difficultySelect && !Array.from(difficultySelect.options).some(o => o.value === 'current_events')) {
@@ -89,8 +101,22 @@ if (!document.getElementById("customControlsWrapper") && learnerSelect) {
     if (wrap) wrap.style.display = 'none';
     else countSelect.style.display = 'none';
   }
-  document.getElementById("customCountSlider").addEventListener("input", (e) => document.getElementById("customCountDisplay").textContent = e.target.value + " Questions");
-  document.getElementById("timerToggle").addEventListener("change", (e) => { document.getElementById("customTimerWrapper").style.opacity = e.target.checked ? "1" : "0.4"; document.getElementById("customTimerInput").disabled = !e.target.checked; });
+  const slider = document.getElementById("customCountSlider");
+  if (slider) {
+    slider.addEventListener("input", (e) => {
+      const display = document.getElementById("customCountDisplay");
+      if (display) display.textContent = e.target.value + " Questions";
+    });
+  }
+  const timerToggle = document.getElementById("timerToggle");
+  if (timerToggle) {
+    timerToggle.addEventListener("change", (e) => { 
+      const wrap = document.getElementById("customTimerWrapper");
+      if (wrap) wrap.style.opacity = e.target.checked ? "1" : "0.4"; 
+      const input = document.getElementById("customTimerInput");
+      if (input) input.disabled = !e.target.checked; 
+    });
+  }
   
   const modeDescriptions = {
     focus: "Deep, distraction-free learning. Best for mastering new topics at your own pace without timer pressure.",

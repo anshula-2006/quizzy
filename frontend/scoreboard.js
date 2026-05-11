@@ -8,6 +8,7 @@ const logoutBtn = document.getElementById("logoutBtn");
 const scoreboardContent = document.getElementById("scoreboardContent");
 const refreshBoardBtn = document.getElementById("refreshBoardBtn");
 const clearBoardBtn = document.getElementById("clearBoardBtn");
+const themeToggle = document.getElementById("themeToggle");
 
 const HISTORY_BASE = "quizzy-history-v2";
 const SAVED_BASE = "quizzy-saved-v1";
@@ -600,7 +601,25 @@ async function generateFlashcardsFromAttemptSource(entry) {
 }
 
 function applySavedTheme() {
-  document.body.classList.add("dark");
+  const theme = localStorage.getItem("quizzy-theme") || "dark";
+  document.body.classList.toggle("dark", theme === "dark");
+  updateThemeToggle();
+}
+
+function updateThemeToggle() {
+  if (!themeToggle) return;
+  const isDark = document.body.classList.contains("dark");
+  const icon = themeToggle.querySelector(".theme-icon");
+  const label = themeToggle.querySelector(".theme-label");
+  if (icon) icon.textContent = isDark ? "☀" : "☾";
+  if (label) label.textContent = isDark ? "Light" : "Dark";
+  themeToggle.setAttribute("aria-label", isDark ? "Switch to light theme" : "Switch to dark theme");
+}
+
+function toggleTheme() {
+  const isDark = document.body.classList.toggle("dark");
+  localStorage.setItem("quizzy-theme", isDark ? "dark" : "light");
+  updateThemeToggle();
 }
 
 function renderProgressExtras(entries) {
@@ -720,8 +739,8 @@ function renderBoard() {
         ` : ""}
       </section>
     `
-    : `<div class="panel flow-card empty-state glass-card glow-hover" style="padding: 48px 32px; text-align: center; border: 1px dashed rgba(139, 92, 246, 0.3); background: rgba(17, 24, 39, 0.4);">
-         <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.3); display: grid; place-items: center; margin: 0 auto 20px; box-shadow: 0 0 25px rgba(139, 92, 246, 0.2);">
+    : `<div class="panel flow-card empty-state glass-card glow-hover" style="padding: 48px 32px; text-align: center; border: 1px dashed rgba(139, 92, 246, 0.3); background: var(--panel);">
+         <div style="width: 64px; height: 64px; border-radius: 50%; background: var(--panel-soft); border: 1px solid rgba(139, 92, 246, 0.3); display: grid; place-items: center; margin: 0 auto 20px; box-shadow: var(--shadow-soft);">
            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
          </div>
          <h3 class="neon-text" style="font-size: 1.8rem; margin: 0 0 12px; font-weight: 800;">No leaderboard data yet</h3>
@@ -731,10 +750,10 @@ function renderBoard() {
 
   if (!entries.length) {
     scoreboardContent.innerHTML = `
-      <div class="dashboard-content-grid" style="grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);">
+      <div class="dashboard-content-grid scoreboard-content-grid">
         <div style="display: grid; gap: 24px; align-content: start;">
-          <div class="panel flow-card empty-state glass-card glow-hover" style="padding: 48px 32px; text-align: center; border: 1px dashed rgba(6, 182, 212, 0.3); background: rgba(17, 24, 39, 0.4);">
-            <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.3); display: grid; place-items: center; margin: 0 auto 20px; box-shadow: 0 0 25px rgba(6, 182, 212, 0.2);">
+          <div class="panel flow-card empty-state glass-card glow-hover" style="padding: 48px 32px; text-align: center; border: 1px dashed rgba(6, 182, 212, 0.3); background: var(--panel);">
+            <div style="width: 64px; height: 64px; border-radius: 50%; background: var(--panel-soft); border: 1px solid rgba(6, 182, 212, 0.3); display: grid; place-items: center; margin: 0 auto 20px; box-shadow: var(--shadow-soft);">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
             </div>
             <h3 class="neon-text" style="font-size: 1.8rem; margin: 0 0 12px; font-weight: 800;">No recent activity</h3>
@@ -763,9 +782,7 @@ function renderBoard() {
   const game = getGamification(entries);
 
   scoreboardContent.innerHTML = `
-    <div class="dashboard-content-grid" style="grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr); gap: 24px; align-items: start;">
-      
-      <!-- Main Content Area -->
+    <div class="dashboard-content-grid scoreboard-content-grid" style="gap: 24px; align-items: start;">
       <div style="display: grid; gap: 24px; align-content: start;">
         <div class="panel flow-card">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
@@ -838,8 +855,7 @@ function renderBoard() {
         </div>
       </div>
 
-      <!-- Sidebar Area -->
-      <div style="display: grid; gap: 24px; align-content: start;">
+      <div class="scoreboard-support-grid">
         ${leaderboardMarkup}
         ${renderProgressExtras(entries)}
       </div>
@@ -984,6 +1000,7 @@ refreshBoardBtn?.addEventListener("click", async () => {
 });
 
 clearBoardBtn?.addEventListener("click", clearHistory);
+themeToggle?.addEventListener("click", toggleTheme);
 logoutBtn?.addEventListener("click", () => auth?.logout());
 
 async function bootstrap() {

@@ -146,12 +146,20 @@ const DEFAULT_ODD_ONE_OUT_POOL = [
 ];
 
 const ROLE_PRESETS = {
+  focus: { difficulty: "moderate", questionMode: "mcq", timerBias: 10 },
+  arcade: { difficulty: "easy", questionMode: "mcq", timerBias: -10 },
+  exam: { difficulty: "tough", questionMode: "mixed", timerBias: -5 },
+  revision: { difficulty: "moderate", questionMode: "short", timerBias: 5 },
   student: { difficulty: "moderate", questionMode: "mcq", timerBias: 0 },
   teacher: { difficulty: "tough", questionMode: "short", timerBias: -2 },
   "self-study": { difficulty: "easy", questionMode: "mcq", timerBias: 4 }
 };
 
 const ROLE_FLAVORS = {
+  focus: "Focus Mode: Distraction-free, deep learning with extended timers.",
+  arcade: "Arcade Mode: Gamified, fast-paced challenges with shorter timers.",
+  exam: "Exam Mode: Strict timed realistic testing with tough questions.",
+  revision: "Revision Mode: Targeted practice on weak areas with memory reinforcement.",
   student: "Student mode: balanced exam-oriented practice.",
   teacher: "Teacher mode: diagnostic, explanation-heavy checks built for classroom use.",
   "self-study": "Self-study mode: retention-first with memory reinforcement and confidence building."
@@ -2473,8 +2481,6 @@ function showQuestion() {
     return;
   }
 
-  if (isShort) return;
-
   timer = setInterval(() => {
     timeLeft--;
     const clock = document.getElementById("quizTimerChip");
@@ -2482,18 +2488,22 @@ function showQuestion() {
 
     if (timeLeft <= 0 && !answered[index]) {
       answered[index] = true;
-      choices[index] = null;
+      const shortInput = document.getElementById("shortAnswerInput");
+      const partialAnswer = isShort && shortInput ? shortInput.value.trim() : null;
+      const isCorrect = isShort ? gradeShortAnswer(partialAnswer, q) : false;
+      choices[index] = partialAnswer;
       attemptAnswers[index] = {
         question: q.question,
-        selected: null,
+        selected: partialAnswer,
         correct: q.type === "short" ? q.shortAnswer : q.correct,
-        isCorrect: false,
+        isCorrect: isCorrect,
         type: q.type,
         explanation: q.explanation || "",
         wrongExplanation: q.wrongExplanation || "",
         image: q.image || null
       };
-      reveal(q, null, false);
+      if (isCorrect) score++;
+      reveal(q, partialAnswer, false);
       clearInterval(timer);
     }
   }, 1000);

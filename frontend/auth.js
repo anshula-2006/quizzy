@@ -2,17 +2,24 @@ import API_BASE from "./js/config.js";
 
 const SESSION_KEY = "quizzy-session-v2";
 
-function setSession(token, user) {
-  localStorage.setItem(SESSION_KEY, JSON.stringify({
+function setSession(token, user, rememberMe = true) {
+  const payload = JSON.stringify({
     token,
     user,
     createdAt: new Date().toISOString()
-  }));
+  });
+  if (rememberMe) {
+    localStorage.setItem(SESSION_KEY, payload);
+    sessionStorage.removeItem(SESSION_KEY);
+  } else {
+    sessionStorage.setItem(SESSION_KEY, payload);
+    localStorage.removeItem(SESSION_KEY);
+  }
 }
 
 function getSession() {
   try {
-    const raw = localStorage.getItem(SESSION_KEY);
+    const raw = localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY);
     return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
@@ -21,6 +28,7 @@ function getSession() {
 
 function clearSession() {
   localStorage.removeItem(SESSION_KEY);
+  sessionStorage.removeItem(SESSION_KEY);
 }
 
 async function request(path, options = {}) {
@@ -33,25 +41,33 @@ async function request(path, options = {}) {
 }
 
 const QuizzyAuth = {
-  async register({ name, email, password }) {
+  async register(userData) {
     const result = await request("/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password })
+      body: JSON.stringify(userData)
     });
     if (!result.ok) return result;
-    setSession(result.data.token, result.data.user);
+    if (userData.userType) localStorage.setItem("quizzy-userType", userData.userType);
+    setSession(result.data.token, result.data.user, true);
     return { ok: true, user: result.data.user };
   },
 
-  async login({ email, password }) {
+  async login({ identifier, email, phone, userId, password, rememberMe }) {
+    const payload = { password };
+    if (identifier) payload.email = identifier; // Fallback mapping for existing APIs
+    if (email) payload.email = email;
+    if (phone) payload.phone = phone;
+    if (userId) payload.userId = userId;
+
     const result = await request("/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify(payload)
     });
     if (!result.ok) return result;
-    setSession(result.data.token, result.data.user);
+    if (result.data.user?.userType) localStorage.setItem("quizzy-userType", result.data.user.userType);
+    setSession(result.data.token, result.data.user, rememberMe !== false);
     return { ok: true, user: result.data.user };
   },
 
@@ -65,7 +81,7 @@ const QuizzyAuth = {
       clearSession();
       return result;
     }
-    setSession(session.token, result.data.user);
+    setSession(session.token, result.data.user, !!localStorage.getItem(SESSION_KEY));
     return { ok: true, user: result.data.user };
   },
 

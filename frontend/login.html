@@ -136,7 +136,17 @@
         </div>
         <div class="auth-field">
           <label for="password">Password</label>
-          <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required />
+          <div style="position: relative;">
+            <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required style="width: 100%;" />
+            <button type="button" id="togglePasswordBtn" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1rem;">👁</button>
+          </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.85rem; color: var(--muted);">
+            <input type="checkbox" id="rememberMe" name="rememberMe" style="accent-color: var(--primary);" checked />
+            Remember me
+          </label>
+          <a href="#" id="forgotPasswordLink" style="font-size: 0.85rem; color: var(--primary); text-decoration: none;">Forgot password?</a>
         </div>
         <button id="loginSubmitBtn" class="auth-btn" type="submit">Log In</button>
         <p id="message" class="auth-msg"></p>

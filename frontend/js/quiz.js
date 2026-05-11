@@ -27,7 +27,6 @@ function getCurrentAnswer() {
 }
 
 function timerForQuestion(question) {
-  if (question.type !== "mcq") return null;
   const customTimer = quizState.settings?.customTimer;
   if (customTimer === "off") return null;
   if (customTimer && customTimer !== "auto") return Number(customTimer);
@@ -109,7 +108,7 @@ function startTimer() {
   const question = getCurrentQuestion();
   const existing = getCurrentAnswer();
   const seconds = timerForQuestion(question);
-  if (question.type !== "mcq" || existing || seconds == null) return;
+  if (existing || seconds == null) return;
   timerLeft = seconds;
 
   timerId = window.setInterval(() => {
@@ -118,7 +117,8 @@ function startTimer() {
     if (timerNode) timerNode.textContent = `${timerLeft}s left`;
     if (timerLeft <= 0) {
       clearInterval(timerId);
-      saveAnswer("");
+      const shortInput = document.getElementById("shortAnswerInput");
+      saveAnswer(shortInput ? shortInput.value.trim() : "");
     }
   }, 1000);
 }
@@ -133,6 +133,45 @@ function render() {
   const timerLabel = timerSeconds !== null
     ? `${timerSeconds}s left`
     : "No timer";
+
+  const modeLabel = quizState.settings?.learnerMode || "quiz";
+  const isExam = modeLabel === "exam";
+  const isArcade = modeLabel === "arcade";
+  const isFocus = modeLabel === "focus";
+  const isRevision = modeLabel === "revision";
+
+  let modeDisplay = "Quiz Mode";
+  let promptLabel = "Prompt";
+  let helperText = "One question at a time. Select with intent, then move forward.";
+
+  if (isExam) {
+      modeDisplay = "Exam Simulator";
+      promptLabel = "Examination Question";
+      helperText = "Strict exam conditions. Timer is active. Results shown at the end.";
+  } else if (isArcade) {
+      modeDisplay = "Arcade Mode";
+      promptLabel = "Trivia Challenge";
+      helperText = "Fast-paced trivia. Beat the clock and keep the streak alive!";
+  } else if (isFocus) {
+      modeDisplay = "Focus Mode";
+      promptLabel = "Focus Prompt";
+      helperText = "Distraction-free learning. Take your time to understand the core concept.";
+  } else if (isRevision) {
+      modeDisplay = "Revision Mode";
+      promptLabel = "Review Prompt";
+      helperText = "Targeted practice on weak areas. Learn from the detailed explanations.";
+  }
+
+  let currentStreak = 0;
+  if (isArcade) {
+      for (let i = 0; i <= quizState.currentIndex; i++) {
+          const ans = quizState.answers[i];
+          if (ans && ans.isCorrect) currentStreak++;
+          else if (ans && !ans.isCorrect) currentStreak = 0;
+      }
+  }
+  const streakPill = isArcade ? `<span class="pill" style="color: var(--warning); border-color: rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.1);">🔥 ${currentStreak} Streak</span>` : "";
+
   const isWiki = quizState.meta?.sourceType === "wikipedia";
   const wikiLink = isWiki ? `<a href="${escapeHtml(quizState.meta.sourceInput)}" target="_blank" class="pill" style="text-decoration:none; background:rgba(59,130,246,0.15); color:#3b82f6;">Wikipedia</a>` : "";
 
@@ -140,12 +179,13 @@ function render() {
     <section class="panel quiz-card page-fade quiz-focus-shell glass-card">
       <div class="quiz-focus-head">
         <div>
-          <p class="eyebrow">Focus mode</p>
+          <p class="eyebrow" style="text-transform: capitalize;">${modeDisplay}</p>
           <h1 class="section-title" style="margin-top:0;">Question ${quizState.currentIndex + 1}</h1>
         </div>
         <div class="quiz-focus-meta">
           <span class="pill">${question.type.toUpperCase()}</span>
           ${wikiLink}
+          ${streakPill}
           <span class="pill" id="timerPill">${answer ? "Answered" : timerLabel}</span>
         </div>
       </div>
@@ -161,9 +201,9 @@ function render() {
             </div>
           </div>
           <div class="question-panel" style="margin-top:22px;">
-            <p class="eyebrow">Prompt</p>
+            <p class="eyebrow">${promptLabel}</p>
             <h2 class="question-text">${question.question}</h2>
-            <p class="section-copy">One question at a time. Select with intent, then move forward.</p>
+            <p class="section-copy">${helperText}</p>
           </div>
         </div>
         <div>
@@ -182,10 +222,11 @@ function render() {
   if (question.type === "mcq") {
     answerStack.innerHTML = question.options.map((option, index) => {
       const key = String.fromCharCode(65 + index);
-      const correct = answer && question.correct === key;
-      const wrong = answer && answer.selected === key && !answer.isCorrect;
+      const correct = answer && !isExam && question.correct === key;
+      const wrong = answer && !isExam && answer.selected === key && !answer.isCorrect;
+      const selected = answer && isExam && answer.selected === key;
       return `
-        <button class="answer-option ${correct ? "correct" : ""} ${wrong ? "wrong" : ""}" data-key="${key}" ${answer ? "disabled" : ""}>
+        <button class="answer-option ${correct ? "correct" : ""} ${wrong ? "wrong" : ""} ${selected ? "selected" : ""}" data-key="${key}" ${answer ? "disabled" : ""} ${selected ? 'style="border-color: var(--primary); background: rgba(139, 92, 246, 0.1);"' : ''}>
           <span class="answer-key">${key}</span>
           <span>${option}</span>
         </button>
@@ -210,14 +251,23 @@ function render() {
 
   const feedbackWrap = document.getElementById("feedbackWrap");
   if (answer) {
-    feedbackWrap.innerHTML = `
-      <div class="feedback-box ${answer.isCorrect ? "good" : "bad"}">
-        <h3 class="feedback-title">${answer.isCorrect ? "Correct" : "Needs review"}</h3>
-        <p class="feedback-copy">${question.type === "short" ? `Correct answer: ${question.shortAnswer}` : `Correct option: ${question.correct}`}</p>
-        <p class="feedback-copy" style="margin-top:10px;">${question.explanation || "No explanation available."}</p>
-        ${!answer.isCorrect && question.wrongExplanation ? `<p class="feedback-copy" style="margin-top:10px;">${question.wrongExplanation}</p>` : ""}
-      </div>
-    `;
+    if (isExam) {
+      feedbackWrap.innerHTML = `
+        <div class="feedback-box" style="background: rgba(255,255,255,0.05); border-color: var(--line);">
+          <h3 class="feedback-title" style="color: var(--text);">Answer Recorded</h3>
+          <p class="feedback-copy">Your response has been saved. Move to the next question.</p>
+        </div>
+      `;
+    } else {
+      feedbackWrap.innerHTML = `
+        <div class="feedback-box ${answer.isCorrect ? "good" : "bad"}">
+          <h3 class="feedback-title">${answer.isCorrect ? "Correct" : "Needs review"}</h3>
+          <p class="feedback-copy">${question.type === "short" ? `Correct answer: ${question.shortAnswer}` : `Correct option: ${question.correct}`}</p>
+          <p class="feedback-copy" style="margin-top:10px;">${question.explanation || "No explanation available."}</p>
+          ${!answer.isCorrect && question.wrongExplanation ? `<p class="feedback-copy" style="margin-top:10px;">${question.wrongExplanation}</p>` : ""}
+        </div>
+      `;
+    }
   }
 
   document.getElementById("prevBtn")?.addEventListener("click", movePrev);

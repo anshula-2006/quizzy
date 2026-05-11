@@ -37,8 +37,10 @@ if (resultState) {
         </article>
       </div>
 
-      <div class="button-row landing-actions">
-        <button class="btn" id="retryBtn">Retry Quiz</button>
+      <div class="button-row landing-actions" style="flex-wrap: wrap;">
+        <button class="btn" id="retryBtn">Retry Full Quiz</button>
+        ${resultState.score < resultState.total ? `<button class="btn-outline" id="retryIncorrectBtn" style="border-color: var(--warning); color: var(--warning);">Retry Incorrect</button>` : ""}
+        <button class="btn-outline" id="downloadQuizBtn">Download Report ⬇</button>
         <button class="btn-outline" id="newQuizBtn">New Quiz</button>
         <a class="btn-outline" href="./dashboard.html">Dashboard</a>
       </div>
@@ -82,5 +84,46 @@ if (resultState) {
   document.getElementById("newQuizBtn")?.addEventListener("click", () => {
     clearQuizFlow();
     window.location.href = "./generate.html";
+  });
+
+  document.getElementById("retryIncorrectBtn")?.addEventListener("click", () => {
+    const wrongQuestions = quizState.questions.filter((q, i) => {
+      const ans = resultState.answers[i];
+      return ans && !ans.isCorrect;
+    });
+    if (!wrongQuestions.length) return;
+    
+    quizState.questions = wrongQuestions;
+    quizState.currentIndex = 0;
+    quizState.answers = [];
+    setQuizState(quizState);
+    setResultState(null);
+    window.location.href = "./quiz.html";
+  });
+
+  document.getElementById("downloadQuizBtn")?.addEventListener("click", () => {
+    const lines = [
+      `Quizzy Performance Report`,
+      `Date: ${new Date().toLocaleString()}`,
+      `Score: ${resultState.score} / ${resultState.total} (${resultState.percentage}%)`,
+      `\n=== QUESTION REVIEW ===\n`
+    ];
+    
+    (resultState.answers || []).forEach((ans, i) => {
+      lines.push(`Q${i + 1}: ${ans.question}`);
+      lines.push(`Your Answer: ${ans.selected || 'None'}`);
+      lines.push(`Correct Answer: ${ans.correct}`);
+      lines.push(`Explanation: ${ans.explanation || ans.wrongExplanation || 'N/A'}\n`);
+    });
+    
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Quizzy_Report_${Date.now()}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
   });
 }

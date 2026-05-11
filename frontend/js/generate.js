@@ -41,12 +41,16 @@ if (!document.getElementById("learnerSelect") && difficultySelect) {
   wrapper.style.flexDirection = "column";
   wrapper.style.gap = "8px";
   wrapper.innerHTML = `
-    <label for="learnerSelect" style="font-size: 0.85rem; font-weight: 600; color: var(--text);">Learner Mode</label>
+    <label for="learnerSelect" style="font-size: 0.85rem; font-weight: 600; color: var(--text);">Learning Mode</label>
     <select id="learnerSelect" class="text-input" style="width: 100%; height: 44px; padding: 0 12px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--panel-soft); color: var(--text); font-size: 0.9rem; outline: none; cursor: pointer;">
-      <option value="student">Student (Exam Prep)</option>
-      <option value="teacher">Teacher (Diagnostic)</option>
-      <option value="self-study">Self-Study (Retention)</option>
+      <option value="focus" selected>Focus Mode</option>
+      <option value="arcade">Arcade Mode</option>
+      <option value="exam">Exam Mode</option>
+      <option value="revision">Revision Mode</option>
     </select>
+    <p id="learnerDescription" style="margin-top: 6px; font-size: 0.8rem; color: var(--muted); line-height: 1.4;">
+      Deep, distraction-free learning. Best for mastering new topics at your own pace without timer pressure.
+    </p>
   `;
   difficultySelect.parentElement.after(wrapper);
 }
@@ -69,7 +73,7 @@ if (!document.getElementById("customControlsWrapper") && learnerSelect) {
     </div>
     <div style="display: flex; flex-direction: column; gap: 10px; padding: 16px; background: var(--bg-secondary); border: 1px solid var(--line); border-radius: var(--radius-md); box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
       <div style="display: flex; justify-content: space-between; align-items: center;">
-        <label for="timerToggle" style="font-size: 0.9rem; font-weight: 600; color: var(--text);">Enable Timer (MCQ)</label>
+        <label for="timerToggle" style="font-size: 0.9rem; font-weight: 600; color: var(--text);">Enable Timer <span style="font-weight: 400; font-size: 0.8rem; color: var(--muted);">(Disable for Practice Mode)</span></label>
         <input type="checkbox" id="timerToggle" checked style="accent-color: var(--primary); width: 18px; height: 18px; outline: none; cursor: pointer;">
       </div>
       <div id="customTimerWrapper" style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px; transition: opacity 0.2s;">
@@ -87,6 +91,52 @@ if (!document.getElementById("customControlsWrapper") && learnerSelect) {
   }
   document.getElementById("customCountSlider").addEventListener("input", (e) => document.getElementById("customCountDisplay").textContent = e.target.value + " Questions");
   document.getElementById("timerToggle").addEventListener("change", (e) => { document.getElementById("customTimerWrapper").style.opacity = e.target.checked ? "1" : "0.4"; document.getElementById("customTimerInput").disabled = !e.target.checked; });
+  
+  const modeDescriptions = {
+    focus: "Deep, distraction-free learning. Best for mastering new topics at your own pace without timer pressure.",
+    arcade: "Fast-paced, gamified learning. Earn XP, build streaks, and play timed challenges. Best for fun, quick reviews.",
+    exam: "Strict timer and realistic exam experience. Tests your readiness under pressure. Best for final prep.",
+    revision: "Focuses heavily on weak topics and common pitfalls. Detailed explanations. Best for repeating bookmarked or weak areas."
+  };
+
+  learnerSelect.addEventListener("change", (e) => {
+    const desc = document.getElementById("learnerDescription");
+    if (desc) desc.textContent = modeDescriptions[e.target.value] || "";
+    
+    const timerToggle = document.getElementById("timerToggle");
+    const timerInput = document.getElementById("customTimerInput");
+    const timerWrap = document.getElementById("customTimerWrapper");
+    
+    if (e.target.value === "focus" || e.target.value === "revision") {
+      timerToggle.checked = false;
+      timerInput.disabled = true;
+      if(timerWrap) timerWrap.style.opacity = "0.4";
+    } else if (e.target.value === "arcade") {
+      timerToggle.checked = true;
+      timerInput.disabled = false;
+      timerInput.value = "15";
+      if(timerWrap) timerWrap.style.opacity = "1";
+    } else if (e.target.value === "exam") {
+      timerToggle.checked = true;
+      timerInput.disabled = false;
+      timerInput.value = "45";
+      if(timerWrap) timerWrap.style.opacity = "1";
+    }
+  });
+}
+
+const params = new URLSearchParams(window.location.search);
+const prefillTopic = params.get("topic");
+const prefillMode = params.get("mode");
+
+if (prefillTopic && topicInput) {
+  topicInput.value = prefillTopic;
+  setSource("text");
+}
+
+if (prefillMode && learnerSelect) {
+  learnerSelect.value = prefillMode;
+  learnerSelect.dispatchEvent(new Event("change"));
 }
 
 sourceCards.forEach((card) => {

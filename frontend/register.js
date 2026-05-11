@@ -5,6 +5,9 @@ const submitBtn = document.getElementById("registerSubmitBtn");
 const passwordInput = document.getElementById("password");
 const strengthText = document.getElementById("passwordStrengthText");
 const strengthBar = document.querySelector(".password-strength span");
+const confirmPasswordInput = document.getElementById("confirmPassword");
+const togglePasswordBtn = document.getElementById("togglePasswordBtn");
+const toggleConfirmPasswordBtn = document.getElementById("toggleConfirmPasswordBtn");
 
 if (auth?.getSession()) {
   window.location.href = "./index.html";
@@ -23,10 +26,36 @@ passwordInput?.addEventListener("input", () => {
   if (strengthBar) strengthBar.style.width = `${Math.max(10, score * 25)}%`;
 });
 
+if (togglePasswordBtn && passwordInput) {
+  togglePasswordBtn.addEventListener("click", () => {
+    const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
+    passwordInput.setAttribute("type", type);
+    togglePasswordBtn.textContent = type === "password" ? "👁" : "🙈";
+  });
+}
+
+if (toggleConfirmPasswordBtn && confirmPasswordInput) {
+  toggleConfirmPasswordBtn.addEventListener("click", () => {
+    const type = confirmPasswordInput.getAttribute("type") === "password" ? "text" : "password";
+    confirmPasswordInput.setAttribute("type", type);
+    toggleConfirmPasswordBtn.textContent = type === "password" ? "👁" : "🙈";
+  });
+}
+
 form?.addEventListener("submit", async (e) => {
   e.preventDefault();
   message.textContent = "";
   message.className = "auth-msg";
+
+  const password = form.password.value;
+  const confirmPassword = form.confirmPassword?.value;
+
+  if (confirmPassword && password !== confirmPassword) {
+    message.textContent = "Passwords do not match.";
+    message.classList.add("error");
+    return;
+  }
+
   if (submitBtn) {
     submitBtn.disabled = true;
     submitBtn.textContent = "Creating account...";
@@ -34,8 +63,11 @@ form?.addEventListener("submit", async (e) => {
 
   const name = form.name.value;
   const email = form.email.value;
-  const password = form.password.value;
-  const result = await auth.register({ name, email, password });
+  const userId = form.userId?.value;
+  const phone = form.phone?.value;
+  const userType = form.userType?.value || "student";
+  const grade = form.grade?.value;
+  const result = await auth.register({ name, email, userId, phone, userType, grade, password });
 
   if (!result.ok) {
     message.textContent = result.error;

@@ -263,6 +263,91 @@ function renderDashboard(data) {
   const insights = getInsights(attempts, badges, profile);
   const categoryStats = getCategoryStats(attempts);
   const topPlayers = leaderboard.slice(0, 5);
+  const session = auth?.getSession?.();
+  const userType = profile?.userType || session?.userType || localStorage.getItem('quizzy-userType') || 'student';
+
+  let welcomeSub = "Here's what's happening with your learning progress.";
+  let actionButtons = `
+    <div style="display: flex; gap: 8px;">
+      <a href="./generate.html" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;">Start Quiz</a>
+      <a href="./flashcards.html" class="btn-outline" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;">Study Flashcards</a>
+    </div>
+  `;
+  let statsRow = `
+    ${compactStatCard("Total XP", game.totalXp, "Level " + game.level, "xp")}
+    ${compactStatCard("Global Rank", rank === "--" ? "--" : "#" + rank, "Leaderboard", "rank")}
+    ${compactStatCard("Accuracy", avg + "%", "Best: " + best + "%", "accuracy")}
+    ${compactStatCard("Streak", game.streak + " 🔥", "Consecutive >70%", "streak")}
+    ${compactStatCard("Quizzes", attempts.length, "Total completions", "quizzes")}
+    ${compactStatCard("Badges", unlockedBadges.length, "Out of " + badges.length, "badges")}
+  `;
+
+  if (userType === 'teacher') {
+    welcomeSub = "Overview of your classroom analytics and quizzes.";
+    actionButtons = `
+      <div style="display: flex; gap: 8px;">
+        <a href="./generate.html?mode=exam" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;">Create Assessment</a>
+        <button id="downloadClassReportBtn" class="btn-outline" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;">Class Report ⬇</button>
+      </div>
+    `;
+    statsRow = `
+      ${compactStatCard("Created", attempts.length, "Total Quizzes", "quizzes")}
+      ${compactStatCard("Avg Score", avg + "%", "Cohort Accuracy", "accuracy")}
+      ${compactStatCard("Students", leaderboard.length, "Active Learners", "rank")}
+      ${compactStatCard("Flashcards", flashDecks.length, "Decks created", "badges")}
+    `;
+  } else if (userType === 'student') {
+    welcomeSub = "Ready to play, learn, and level up? Let's go!";
+    actionButtons = `
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <a href="./generate.html?topic=Daily%20Trivia%20Challenge&mode=arcade" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem; background: var(--success); color: #fff; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4); border: none;">Daily Challenge ⚡</a>
+        <a href="./arcade.html" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;">Play Games 🎮</a>
+        <a href="./generate.html" class="btn-outline" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;">Take a Quiz 🎯</a>
+      </div>
+    `;
+    statsRow = `
+      ${compactStatCard("XP", game.totalXp, "Points!", "xp")}
+      ${compactStatCard("Level", game.level, "Keep going!", "streak")}
+      ${compactStatCard("Badges", unlockedBadges.length, "Collected", "badges")}
+      ${compactStatCard("Streak", game.streak + " 🔥", "Daily plays", "streak")}
+    `;
+  } else if (userType === 'self_learner') {
+    welcomeSub = "Track your mastery, revise weak topics, and build habits.";
+    actionButtons = `
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <a href="./generate.html?topic=Daily%20Revision%20Challenge&mode=exam" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem; background: var(--success); color: #fff; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4); border: none;">Daily Challenge ⚡</a>
+        <a href="./generate.html?mode=focus" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;">Focus Study</a>
+        <a href="./generate.html?mode=revision" class="btn-outline" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;">Revision Mode</a>
+      </div>
+    `;
+    statsRow = `
+      ${compactStatCard("Mastery", game.level, "Current Level", "xp")}
+      ${compactStatCard("Accuracy", avg + "%", "Overall Rate", "accuracy")}
+      ${compactStatCard("Flashcards", flashDecks.length, "Decks Active", "quizzes")}
+      ${compactStatCard("Streak", game.streak + " 🔥", "Consistent Study", "streak")}
+    `;
+  }
+
+  let weakTopicsHtml = "";
+  const weakTopics = categoryStats.filter(c => c.average < 75).sort((a,b) => a.average - b.average).slice(0, 3);
+  if ((userType === "student" || userType === "self_learner") && weakTopics.length > 0) {
+    weakTopicsHtml = `
+      <section class="panel flow-card glass-card glow-hover" style="padding: 24px; margin-top: 16px; border-color: rgba(239, 68, 68, 0.3);">
+        <div style="margin-bottom: 12px;">
+          <strong style="font-size:1.05rem; display:block; color: #fca5a5;">Attention Required</strong>
+          <span style="font-size:0.8rem; color: var(--muted);">Weak topics & recommended revision</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          ${weakTopics.map(w => `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(239, 68, 68, 0.05); border-radius: var(--radius-md); border: 1px solid rgba(239, 68, 68, 0.2);">
+              <span style="font-size: 0.85rem; font-weight: 600; color: #fca5a5; text-transform: capitalize;">${escapeHtml(w.label)}</span>
+              <a href="./generate.html?topic=${encodeURIComponent(w.label)}&mode=revision" class="btn-outline" style="min-height: 24px; padding: 0 8px; font-size: 0.7rem; border-color: rgba(239, 68, 68, 0.4); color: #fca5a5;">Revise</a>
+            </div>
+          `).join("")}
+        </div>
+      </section>
+    `;
+  }
 
   root.className = "dashboard-platform-shell page-fade";
   root.innerHTML = `
@@ -297,22 +382,14 @@ function renderDashboard(data) {
       <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 4px; flex-wrap: wrap; gap: 16px;">
         <div>
           <h1 style="font-size: 1.75rem; font-weight: 800; margin: 0 0 4px; letter-spacing: -0.02em; color: var(--text);">Welcome back, <span class="neon-text">${escapeHtml(auth?.getSession?.()?.name || "Player")}</span></h1>
-          <p style="color: var(--muted); font-size: 0.9rem; margin: 0;">Here's what's happening with your learning progress.</p>
+          <p style="color: var(--muted); font-size: 0.9rem; margin: 0;">${welcomeSub}</p>
         </div>
-        <div style="display: flex; gap: 8px;">
-          <a href="./generate.html" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;">Start Quiz</a>
-          <a href="./flashcards.html" class="btn-outline" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;">Study Flashcards</a>
-        </div>
+        ${actionButtons}
       </div>
 
       <!-- Quick Stats Row -->
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
-        ${compactStatCard("Total XP", game.totalXp, "Level " + game.level, "xp")}
-        ${compactStatCard("Global Rank", rank === "--" ? "--" : "#" + rank, "Leaderboard", "rank")}
-        ${compactStatCard("Accuracy", avg + "%", "Best: " + best + "%", "accuracy")}
-        ${compactStatCard("Streak", game.streak + " 🔥", "Consecutive >70%", "streak")}
-        ${compactStatCard("Quizzes", attempts.length, "Total completions", "quizzes")}
-        ${compactStatCard("Badges", unlockedBadges.length, "Out of " + badges.length, "badges")}
+        ${statsRow}
       </div>
 
       <!-- Main Two-Column Layout -->
@@ -347,7 +424,9 @@ function renderDashboard(data) {
               </div>
             </section>
 
-            <section class="panel flow-card glass-card glow-hover" style="padding: 24px;">
+            ${weakTopicsHtml}
+
+            <section class="panel flow-card glass-card glow-hover" style="padding: 24px; margin-top: 16px;">
               <div style="margin-bottom: 12px;">
                 <strong style="font-size:1.05rem; display:block;">AI Insights</strong>
                 <span style="font-size:0.8rem; color: var(--muted);">Smart recommendations</span>
@@ -370,8 +449,8 @@ function renderDashboard(data) {
           <section class="panel flow-card glass-card glow-hover" style="padding: 24px;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
               <div>
-                <strong style="font-size:1.05rem; display:block;">Recent Activity</strong>
-                <span style="font-size:0.8rem; color: var(--muted);">Latest learning sessions</span>
+                <strong style="font-size:1.05rem; display:block;">${userType === 'teacher' ? 'Recent Assessments' : 'Recent Activity'}</strong>
+                <span style="font-size:0.8rem; color: var(--muted);">${userType === 'teacher' ? 'Quizzes generated for class' : 'Latest learning sessions'}</span>
               </div>
               ${attempts.length > 4 ? `<a href="./profile.html" style="font-size: 0.8rem; color: var(--text); font-weight: 500;">View All</a>` : ''}
             </div>
@@ -394,8 +473,8 @@ function renderDashboard(data) {
           <section class="panel flow-card glass-card glow-hover" style="padding: 24px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
               <div>
-                <strong style="font-size:1.05rem; display:block;">Top Players</strong>
-                <span style="font-size:0.8rem; color: var(--muted);">Global preview</span>
+                <strong style="font-size:1.05rem; display:block;">${userType === 'teacher' ? 'Student Rankings' : 'Top Players'}</strong>
+                <span style="font-size:0.8rem; color: var(--muted);">${userType === 'teacher' ? 'Top performers in cohort' : 'Global preview'}</span>
               </div>
               <a href="./scoreboard.html" style="font-size: 0.8rem; color: var(--text); font-weight: 500;">Leaderboard</a>
             </div>
@@ -431,6 +510,32 @@ function renderDashboard(data) {
       </div>
     </main>
 `;
+
+  const downloadBtn = document.getElementById("downloadClassReportBtn");
+  if (downloadBtn) {
+    downloadBtn.addEventListener("click", () => {
+      const lines = [
+        "Quizzy Classroom Performance Report",
+        `Generated: ${new Date().toLocaleString()}`,
+        "",
+        "Active Students (Top 50):",
+        ...leaderboard.slice(0,50).map((p, idx) => `${idx + 1}. ${p.name} - ${p.totalXp} XP (Level ${Math.max(1, Math.floor((p.totalXp||0) / 180) + 1)}) | Streak: ${p.currentStreak || 0} 🔥`),
+        "",
+        "Recent Assessments:",
+        ...attempts.slice(0,20).map(a => `- ${formatDate(a.createdAt)}: ${a.percentage}% Cohort Avg [Mode: ${a.settings?.difficulty?.toUpperCase() || "N/A"}]`)
+      ];
+      
+      const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Classroom_Report_${new Date().toISOString().slice(0,10)}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    });
+  }
 }
 
 async function initDashboard() {

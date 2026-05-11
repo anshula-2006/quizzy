@@ -109,11 +109,15 @@ function buildQuizPrompt({ topic, text, difficulty, learnerMode, questionMode, o
   const locationContext = userTimezone ? ` in the ${userTimezone} timezone` : "";
   const difficultyRule = difficulty === "current_events" ? 'Difficulty: "Current Events". Focus heavily on recent news, dynamic updates, and the latest established context for the topic.' : `Difficulty: "${difficulty}".`;
 
-  const roleGuide = learnerMode === "teacher"
-    ? "Teacher mode: include misconception-focused prompts, concise justifications, and assessment wording suitable for class review."
-    : learnerMode === "self-study"
-      ? "Self-study mode: emphasize clarity, memory cues, and reinforcement before increasing difficulty."
-      : "Student mode: prioritize exam readiness, conceptual traps, and timed-practice realism.";
+  const roleGuide = learnerMode === "focus"
+    ? "Focus Mode: Generate highly clear, direct questions with minimal distractions. Emphasize deep understanding, core concepts, and provide extremely detailed step-by-step explanations."
+    : learnerMode === "arcade"
+      ? "Arcade Mode: Generate fun, punchy, gamified questions. Use engaging scenarios, slightly faster-paced trivia style wording, and enthusiastic explanations."
+      : learnerMode === "exam"
+        ? "Exam Mode: Generate strict, realistic exam-style questions. Include conceptual traps, multi-step reasoning, formal academic language, and precise distractors."
+        : learnerMode === "revision"
+          ? "Revision Mode: Target common weak points, edge cases, and frequently missed concepts. Reinforce memory with explicit details on exactly why wrong options are incorrect."
+          : "Student mode: prioritize exam readiness, conceptual traps, and timed-practice realism.";
 
   const strictModeNote = questionMode === "mcq"
     ? `Hard requirement: every question.type MUST be "mcq". Return exactly ${questionCount} MCQ questions.`

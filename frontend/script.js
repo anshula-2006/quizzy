@@ -1395,7 +1395,7 @@ function renderGameHub() {
           <strong>${wordScrambleState.scrambled}</strong>
           <input id="scrambleInput" class="source-input mini-input" type="text" placeholder="Type the correct word" />
           <div class="mini-actions">
-            <button type="button" id="submitScrambleBtn">Submit</button>
+            <button type="button" id="submitScrambleBtn" class="btn">Submit</button>
           </div>
         </div>
       </div>

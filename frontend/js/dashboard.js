@@ -250,7 +250,12 @@ function renderDashboard(data) {
   const flashDecks = Array.isArray(data?.flashDecks) ? data.flashDecks : [];
   const mini = data?.miniGameStats || {};
   const profile = data?.profile || null;
-  const leaderboard = Array.isArray(data?.leaderboard) ? data.leaderboard : [];
+  const leaderboard = Array.isArray(data?.leaderboard) ? data.leaderboard.filter(user => {
+    if (!user) return false;
+    const name = String(user.name || '').toLowerCase();
+    const email = String(user.email || '').toLowerCase();
+    return !user.isDummy && !user.isFake && !name.includes('dummy') && !name.includes('fake') && !email.includes('dummy');
+  }) : [];
   const game = getGamification(attempts, profile);
   const badges = getBadgeCatalog(attempts);
   const unlockedBadges = badges.filter((badge) => badge.unlocked);
@@ -393,7 +398,7 @@ function renderDashboard(data) {
       </div>
 
       <!-- Main Two-Column Layout -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; align-items: start;">
+      <div class="dashboard-content-grid" style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 24px; align-items: start; margin-top: 8px;">
           
         <!-- Left Column: Performance & Insights -->
         <div style="display: flex; flex-direction: column; gap: 16px;">

@@ -97,7 +97,10 @@ export async function bootstrapUserData(req, res) {
       .lean(),
     SavedQuestion.find({ user: req.user._id }).sort({ createdAt: -1 }).limit(100).lean(),
     FlashDeck.find({ user: req.user._id }).sort({ createdAt: -1 }).limit(30).lean(),
-    User.find().sort({ "stats.leaderboardScore": -1, "stats.totalXp": -1, createdAt: 1 }).limit(10).select("name email stats").lean()
+    User.find({
+      name: { $not: /dummy|fake/i },
+      email: { $not: /dummy|fake/i }
+    }).sort({ "stats.leaderboardScore": -1, "stats.totalXp": -1, createdAt: 1 }).limit(10).select("name email stats").lean()
   ]);
 
   res.json({

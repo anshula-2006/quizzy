@@ -3,7 +3,10 @@ import { buildProfileSummary } from "../services/gamificationService.js";
 
 export async function getLeaderboard(req, res) {
   const limit = Math.max(1, Math.min(50, Number(req.query?.limit || 10)));
-  const users = await User.find()
+  const users = await User.find({
+    name: { $not: /dummy|fake/i },
+    email: { $not: /dummy|fake/i }
+  })
     .sort({ "stats.leaderboardScore": -1, "stats.totalXp": -1, createdAt: 1 })
     .limit(limit)
     .select("name email stats")

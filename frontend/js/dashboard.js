@@ -174,14 +174,13 @@ function getWeeklyData(attempts) {
 }
 
 function renderSkeleton() {
-  root.className = "dashboard-platform-shell";
+  root.className = "page-fade";
   root.innerHTML = `
-    <aside class="dash-sidebar panel skeleton-panel"></aside>
-    <main class="dash-main">
-      <div class="dash-topbar panel skeleton-panel"></div>
-      <div class="hero-stats-grid">${Array.from({ length: 8 }, () => `<div class="analytics-card skeleton-panel"></div>`).join("")}</div>
-      <div class="analytics-grid"><div class="chart-card panel skeleton-panel"></div><div class="chart-card panel skeleton-panel"></div></div>
-    </main>
+    <div class="hero-stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 24px;">${Array.from({ length: 4 }, () => `<div class="analytics-card skeleton-panel" style="height: 100px; border-radius: 12px;"></div>`).join("")}</div>
+    <div class="dashboard-content-grid" style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 24px;">
+       <div class="chart-card panel skeleton-panel" style="height: 300px; border-radius: 16px;"></div>
+       <div class="chart-card panel skeleton-panel" style="height: 300px; border-radius: 16px;"></div>
+    </div>
   `;
 }
 
@@ -354,35 +353,8 @@ function renderDashboard(data) {
     `;
   }
 
-  root.className = "dashboard-platform-shell page-fade";
+  root.className = "page-fade";
   root.innerHTML = `
-    <aside class="dash-sidebar panel glass-card">
-      <a class="side-brand" href="./index.html"><span class="brand-badge" style="background: var(--primary); box-shadow: var(--glow-shadow);">Q</span><strong>Quizzy</strong></a>
-      <nav class="side-nav">
-        <a class="active glow-hover" href="./dashboard.html">Dashboard</a>
-        <a class="glow-hover" href="./generate.html">Generate</a>
-        <a class="glow-hover" href="./flashcards.html">Flashcards</a>
-        <a class="glow-hover" href="./scoreboard.html">Leaderboard</a>
-        <a class="glow-hover" href="./arcade.html">Arcade</a>
-      </nav>
-      <div class="side-progress">
-        <span>Level ${game.level}</span>
-        <strong class="neon-text">${game.totalXp} XP</strong>
-        <div class="xp-progress" style="margin-top: 8px;"><span style="width:${game.progress}%"></span></div>
-      </div>
-    </aside>
-
-    <main class="dash-main" style="display: flex; flex-direction: column; gap: 20px;">
-      <header class="dash-topbar panel glass-card">
-        <button class="mobile-menu-btn" type="button" aria-label="Toggle sidebar">Menu</button>
-        <label class="dash-search"><span>Search</span><input type="search" placeholder="Search quizzes, badges, rivals..." /></label>
-        <div class="topbar-cluster">
-          <span class="quick-pill">${game.totalXp} XP</span>
-          <span class="quick-pill">${game.streak} streak</span>
-          <div class="avatar-chip"><span>${escapeHtml((auth?.getSession?.()?.name || "Q").slice(0, 1).toUpperCase())}</span><strong>${escapeHtml(auth?.getSession?.()?.name || "Player")}</strong></div>
-        </div>
-      </header>
-
       <!-- Welcome & Quick Actions -->
       <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 4px; flex-wrap: wrap; gap: 16px;">
         <div>
@@ -513,7 +485,6 @@ function renderDashboard(data) {
 
         </div>
       </div>
-    </main>
 `;
 
   const downloadBtn = document.getElementById("downloadClassReportBtn");

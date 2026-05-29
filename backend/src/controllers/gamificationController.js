@@ -1,11 +1,46 @@
 import { User } from "../models/User.js";
 import { buildProfileSummary } from "../services/gamificationService.js";
 
+function hasRealProgress(user) {
+  const stats = user?.stats || {};
+  return Number(stats.totalXp || 0) > 0
+    || Number(stats.leaderboardScore || 0) > 0
+    || Number(stats.totalQuizzes || 0) > 0
+    || (Array.isArray(stats.achievements) && stats.achievements.length > 0);
+}
+
+function toLeaderboardRow(user, index) {
+  const stats = user?.stats || {};
+  const totalQuestions = Number(stats.totalQuestions || 0);
+  return {
+    rank: index + 1,
+    name: String(user?.name || "Learner"),
+    email: String(user?.email || ""),
+    totalPoints: Number(stats.totalPoints || 0),
+    totalXp: Number(stats.totalXp || 0),
+    totalQuizzes: Number(stats.totalQuizzes || 0),
+    accuracy: totalQuestions
+      ? Math.round((Number(stats.totalCorrectAnswers || 0) / totalQuestions) * 100)
+      : 0,
+    currentStreak: Number(stats.currentStreak || 0),
+    bestStreak: Number(stats.bestStreak || 0),
+    bestPercentage: Number(stats.bestPercentage || 0),
+    leaderboardScore: Number(stats.leaderboardScore || 0),
+    achievements: Array.isArray(stats.achievements) ? stats.achievements : []
+  };
+}
+
 export async function getLeaderboard(req, res) {
   const limit = Math.max(1, Math.min(50, Number(req.query?.limit || 10)));
   const users = await User.find({
     name: { $not: /dummy|fake/i },
-    email: { $not: /dummy|fake/i }
+    email: { $not: /dummy|fake/i },
+    $or: [
+      { "stats.totalXp": { $gt: 0 } },
+      { "stats.leaderboardScore": { $gt: 0 } },
+      { "stats.totalQuizzes": { $gt: 0 } },
+      { "stats.achievements.0": { $exists: true } }
+    ]
   })
     .sort({ "stats.leaderboardScore": -1, "stats.totalXp": -1, createdAt: 1 })
     .limit(limit)
@@ -13,22 +48,7 @@ export async function getLeaderboard(req, res) {
     .lean();
 
   res.json({
-    leaderboard: users.map((user, index) => ({
-      rank: index + 1,
-      name: user.name,
-      email: user.email,
-      totalPoints: Number(user.stats?.totalPoints || 0),
-      totalXp: Number(user.stats?.totalXp || 0),
-      totalQuizzes: Number(user.stats?.totalQuizzes || 0),
-      accuracy: Number(user.stats?.totalQuestions || 0)
-        ? Math.round((Number(user.stats?.totalCorrectAnswers || 0) / Number(user.stats?.totalQuestions || 0)) * 100)
-        : 0,
-      currentStreak: Number(user.stats?.currentStreak || 0),
-      bestStreak: Number(user.stats?.bestStreak || 0),
-      bestPercentage: Number(user.stats?.bestPercentage || 0),
-      leaderboardScore: Number(user.stats?.leaderboardScore || 0),
-      achievements: Array.isArray(user.stats?.achievements) ? user.stats.achievements : []
-    }))
+    leaderboard: users.filter(hasRealProgress).map(toLeaderboardRow)
   });
 }
 

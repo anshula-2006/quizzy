@@ -94,8 +94,6 @@ let dashboardState = {
   leaderboard: [],
   loading: true
 };
-let activeDashboardTab = "analytics";
-
 function getAuthToken() {
   try {
     const raw = localStorage.getItem(SESSION_KEY);
@@ -189,7 +187,7 @@ function getCompactIcon(type) {
     xp: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>`,
     rank: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5aa2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>`,
     accuracy: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M22 12h-4"></path><path d="M6 12H2"></path><path d="M12 6V2"></path><path d="M12 22v-4"></path><circle cx="12" cy="12" r="2"></circle></svg>`,
-    streak: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>`,
+    streak: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>`,
     quizzes: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>`,
     badges: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15l-3 3-1-4-4-1 3-3-1-4 4 1 3-3 3 3 4-1-1 4 3 3-4 1-1 4-3-3z"></path></svg>`
   };
@@ -247,7 +245,6 @@ function renderDashboard(data) {
   dashboardState = { ...data, loading: false };
   const attempts = Array.isArray(data?.attempts) ? data.attempts : [];
   const flashDecks = Array.isArray(data?.flashDecks) ? data.flashDecks : [];
-  const mini = data?.miniGameStats || {};
   const profile = data?.profile || null;
   const leaderboard = Array.isArray(data?.leaderboard) ? data.leaderboard.filter(user => {
     if (!user) return false;
@@ -262,7 +259,6 @@ function renderDashboard(data) {
   const avg = averageScore(attempts);
   const best = attempts.length ? Math.max(...attempts.map((entry) => Number(entry.percentage || 0))) : Number(profile?.bestPercentage || 0);
   const rank = getRank(profile, leaderboard);
-  const cardCount = flashDecks.reduce((sum, deck) => sum + (Array.isArray(deck.flashcards) ? deck.flashcards.length : 0), 0);
   const recent = attempts.slice(0, 6);
   const insights = getInsights(attempts, badges, profile);
   const categoryStats = getCategoryStats(attempts);
@@ -281,7 +277,7 @@ function renderDashboard(data) {
     ${compactStatCard("Total XP", game.totalXp, "Level " + game.level, "xp")}
     ${compactStatCard("Global Rank", rank === "--" ? "--" : "#" + rank, "Leaderboard", "rank")}
     ${compactStatCard("Accuracy", avg + "%", "Best: " + best + "%", "accuracy")}
-    ${compactStatCard("Streak", game.streak + " 🔥", "Consecutive >70%", "streak")}
+    ${compactStatCard("Streak", game.streak, "Consecutive >70%", "streak")}
     ${compactStatCard("Quizzes", attempts.length, "Total completions", "quizzes")}
     ${compactStatCard("Badges", unlockedBadges.length, "Out of " + badges.length, "badges")}
   `;
@@ -301,25 +297,25 @@ function renderDashboard(data) {
       ${compactStatCard("Flashcards", flashDecks.length, "Decks created", "badges")}
     `;
   } else if (userType === 'student') {
-    welcomeSub = "Ready to play, learn, and level up? Let's go!";
+    welcomeSub = "Pick up where you left off and keep your learning streak moving.";
     actionButtons = `
       <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-        <a href="./generate.html?topic=Daily%20Trivia%20Challenge&mode=arcade" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem; background: var(--success); color: #fff; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4); border: none;">Daily Challenge ⚡</a>
-        <a href="./arcade.html" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;">Play Games 🎮</a>
-        <a href="./generate.html" class="btn-outline" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;">Take a Quiz 🎯</a>
+        <a href="./generate.html?topic=Daily%20Trivia%20Challenge&mode=arcade" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem; background: var(--success); color: #fff; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4); border: none;">Daily Challenge</a>
+        <a href="./arcade.html" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;">Learning Games</a>
+        <a href="./generate.html" class="btn-outline" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;">Take a Quiz</a>
       </div>
     `;
     statsRow = `
       ${compactStatCard("XP", game.totalXp, "Points!", "xp")}
       ${compactStatCard("Level", game.level, "Keep going!", "streak")}
       ${compactStatCard("Badges", unlockedBadges.length, "Collected", "badges")}
-      ${compactStatCard("Streak", game.streak + " 🔥", "Daily plays", "streak")}
+      ${compactStatCard("Streak", game.streak, "Current run", "streak")}
     `;
   } else if (userType === 'self_learner') {
     welcomeSub = "Track your mastery, revise weak topics, and build habits.";
     actionButtons = `
       <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-        <a href="./generate.html?topic=Daily%20Revision%20Challenge&mode=exam" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem; background: var(--success); color: #fff; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4); border: none;">Daily Challenge ⚡</a>
+        <a href="./generate.html?topic=Daily%20Revision%20Challenge&mode=exam" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem; background: var(--success); color: #fff; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4); border: none;">Daily Challenge</a>
         <a href="./generate.html?mode=focus" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;">Focus Study</a>
         <a href="./generate.html?mode=revision" class="btn-outline" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;">Revision Mode</a>
       </div>
@@ -328,7 +324,7 @@ function renderDashboard(data) {
       ${compactStatCard("Mastery", game.level, "Current Level", "xp")}
       ${compactStatCard("Accuracy", avg + "%", "Overall Rate", "accuracy")}
       ${compactStatCard("Flashcards", flashDecks.length, "Decks Active", "quizzes")}
-      ${compactStatCard("Streak", game.streak + " 🔥", "Consistent Study", "streak")}
+      ${compactStatCard("Streak", game.streak, "Consistent Study", "streak")}
     `;
   }
 
@@ -476,7 +472,7 @@ function renderDashboard(data) {
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                ${unlockedBadges.length ? unlockedBadges.slice(0, 4).map(b => `
                  <div style="display: flex; align-items: center; gap: 8px; padding: 8px; background: var(--bg-secondary); border-radius: var(--radius-md); border: 1px solid var(--line);">
-                    <span style="font-size: 1rem;">${b.rarity === 'gold' ? '🥇' : b.rarity === 'silver' ? '🥈' : '🥉'}</span>
+                    <span class="meta-chip" style="font-size: 0.68rem; padding: 2px 6px;">${escapeHtml(b.rarity)}</span>
                     <strong style="font-size: 0.8rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(b.label)}</strong>
                  </div>
                `).join("") : `<div class="empty-state-mini" style="padding: 16px; text-align: center; border: 1px dashed var(--line); border-radius: var(--radius-md); grid-column: 1 / -1;"><span style="color: var(--muted); font-size: 0.8rem;">No badges earned.</span></div>`}
@@ -495,7 +491,7 @@ function renderDashboard(data) {
         `Generated: ${new Date().toLocaleString()}`,
         "",
         "Active Students (Top 50):",
-        ...leaderboard.slice(0,50).map((p, idx) => `${idx + 1}. ${p.name} - ${p.totalXp} XP (Level ${Math.max(1, Math.floor((p.totalXp||0) / 180) + 1)}) | Streak: ${p.currentStreak || 0} 🔥`),
+        ...leaderboard.slice(0,50).map((p, idx) => `${idx + 1}. ${p.name} - ${p.totalXp} XP (Level ${Math.max(1, Math.floor((p.totalXp||0) / 180) + 1)}) | Streak: ${p.currentStreak || 0}`),
         "",
         "Recent Assessments:",
         ...attempts.slice(0,20).map(a => `- ${formatDate(a.createdAt)}: ${a.percentage}% Cohort Avg [Mode: ${a.settings?.difficulty?.toUpperCase() || "N/A"}]`)

@@ -7,14 +7,14 @@ import dataRoutes from "./routes/dataRoutes.js";
 import gamificationRoutes from "./routes/gamificationRoutes.js";
 import quizRoutes from "./routes/quizRoutes.js";
 import simpleDataRoutes from "./routes/simpleDataRoutes.js";
-import { requireAuth } from "./middleware/auth.js";
+import { optionalAuth, requireAuth } from "./middleware/auth.js";
 import { upload } from "./services/contentExtractionService.js";
 import { asyncHandler } from "./utils/asyncHandler.js";
 
 export const app = express();
 
 app.use(cors({ origin: env.corsOrigin === "*" ? true : env.corsOrigin.split(",") }));
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 
 app.get("/", (req, res) => {
   res.send("Quizzy backend is running");
@@ -29,9 +29,9 @@ app.use("/api/gamification", gamificationRoutes);
 // Legacy compatibility routes for the existing frontend.
 app.post("/extract-content", upload.single("pdf"), asyncHandler(extractContent));
 app.get("/extract-content-status", asyncHandler(extractionStatus));
-app.post("/generate-quiz", asyncHandler(generateQuiz));
+app.post("/generate-quiz", optionalAuth, asyncHandler(generateQuiz));
 app.post("/submit-quiz", requireAuth, asyncHandler(submitQuiz));
-app.post("/generate-flashcards", asyncHandler(generateFlashcardsController));
+app.post("/generate-flashcards", optionalAuth, asyncHandler(generateFlashcardsController));
 
 app.use((err, req, res, next) => {
   if (err?.name === "MulterError" && err.code === "LIMIT_FILE_SIZE") {
@@ -40,6 +40,7 @@ app.use((err, req, res, next) => {
     });
   }
 
+  console.error("[Global Error Handler]", err);
   return res.status(Number(err?.statusCode || 500)).json({
     error: err?.message || "Internal server error",
     details: err?.details || null

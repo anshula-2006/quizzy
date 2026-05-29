@@ -42,7 +42,7 @@ function debugBadges(message, payload = {}) {
 
 export function getScopeId() {
   try {
-    const raw = localStorage.getItem("quizzy-session-v2");
+    const raw = localStorage.getItem("quizzy-session-v2") || sessionStorage.getItem("quizzy-session-v2");
     const session = raw ? JSON.parse(raw) : null;
     return session?.user?.email || session?.email || "guest";
   } catch {

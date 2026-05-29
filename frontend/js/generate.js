@@ -11,6 +11,7 @@ const countSelect = document.getElementById("countSelect");
 const sourceHint = document.getElementById("sourceHint");
 const form = document.getElementById("generateForm");
 const flashcardsBtn = document.getElementById("flashcardsBtn");
+const generateBtn = document.getElementById("generateBtn");
 const errorNode = document.getElementById("generateError");
 
 let activeSource = "text";
@@ -172,6 +173,12 @@ sourceCards.forEach((card) => {
 form?.addEventListener("submit", async (event) => {
   event.preventDefault();
   errorNode.hidden = true;
+  const originalText = generateBtn?.textContent || "Generate Quiz";
+  if (generateBtn) {
+    generateBtn.disabled = true;
+    generateBtn.textContent = "Preparing quiz...";
+  }
+  if (flashcardsBtn) flashcardsBtn.disabled = true;
 
   const isTimerOn = document.getElementById("timerToggle")?.checked ?? true;
   const timerValue = document.getElementById("customTimerInput")?.value || "30";
@@ -217,6 +224,11 @@ form?.addEventListener("submit", async (event) => {
   } catch (error) {
     errorNode.hidden = false;
     errorNode.textContent = error.message || "An error occurred during generation.";
+    if (generateBtn) {
+      generateBtn.disabled = false;
+      generateBtn.textContent = originalText;
+    }
+    if (flashcardsBtn) flashcardsBtn.disabled = false;
   }
 });
 

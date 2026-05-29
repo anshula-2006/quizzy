@@ -35,3 +35,20 @@ export async function requireAuth(req, res, next) {
     next(error instanceof AppError ? error : new AppError("Unauthorized", 401));
   }
 }
+
+export async function optionalAuth(req, res, next) {
+  try {
+    const authHeader = req.headers.authorization || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+    if (!token) return next();
+
+    const payload = jwt.verify(token, env.jwtSecret);
+    const user = await User.findById(payload.sub).select("name email tokenVersion passwordHash stats");
+    if (!user || (payload.tv || 0) !== (user.tokenVersion || 0)) return next();
+
+    req.user = user;
+    return next();
+  } catch {
+    return next();
+  }
+}

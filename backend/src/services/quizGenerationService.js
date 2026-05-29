@@ -12,10 +12,16 @@ function normalizeMcqCorrect(correct, options) {
     ? options.slice(0, 4).map((option) => String(option || "").trim()).filter(Boolean)
     : [];
   const raw = String(correct || "").trim();
+  
+  const exactIndex = normalizedOptions.findIndex((option) => option.toLowerCase() === raw.toLowerCase());
+  if (exactIndex >= 0) return ["A", "B", "C", "D"][exactIndex];
+  
+  const match = raw.match(/^(?:Option\s+)?([A-D])[\).\s]?$/i) || raw.match(/^([A-D])\b/i);
+  if (match) return match[1].toUpperCase();
+
   const letter = raw.charAt(0).toUpperCase();
   if (["A", "B", "C", "D"].includes(letter)) return letter;
-  const optionIndex = normalizedOptions.findIndex((option) => option.toLowerCase() === raw.toLowerCase());
-  return optionIndex >= 0 ? ["A", "B", "C", "D"][optionIndex] : "A";
+  return "A";
 }
 
 function extractJsonBlock(rawOutput) {
@@ -32,6 +38,8 @@ function normalizeJsonCandidate(jsonText) {
   return String(jsonText || "")
     .replace(/[â€œâ€]/g, "\"")
     .replace(/[â€˜â€™]/g, "'")
+    .replace(/[“”]/g, "\"")
+    .replace(/[‘’]/g, "'")
     .replace(/,\s*([}\]])/g, "$1")
     .replace(/}\s*{/g, "},{")
     .trim();
@@ -44,11 +52,21 @@ function sanitizeQuestions(rawQuestions, questionMode, questionCount) {
       const question = String(item.question || "").trim();
       if (!question) return null;
 
+      let image = item.image || null;
+      if (image && typeof image === "string") {
+        image = image.trim();
+        if (!image.startsWith("https://upload.wikimedia.org/") || !image.match(/\.(jpg|jpeg|png)$/i)) {
+          image = null;
+        }
+      } else {
+        image = null;
+      }
+
       const base = {
         question,
         explanation: String(item.explanation || "").trim(),
         wrongExplanation: item.wrongExplanation ? String(item.wrongExplanation).trim() : null,
-        image: item.image || null
+        image
       };
 
       const type = normalizeQuestionType(item.type);
@@ -313,12 +331,23 @@ export async function generateFlashcards({ topic = "", text = "", difficulty = "
   return {
     meta,
     flashcards: flashcards
-      .map((card) => ({
-        front: String(card?.front || "").trim(),
-        back: String(card?.back || "").trim(),
-        hint: String(card?.hint || "").trim(),
-        image: card?.image || null
-      }))
+      .map((card) => {
+        let image = card?.image || null;
+        if (image && typeof image === "string") {
+          image = image.trim();
+          if (!image.startsWith("https://upload.wikimedia.org/") || !image.match(/\.(jpg|jpeg|png)$/i)) {
+            image = null;
+          }
+        } else {
+          image = null;
+        }
+        return {
+          front: String(card?.front || "").trim(),
+          back: String(card?.back || "").trim(),
+          hint: String(card?.hint || "").trim(),
+          image
+        };
+      })
       .filter((card) => card.front && card.back)
   };
 }

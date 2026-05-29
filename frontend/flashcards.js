@@ -3,6 +3,7 @@ import { getFlashDecks, escapeHtml } from "./js/shared.js";
 const root = document.getElementById("flashcardsRoot");
 
 function init() {
+  const decks = getFlashDecks();
   let activeDeck = null;
   try {
     const raw = localStorage.getItem("quizzy-active-deck");
@@ -11,7 +12,6 @@ function init() {
   }
 
   if (!activeDeck || !activeDeck.flashcards) {
-    const decks = getFlashDecks();
     if (decks.length > 0) activeDeck = decks[0];
   }
 
@@ -38,15 +38,27 @@ function init() {
     const card = activeDeck.flashcards[currentIndex];
     const isWiki = activeDeck.sourceType === "wikipedia";
     const wikiLink = isWiki && activeDeck.sourceInput ? `<a href="${escapeHtml(activeDeck.sourceInput)}" target="_blank" style="display:inline-block; margin-top:8px; font-size:0.85rem; color:#3b82f6; text-decoration:underline;">Read Wikipedia Article</a>` : "";
+    const progress = Math.round(((currentIndex + 1) / activeDeck.flashcards.length) * 100);
+    const deckRail = decks.length > 1 ? `
+      <div style="display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 12px; margin-bottom: 18px;">
+        ${decks.slice(0, 8).map((deck, index) => `
+          <button class="btn-outline deck-switch-btn" data-deck-index="${index}" type="button" style="min-height: 34px; padding: 0 12px; font-size: 0.8rem; white-space: nowrap; ${deck.id === activeDeck.id ? "background: var(--text); color: var(--bg); border-color: var(--text);" : ""}">
+            ${escapeHtml(deck.title || `Deck ${index + 1}`)}
+          </button>
+        `).join("")}
+      </div>
+    ` : "";
 
     root.innerHTML = `
       <div style="max-width: 720px; margin: 0 auto; padding-top: 2vh;">
+        ${deckRail}
         <div style="text-align: center; margin-bottom: 32px;">
           <span class="saas-stat-label">Study Deck</span>
           <h1 style="font-size: 2rem; font-weight: 700; margin: 8px 0 0; letter-spacing: -0.03em;">${escapeHtml(activeDeck.title || "Flashcards")}</h1>
-          <p style="color: var(--muted); font-size: 0.95rem; margin: 8px 0 0;">Tap the card to reveal the answer.</p>
+          <p style="color: var(--muted); font-size: 0.95rem; margin: 8px 0 0;">Review saved cards and return to any deck from this workspace.</p>
           ${wikiLink}
         </div>
+        <div class="mini-progress" aria-label="Flashcard progress" style="height: 8px; margin: 0 0 18px;"><span style="width:${progress}%"></span></div>
         
         <div style="perspective: 1000px; width: 100%; height: min(400px, 60vh); cursor: pointer;" id="fcContainer">
           <div id="fcInner" style="position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; ${isFlipped ? 'transform: rotateY(180deg);' : ''}">
@@ -78,6 +90,18 @@ function init() {
     document.getElementById("fcContainer")?.addEventListener("click", () => {
       isFlipped = !isFlipped;
       render();
+    });
+
+    document.querySelectorAll(".deck-switch-btn").forEach((button) => {
+      button.addEventListener("click", () => {
+        const nextDeck = decks[Number(button.dataset.deckIndex || 0)];
+        if (!nextDeck) return;
+        activeDeck = nextDeck;
+        localStorage.setItem("quizzy-active-deck", JSON.stringify(nextDeck));
+        currentIndex = 0;
+        isFlipped = false;
+        render();
+      });
     });
 
     document.getElementById("fcPrev")?.addEventListener("click", (e) => {

@@ -54,7 +54,7 @@ export function spawnFloatingXP(amount, x, y) {
 
 export function getSession() {
   try {
-    const raw = localStorage.getItem(SESSION_KEY);
+    const raw = localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY);
     return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
@@ -76,18 +76,20 @@ function getDisplayUsername() {
   return session?.user?.name || session?.user?.email || session?.email || "guest";
 }
 
+function buildJsonHeaders(headers = {}) {
+  const session = getSession();
+  const nextHeaders = {
+    "Content-Type": "application/json",
+    ...headers
+  };
+  if (session?.token) nextHeaders.Authorization = `Bearer ${session.token}`;
+  return nextHeaders;
+}
+
 export async function apiRequest(path, options = {}) {
   if (!API_BASE && window.location.protocol === "file:") return null;
 
-  // Securely intercept all API requests and attach the JWT
-  const session = getSession();
-  const headers = { 
-    "Content-Type": "application/json",
-    ...options.headers 
-  };
-  if (session?.token) {
-    headers["Authorization"] = `Bearer ${session.token}`;
-  }
+  const headers = buildJsonHeaders(options.headers);
 
   try {
     const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
@@ -152,7 +154,7 @@ export async function addFlashDeck(deck) {
     try {
       const response = await fetch(`${API_BASE}/data/flash-decks`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.token}` },
+        headers: buildJsonHeaders(),
         body: JSON.stringify(deck)
       });
       const data = await response.json();
@@ -530,7 +532,7 @@ export async function extractContent(inputMode, values) {
 export async function requestQuiz(payload) {
   const response = await fetch(`${API_BASE}/generate-quiz`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: buildJsonHeaders(),
     body: JSON.stringify(payload)
   });
   const data = await response.json().catch(() => ({}));
@@ -545,7 +547,7 @@ export async function requestQuiz(payload) {
 export async function requestFlashcards(payload) {
   const response = await fetch(`${API_BASE}/generate-flashcards`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: buildJsonHeaders(),
     body: JSON.stringify(payload)
   });
   const data = await response.json().catch(() => ({}));

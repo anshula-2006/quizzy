@@ -33,6 +33,12 @@ function getCachedExtraction(key) {
 }
 
 function setCachedExtraction(key, value) {
+  if (extractionCache.size > 200) {
+    const now = Date.now();
+    for (const [k, v] of extractionCache.entries()) {
+      if (now > v.expiresAt) extractionCache.delete(k);
+    }
+  }
   extractionCache.set(key, {
     value,
     expiresAt: Date.now() + EXTRACTION_CACHE_TTL_MS
@@ -50,6 +56,12 @@ function getPdfJob(extractionId) {
 }
 
 function upsertPdfJob(extractionId, patch) {
+  if (pdfFullExtractionJobs.size > 200) {
+    const now = Date.now();
+    for (const [k, v] of pdfFullExtractionJobs.entries()) {
+      if (now > v.expiresAt) pdfFullExtractionJobs.delete(k);
+    }
+  }
   const previous = getPdfJob(extractionId) || {};
   const next = {
     extractionId,

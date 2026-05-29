@@ -13,9 +13,9 @@
 <body>
   <div class="page-shell">
     <div class="page-container">
-      <header class="panel top-nav" style="margin-bottom: 2rem;">
+      <header class="panel top-nav" style="margin-bottom: 2rem; padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
         <a class="brand" href="./index.html"><span class="brand-badge">Q</span><span>Quizzy</span></a>
-        <nav class="nav-links">
+        <nav class="nav-links" style="display: flex; gap: 1.5rem; flex-wrap: wrap; align-items: center;">
           <a class="nav-link" href="./index.html">Home</a>
           <a class="nav-link is-active" href="./generate.html">Generate</a>
           <a class="nav-link" href="./flashcards.html">Flashcards</a>
@@ -25,7 +25,7 @@
         </nav>
       </header>
 
-      <main class="split-grid two-col generate-workspace">
+      <main class="split-grid two-col generate-workspace" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; align-items: start;">
         <section class="panel flow-card page-fade generate-composer">
           <p class="eyebrow">Generate</p>
           <h1 class="section-title">Create your quiz</h1>
@@ -34,7 +34,7 @@
           <form id="generateForm" class="field-stack" style="margin-top:28px;">
             <div>
               <label class="field-label">Step 1 - Choose Source</label>
-              <div class="source-grid">
+              <div class="source-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem;">
                 <button type="button" class="source-card is-active" data-source="text"><strong>Topic</strong><span>Prompt or pasted notes.</span></button>
                 <button type="button" class="source-card" data-source="pdf"><strong>PDF</strong><span>Upload source material.</span></button>
                 <button type="button" class="source-card" data-source="url"><strong>URL</strong><span>Parse a public article.</span></button>
@@ -53,7 +53,7 @@
 
             <div>
               <label class="field-label">Step 3 - Tune Quiz</label>
-              <div class="settings-grid">
+              <div class="settings-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.25rem;">
                 <div class="setting-card">
                   <label class="field-label" for="difficultySelect">Difficulty</label>
                   <select id="difficultySelect" class="select-input">

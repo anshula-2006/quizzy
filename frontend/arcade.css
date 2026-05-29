@@ -24,8 +24,6 @@ body.arcade-body {
   color: var(--arcade-text);
   font-family: "Inter", system-ui, sans-serif;
   background:
-    radial-gradient(circle at 12% 10%, rgba(124, 58, 237, 0.24), transparent 26%),
-    radial-gradient(circle at 88% 12%, rgba(6, 182, 212, 0.18), transparent 22%),
     linear-gradient(180deg, var(--arcade-bg-top), var(--arcade-bg-bottom));
 }
 
@@ -222,7 +220,7 @@ body.arcade-body {
   align-content: start;
   gap: 18px;
   padding: 22px;
-  border-radius: 24px;
+  border-radius: 18px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   transition: transform 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
@@ -230,20 +228,17 @@ body.arcade-body {
 
 .arcade-game-card.memory {
   background:
-    radial-gradient(circle at top right, rgba(124, 58, 237, 0.26), transparent 34%),
-    linear-gradient(145deg, rgba(124, 58, 237, 0.12), rgba(255, 255, 255, 0.03));
+    linear-gradient(145deg, rgba(91, 140, 255, 0.14), rgba(255, 255, 255, 0.03));
 }
 
 .arcade-game-card.reaction {
   background:
-    radial-gradient(circle at top right, rgba(6, 182, 212, 0.24), transparent 34%),
-    linear-gradient(145deg, rgba(6, 182, 212, 0.12), rgba(255, 255, 255, 0.03));
+    linear-gradient(145deg, rgba(20, 184, 166, 0.14), rgba(255, 255, 255, 0.03));
 }
 
 .arcade-game-card.recall {
   background:
-    radial-gradient(circle at top right, rgba(16, 185, 129, 0.24), transparent 34%),
-    linear-gradient(145deg, rgba(16, 185, 129, 0.12), rgba(255, 255, 255, 0.03));
+    linear-gradient(145deg, rgba(148, 163, 184, 0.14), rgba(255, 255, 255, 0.03));
 }
 
 .arcade-card-link:hover .arcade-game-card {
@@ -256,7 +251,7 @@ body.arcade-body {
   position: relative;
   height: 156px;
   overflow: hidden;
-  border-radius: 18px;
+  border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -327,7 +322,7 @@ body.arcade-body {
   height: 54px;
   display: inline-grid;
   place-items: center;
-  border-radius: 18px;
+  border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.08);
 }
@@ -358,6 +353,10 @@ body.arcade-body {
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+.arcade-card-cta::after {
+  content: " ->";
 }
 
 .arcade-game-wrap {

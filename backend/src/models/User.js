@@ -31,6 +31,8 @@ const userSchema = new mongoose.Schema(
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     passwordHash: { type: String, required: true },
+    userType: { type: String, enum: ["student", "teacher", "self_learner"], default: "student" },
+    grade: { type: String, default: "", trim: true },
     tokenVersion: { type: Number, default: 0 },
     stats: { type: userStatsSchema, default: () => ({}) }
   },

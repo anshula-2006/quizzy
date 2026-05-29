@@ -257,7 +257,8 @@ body {
   text-transform: uppercase;
 }
 
-.auth-field input {
+.auth-field input,
+.auth-select {
   width: 100%;
   min-height: 54px;
   border: 1px solid var(--auth-border);
@@ -268,15 +269,26 @@ body {
   transition: border-color 0.28s ease, box-shadow 0.28s ease, transform 0.28s ease;
 }
 
+.auth-select {
+  appearance: none;
+}
+
 .auth-field input::placeholder {
   color: var(--auth-placeholder);
 }
 
-.auth-field input:focus {
+.auth-field input:focus,
+.auth-select:focus {
   outline: none;
   border-color: rgba(6, 182, 212, 0.42);
   box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.12);
   transform: translateY(-1px);
+}
+
+.auth-field-hint {
+  color: var(--auth-muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
 }
 
 .auth-btn {
@@ -411,6 +423,7 @@ body {
 }
 
 .auth-field input,
+.auth-select,
 .auth-btn {
   min-height: 46px;
 }
@@ -489,6 +502,7 @@ body {
 }
 
 .auth-field input,
+.auth-select,
 .auth-btn {
   border-radius: 10px;
 }

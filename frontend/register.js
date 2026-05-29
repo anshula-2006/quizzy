@@ -8,10 +8,26 @@ const strengthBar = document.querySelector(".password-strength span");
 const confirmPasswordInput = document.getElementById("confirmPassword");
 const togglePasswordBtn = document.getElementById("togglePasswordBtn");
 const toggleConfirmPasswordBtn = document.getElementById("toggleConfirmPasswordBtn");
+const userTypeSelect = document.getElementById("userType");
+const userTypeHint = document.getElementById("userTypeHint");
+
+const userTypeHints = {
+  student: "Practice quizzes, flashcards, streaks, and progress insights.",
+  teacher: "Create assessments and use dashboard summaries for class review.",
+  self_learner: "Build independent study sessions with revision and mastery tracking."
+};
+
+function updateUserTypeHint() {
+  if (!userTypeHint || !userTypeSelect) return;
+  userTypeHint.textContent = userTypeHints[userTypeSelect.value] || userTypeHints.student;
+}
 
 if (auth?.getSession()) {
   window.location.href = "./index.html";
 }
+
+userTypeSelect?.addEventListener("change", updateUserTypeHint);
+updateUserTypeHint();
 
 passwordInput?.addEventListener("input", () => {
   const value = passwordInput.value || "";

@@ -9,6 +9,7 @@ export function signAuthToken(user) {
       sub: user._id.toString(),
       email: user.email,
       name: user.name,
+      userType: user.userType || "student",
       tv: user.tokenVersion || 0
     },
     env.jwtSecret,
@@ -23,7 +24,7 @@ export async function requireAuth(req, res, next) {
     if (!token) throw new AppError("Missing auth token", 401);
 
     const payload = jwt.verify(token, env.jwtSecret);
-    const user = await User.findById(payload.sub).select("name email tokenVersion passwordHash stats");
+    const user = await User.findById(payload.sub).select("name email userType grade tokenVersion passwordHash stats");
     if (!user) throw new AppError("Invalid auth token", 401);
     if ((payload.tv || 0) !== (user.tokenVersion || 0)) {
       throw new AppError("Session expired. Please log in again.", 401);
@@ -43,7 +44,7 @@ export async function optionalAuth(req, res, next) {
     if (!token) return next();
 
     const payload = jwt.verify(token, env.jwtSecret);
-    const user = await User.findById(payload.sub).select("name email tokenVersion passwordHash stats");
+    const user = await User.findById(payload.sub).select("name email userType grade tokenVersion passwordHash stats");
     if (!user || (payload.tv || 0) !== (user.tokenVersion || 0)) return next();
 
     req.user = user;

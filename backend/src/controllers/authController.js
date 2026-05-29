@@ -13,15 +13,24 @@ function buildAuthPayload(user) {
       id: user._id.toString(),
       name: user.name,
       email: user.email,
+      userType: user.userType || "student",
+      grade: user.grade || "",
       stats: user.stats || {}
     }
   };
+}
+
+function cleanUserType(value) {
+  const userType = String(value || "student").trim();
+  return ["student", "teacher", "self_learner"].includes(userType) ? userType : "student";
 }
 
 export async function register(req, res) {
   const name = String(req.body?.name || "").trim();
   const email = String(req.body?.email || "").trim().toLowerCase();
   const password = String(req.body?.password || "").trim();
+  const userType = cleanUserType(req.body?.userType);
+  const grade = String(req.body?.grade || "").trim().slice(0, 80);
 
   if (!name || !email || !password) throw new AppError("Name, email, and password are required", 400);
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new AppError("Enter a valid email address", 400);
@@ -32,7 +41,7 @@ export async function register(req, res) {
   if (existingUser) throw new AppError("Email already registered", 409);
 
   const passwordHash = await bcrypt.hash(password, 10);
-  const user = await User.create({ name, email, passwordHash });
+  const user = await User.create({ name, email, passwordHash, userType, grade });
   res.status(201).json(buildAuthPayload(user));
 }
 
@@ -58,6 +67,8 @@ export async function me(req, res) {
       id: req.user._id.toString(),
       name: req.user.name,
       email: req.user.email,
+      userType: req.user.userType || "student",
+      grade: req.user.grade || "",
       stats: req.user.stats || {}
     }
   });

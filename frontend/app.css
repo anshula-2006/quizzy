@@ -1,6 +1,9 @@
+/* APPLICATION STYLES - Imported from design system */
+@import "./design-system.css";
+
+/* Override for light mode */
 :root {
   color-scheme: light;
-  --bg: #f8fafc;
   --bg-deep: #e8eef6;
   --bg-secondary: #eef2f7;
   --panel: #ffffff;

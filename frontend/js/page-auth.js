@@ -57,6 +57,12 @@ toggleStyles.textContent = `
     transition: background-color 0.3s ease, color 0.3s ease;
   }
 
+  .page-container {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
   h1, h2, h3, h4, h5, h6, .poppins {
     font-family: var(--font-heading) !important;
   }
@@ -205,9 +211,11 @@ toggleStyles.textContent = `
     animation: pageFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
-  .neon-text {
-    color: var(--primary) !important;
-    text-shadow: 0 0 12px rgba(139, 92, 246, 0.4);
+  .neon-text, .section-title, .saas-stat-value, .auth-brand span:not(.auth-brand-icon) {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 25px rgba(139, 92, 246, 0.3);
   }
 
   /* Premium SaaS Navbar Styling */

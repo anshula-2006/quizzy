@@ -17,23 +17,6 @@
   backdrop-filter: none !important;
 }
 
-.glow-hover {
-  transition: all var(--transition-fast) !important;
-}
-
-.glow-hover:hover {
-  box-shadow: var(--shadow-md) !important;
-  border-color: var(--color-border-strong) !important;
-  transform: translateY(-1px) !important;
-}
-
-.neon-text {
-  text-shadow: none !important;
-  background: none !important;
-  -webkit-text-fill-color: initial !important;
-  color: var(--color-text-primary) !important;
-}
-
 /* Layout */
 .page-shell {
   min-height: 100vh;
@@ -115,23 +98,44 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: var(--space-2);
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
   transition: all var(--transition-fast);
   cursor: pointer;
+  text-decoration: none;
+  border: 1px solid transparent;
 }
 
 .btn {
-  background: var(--color-text-primary) !important;
-  color: var(--color-bg-base) !important;
-  border: 1px solid transparent !important;
-  box-shadow: var(--shadow-sm) !important;
+  background: var(--color-accent) !important;
+  color: #fff !important;
+  border-color: transparent !important;
 }
-.btn:hover {
-  background: var(--color-surface-hover) !important;
+
+.btn-outline {
+  background: transparent !important;
   color: var(--color-text-primary) !important;
+  border-color: var(--color-border-default) !important;
+}
+
+.ghost {
+  background: transparent !important;
+  color: var(--color-text-primary) !important;
+  border-color: transparent !important;
+}
+
+.btn:hover {
+  background: var(--color-accent-dark) !important;
+  color: #fff !important;
   transform: translateY(-1px) !important;
+}
+
+.btn-outline:hover,
+.ghost:hover {
+  background: var(--color-surface-hover) !important;
+  border-color: var(--color-border-strong) !important;
 }
 
 /* Nav */
@@ -241,7 +245,7 @@
 /* Interactive Cards */
 .source-card, .setting-card, .stat-card, .answer-option, .feedback-box {
   border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   background: var(--color-surface-2);
   padding: var(--space-4);
   color: var(--color-text-primary);
@@ -269,7 +273,7 @@
   width: 100%;
   border: 1px solid var(--color-border-default) !important;
   border-radius: var(--radius-md) !important;
-  background: var(--color-bg-base) !important;
+  background: var(--color-surface-1) !important;
   color: var(--color-text-primary) !important;
   padding: var(--space-3) var(--space-4);
   font-family: var(--font-family-base);
@@ -640,7 +644,7 @@
 }
 .challenge-card, .mini-game-panel {
   padding: var(--space-4);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   background: var(--color-surface-1);
   border: 1px solid var(--color-border-default);
   display: flex;
@@ -664,7 +668,7 @@
 }
 .memory-card {
   aspect-ratio: 1;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-lg);
   border: 1px solid var(--color-border-default);
   background: var(--color-surface-2);
   color: var(--color-text-primary);
@@ -783,7 +787,7 @@
   display: grid;
   place-items: center;
   padding: var(--space-6);
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.9));
+  background: var(--color-bg-base);
 }
 
 .auth-hero,
@@ -814,7 +818,7 @@
   width: 42px;
   height: 42px;
   border-radius: var(--radius-lg);
-  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-dark));
+  background: var(--color-accent);
   color: white;
   font-weight: var(--font-weight-extrabold);
 }
@@ -848,7 +852,7 @@
 
 .auth-card {
   background: var(--color-surface-1);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   border: 1px solid var(--color-border-default);
   box-shadow: var(--shadow-sm);
   padding: var(--space-8);
@@ -893,13 +897,13 @@
 .auth-btn {
   min-height: 44px;
   padding: 0 var(--space-4);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-md);
   border: none;
   background: var(--color-accent);
   color: white;
   font-weight: var(--font-weight-semibold);
   cursor: pointer;
-  box-shadow: var(--shadow-sm);
+  box-shadow: none;
   transition: background-color var(--transition-fast), transform var(--transition-fast);
 }
 

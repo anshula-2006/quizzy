@@ -342,6 +342,35 @@ h6,
   border-top: 1px solid var(--color-border-muted);
 }
 
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-surface-1);
+  color: var(--color-text-primary);
+}
+
+thead {
+  background: var(--color-surface-2);
+}
+
+th,
+td {
+  padding: var(--space-4);
+  border: 1px solid var(--color-border-default);
+  text-align: left;
+  vertical-align: middle;
+}
+
+th {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+tbody tr:hover {
+  background: var(--color-surface-3);
+}
+
 /* Hover state for interactive cards */
 .card-hover {
   cursor: pointer;

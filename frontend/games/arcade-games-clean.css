@@ -1,0 +1,371 @@
+/* Arcade Games - Clean System Styling */
+@import "../design-system.css";
+
+:root {
+  --arcade-bg-top: #0f172a;
+  --arcade-bg-bottom: #090b14;
+  --arcade-panel: #111827;
+  --arcade-panel-strong: #161b2f;
+  --arcade-line: rgba(148, 163, 184, 0.16);
+  --arcade-glow: rgba(99, 102, 241, 0.18);
+}
+
+body.arcade-body {
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family-base);
+  color: var(--color-text-primary);
+  background: linear-gradient(180deg, var(--arcade-bg-top), var(--arcade-bg-bottom));
+}
+
+.arcade-shell {
+  min-height: 100vh;
+  padding: var(--space-8) var(--space-4) var(--space-10);
+}
+
+.arcade-frame {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+}
+
+.arcade-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-6);
+  margin-bottom: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.arcade-mark {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--color-accent-light);
+}
+
+.arcade-title {
+  margin: 0.5rem 0 0;
+  font-size: clamp(2.4rem, 5vw, 3.6rem);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.arcade-subtitle {
+  margin: var(--space-3) 0 0;
+  max-width: 680px;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+  line-height: 1.75;
+}
+
+.arcade-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border-default);
+  background-color: rgba(255, 255, 255, 0.04);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  transition: transform var(--transition-fast),
+              border-color var(--transition-fast),
+              background-color var(--transition-fast);
+}
+
+.arcade-back:hover {
+  transform: translateY(-1px);
+  border-color: var(--color-accent);
+  background-color: rgba(99, 102, 241, 0.12);
+}
+
+.arcade-panel {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.88));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(20px);
+}
+
+.arcade-game-wrap {
+  display: grid;
+  gap: var(--space-6);
+  padding: var(--space-8);
+}
+
+.arcade-game-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.arcade-kpis {
+  display: flex;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.arcade-kpi {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.arcade-kpi span {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+
+.arcade-kpi strong {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-accent);
+}
+
+.arcade-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.arcade-btn,
+.arcade-btn-secondary {
+  min-height: 44px;
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  font-weight: var(--font-weight-semibold);
+  transition: transform var(--transition-fast),
+              background-color var(--transition-fast),
+              border-color var(--transition-fast),
+              box-shadow var(--transition-fast);
+}
+
+.arcade-btn {
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-dark));
+  color: #fff;
+}
+
+.arcade-btn:hover,
+.arcade-btn-secondary:hover {
+  transform: translateY(-1px);
+}
+
+.arcade-btn-secondary {
+  background-color: var(--color-surface-2);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-default);
+}
+
+.arcade-btn-secondary:hover {
+  background-color: var(--color-surface-3);
+  border-color: var(--color-accent);
+}
+
+.arcade-feedback {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+}
+
+#memoryBoard {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto;
+}
+
+.memory-card {
+  aspect-ratio: 1;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-default);
+  background-color: var(--color-surface-2);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-2xl);
+  color: var(--color-text-primary);
+  transition: transform var(--transition-fast),
+              background-color var(--transition-fast),
+              border-color var(--transition-fast),
+              box-shadow var(--transition-fast);
+}
+
+.memory-card:hover {
+  transform: translateY(-2px);
+  background-color: var(--color-surface-3);
+  border-color: var(--color-accent);
+}
+
+.memory-card.matched {
+  background-color: var(--color-success-bg);
+  border-color: var(--color-success);
+  color: var(--color-success);
+  cursor: not-allowed;
+}
+
+.memory-card.flipped {
+  background-color: var(--color-accent-lightest);
+  border-color: var(--color-accent);
+}
+
+.reaction-stage {
+  width: 100%;
+  min-height: 320px;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-default);
+  background-color: var(--color-surface-1);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background-color var(--transition-fast),
+              border-color var(--transition-fast),
+              color var(--transition-fast);
+  color: var(--color-text-primary);
+  text-align: center;
+  padding: var(--space-8);
+}
+
+.reaction-stage.waiting {
+  background-color: var(--color-surface-2);
+  color: var(--color-text-secondary);
+}
+
+.reaction-stage.ready {
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
+  border-color: var(--color-success);
+  font-size: var(--font-size-3xl);
+  animation: pulse var(--transition-base) infinite;
+}
+
+.reaction-stage.error {
+  background-color: var(--color-error-bg);
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+.reaction-stage-inner {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.reaction-label {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.reaction-caption {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.75;
+  }
+}
+
+.recall-stage {
+  width: 100%;
+  min-height: 280px;
+  padding: var(--space-8);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-default);
+  background-color: var(--color-surface-1);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  color: var(--color-text-primary);
+}
+
+.recall-hidden {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-lg);
+  line-height: 1.7;
+}
+
+.recall-form {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.recall-input {
+  width: 100%;
+  min-height: 50px;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-2);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-base);
+  transition: border-color var(--transition-fast),
+              box-shadow var(--transition-fast);
+}
+
+.recall-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+@media (max-width: 820px) {
+  .arcade-header,
+  .arcade-game-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .arcade-title {
+    font-size: clamp(2rem, 8vw, 2.8rem);
+  }
+
+  .arcade-kpis {
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 640px) {
+  .arcade-shell {
+    padding: var(--space-6) var(--space-3) var(--space-8);
+  }
+
+  .arcade-game-wrap {
+    padding: var(--space-5);
+  }
+
+  #memoryBoard {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-2);
+  }
+
+  .reaction-stage,
+  .recall-stage {
+    min-height: 240px;
+  }
+
+  .arcade-actions,
+  .arcade-kpis {
+    gap: var(--space-2);
+  }
+
+  .arcade-back {
+    width: 100%;
+    justify-content: center;
+  }
+}

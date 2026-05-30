@@ -69,7 +69,7 @@
                   <p class="eyebrow">Step 3</p>
                   <h2 class="section-title" style="font-size: 1.1rem; margin-top: 0.25rem;">Tune quiz</h2>
                 </div>
-                <div class="settings-grid">
+                <div class="settings-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-3);">
                   <div class="setting-card">
                     <label class="field-label" for="difficultySelect">Difficulty</label>
                     <select id="difficultySelect" class="select-input">
@@ -109,7 +109,7 @@
               </div>
 
               <div id="generateError" class="error-message" hidden></div>
-              <div class="button-row">
+              <div class="button-row" style="margin-top: var(--space-2);">
                 <button id="generateBtn" class="btn" type="submit">Generate Quiz</button>
                 <button id="flashcardsBtn" class="btn-outline" type="button">Generate Flashcards</button>
               </div>

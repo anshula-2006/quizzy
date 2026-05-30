@@ -685,24 +685,24 @@ function renderBoard() {
         </div>
 
         ${hasPodium ? `
-        <div class="podium-wrapper fade-in" style="display: flex; justify-content: center; align-items: flex-end; gap: 12px; margin-bottom: 32px; min-height: 160px;">
-          <div class="podium-step rank-2" style="display: flex; flex-direction: column; align-items: center; width: 30%; max-width: 100px;">
-            <div class="podium-avatar glow-hover" style="font-size: 1.2rem; font-weight: 800; color: #fff; background: linear-gradient(135deg, #9ca3af, #d1d5db); width: 48px; height: 48px; display: grid; place-items: center; border-radius: 50%; border: 2px solid var(--glass-border); margin-bottom: 12px; box-shadow: 0 4px 12px rgba(156, 163, 175, 0.4);">2</div>
+        <div class="podium-wrapper fade-in" style="display: flex; justify-content: center; align-items: flex-end; gap: 8px; margin-bottom: 24px; min-height: 120px;">
+          <div class="podium-step rank-2" style="display: flex; flex-direction: column; align-items: center; width: 30%; max-width: 90px;">
+            <div class="podium-avatar glow-hover" style="font-size: 1.1rem; font-weight: 800; color: #fff; background: linear-gradient(135deg, #9ca3af, #d1d5db); width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; border: 2px solid var(--glass-border); margin-bottom: 8px; box-shadow: 0 2px 8px rgba(156, 163, 175, 0.4);">2</div>
             <div class="podium-name" style="font-size: 0.9rem; font-weight: 600; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; color: var(--text); padding: 0 4px;">${escapeHtml(p2.name || 'Player')}</div>
-            <div class="podium-score" style="font-size: 0.8rem; color: var(--secondary); font-weight: 700; margin: 4px 0 12px;">${p2.totalXp || 0} XP</div>
-            <div class="podium-bar" style="width: 100%; height: 60px; border-radius: 12px 12px 0 0; background: linear-gradient(180deg, rgba(156, 163, 175, 0.2), transparent); border: 1px solid rgba(156, 163, 175, 0.3); border-bottom: none;"></div>
+            <div class="podium-score" style="font-size: 0.8rem; color: var(--color-accent); font-weight: 700; margin: 4px 0 8px;">${p2.totalXp || 0} XP</div>
+            <div class="podium-bar" style="width: 100%; height: 45px; border-radius: 8px 8px 0 0; background: linear-gradient(180deg, rgba(156, 163, 175, 0.2), transparent); border: 1px solid rgba(156, 163, 175, 0.3); border-bottom: none;"></div>
           </div>
-          <div class="podium-step rank-1" style="display: flex; flex-direction: column; align-items: center; width: 30%; max-width: 110px; z-index: 2;">
-            <div class="podium-avatar glow-hover" style="font-size: 1.5rem; font-weight: 900; color: #fff; background: linear-gradient(135deg, #fbbf24, #f59e0b); width: 64px; height: 64px; display: grid; place-items: center; border-radius: 50%; margin-bottom: 12px; border: 2px solid #fef3c7; box-shadow: 0 4px 20px rgba(245, 158, 11, 0.5);">1</div>
+          <div class="podium-step rank-1" style="display: flex; flex-direction: column; align-items: center; width: 30%; max-width: 100px; z-index: 2;">
+            <div class="podium-avatar glow-hover" style="font-size: 1.3rem; font-weight: 900; color: #fff; background: linear-gradient(135deg, #fbbf24, #f59e0b); width: 56px; height: 56px; display: grid; place-items: center; border-radius: 50%; margin-bottom: 8px; border: 2px solid #fef3c7; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.5);">1</div>
             <div class="podium-name" style="font-size: 1rem; font-weight: 700; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; color: var(--text); padding: 0 4px;">${escapeHtml(p1.name || 'Player')}</div>
-            <div class="podium-score" style="font-size: 0.9rem; color: var(--primary); font-weight: 800; margin: 4px 0 12px; text-shadow: 0 0 10px rgba(139, 92, 246, 0.4);">${p1.totalXp || 0} XP</div>
-            <div class="podium-bar" style="width: 100%; height: 90px; border-radius: 12px 12px 0 0; background: linear-gradient(180deg, rgba(245, 158, 11, 0.25), transparent); border: 1px solid rgba(245, 158, 11, 0.4); border-bottom: none;"></div>
+            <div class="podium-score" style="font-size: 0.9rem; color: var(--color-accent); font-weight: 800; margin: 4px 0 8px;">${p1.totalXp || 0} XP</div>
+            <div class="podium-bar" style="width: 100%; height: 60px; border-radius: 8px 8px 0 0; background: linear-gradient(180deg, rgba(245, 158, 11, 0.25), transparent); border: 1px solid rgba(245, 158, 11, 0.4); border-bottom: none;"></div>
           </div>
-          <div class="podium-step rank-3" style="display: flex; flex-direction: column; align-items: center; width: 30%; max-width: 100px;">
-            <div class="podium-avatar glow-hover" style="font-size: 1.2rem; font-weight: 800; color: #fff; background: linear-gradient(135deg, #b45309, #d97706); width: 48px; height: 48px; display: grid; place-items: center; border-radius: 50%; border: 2px solid var(--glass-border); margin-bottom: 12px; box-shadow: 0 4px 12px rgba(217, 119, 6, 0.4);">3</div>
+          <div class="podium-step rank-3" style="display: flex; flex-direction: column; align-items: center; width: 30%; max-width: 90px;">
+            <div class="podium-avatar glow-hover" style="font-size: 1.1rem; font-weight: 800; color: #fff; background: linear-gradient(135deg, #b45309, #d97706); width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; border: 2px solid var(--glass-border); margin-bottom: 8px; box-shadow: 0 2px 8px rgba(217, 119, 6, 0.4);">3</div>
             <div class="podium-name" style="font-size: 0.9rem; font-weight: 600; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; color: var(--text); padding: 0 4px;">${escapeHtml(p3.name || 'Player')}</div>
-            <div class="podium-score" style="font-size: 0.8rem; color: var(--secondary); font-weight: 700; margin: 4px 0 12px;">${p3.totalXp || 0} XP</div>
-            <div class="podium-bar" style="width: 100%; height: 40px; border-radius: 12px 12px 0 0; background: linear-gradient(180deg, rgba(217, 119, 6, 0.2), transparent); border: 1px solid rgba(217, 119, 6, 0.3); border-bottom: none;"></div>
+            <div class="podium-score" style="font-size: 0.8rem; color: var(--color-accent); font-weight: 700; margin: 4px 0 8px;">${p3.totalXp || 0} XP</div>
+            <div class="podium-bar" style="width: 100%; height: 30px; border-radius: 8px 8px 0 0; background: linear-gradient(180deg, rgba(217, 119, 6, 0.2), transparent); border: 1px solid rgba(217, 119, 6, 0.3); border-bottom: none;"></div>
           </div>
         </div>
         ` : ""}

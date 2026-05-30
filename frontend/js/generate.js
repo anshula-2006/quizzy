@@ -52,16 +52,16 @@ if (!document.getElementById("learnerSelect") && difficultySelect) {
   wrapper.className = difficultySelect.parentElement.className;
   wrapper.style.display = "flex";
   wrapper.style.flexDirection = "column";
-  wrapper.style.gap = "8px";
+      wrapper.style.gap = "var(--space-2)";
   wrapper.innerHTML = `
-    <label for="learnerSelect" style="font-size: 0.85rem; font-weight: 600; color: var(--text);">Learning Mode</label>
-    <select id="learnerSelect" class="text-input" style="width: 100%; height: 44px; padding: 0 12px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--panel-soft); color: var(--text); font-size: 0.9rem; outline: none; cursor: pointer;">
+        <label for="learnerSelect" style="font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); color: var(--color-text-primary);">Learning Mode</label>
+        <select id="learnerSelect" class="select-input">
       <option value="focus" selected>Focus Mode</option>
       <option value="arcade">Arcade Mode</option>
       <option value="exam">Exam Mode</option>
       <option value="revision">Revision Mode</option>
     </select>
-    <p id="learnerDescription" style="margin-top: 6px; font-size: 0.8rem; color: var(--muted); line-height: 1.4;">
+        <p id="learnerDescription" style="margin-top: 2px; font-size: var(--font-size-xs); color: var(--color-text-secondary); line-height: 1.4;">
       Deep, distraction-free learning. Best for mastering new topics at your own pace without timer pressure.
     </p>
   `;
@@ -74,24 +74,25 @@ if (!document.getElementById("customControlsWrapper") && learnerSelect) {
   customControlsWrapper.id = "customControlsWrapper";
   customControlsWrapper.style.display = "flex";
   customControlsWrapper.style.flexDirection = "column";
-  customControlsWrapper.style.gap = "16px";
-  customControlsWrapper.style.marginTop = "16px";
+      customControlsWrapper.style.gap = "var(--space-4)";
+      customControlsWrapper.style.marginTop = "var(--space-2)";
+      customControlsWrapper.style.gridColumn = "1 / -1";
   customControlsWrapper.innerHTML = `
-    <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; flex-direction: column; gap: var(--space-2);">
       <div style="display: flex; justify-content: space-between; align-items: center;">
-        <label for="customCountSlider" style="font-size: 0.85rem; font-weight: 600; color: var(--text);">Question Count</label>
-        <span id="customCountDisplay" class="meta-chip" style="background: rgba(124, 58, 237, 0.1); color: var(--primary); font-weight: 700; border: none;">10 Questions</span>
+            <label for="customCountSlider" style="font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); color: var(--color-text-primary);">Question Count</label>
+            <span id="customCountDisplay" class="badge">10 Questions</span>
       </div>
-      <input type="range" id="customCountSlider" min="1" max="30" value="10" style="width: 100%; height: 6px; border-radius: 4px; outline: none; cursor: pointer; accent-color: var(--primary);">
+          <input type="range" id="customCountSlider" min="1" max="30" value="10" style="width: 100%; height: 6px; border-radius: 4px; outline: none; cursor: pointer; accent-color: var(--color-accent);">
     </div>
-    <div style="display: flex; flex-direction: column; gap: 10px; padding: 16px; background: var(--bg-secondary); border: 1px solid var(--line); border-radius: var(--radius-md); box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+        <div style="display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-4); background: var(--color-surface-2); border: 1px solid var(--color-border-default); border-radius: var(--radius-md);">
       <div style="display: flex; justify-content: space-between; align-items: center;">
-        <label for="timerToggle" style="font-size: 0.9rem; font-weight: 600; color: var(--text);">Enable Timer <span style="font-weight: 400; font-size: 0.8rem; color: var(--muted);">(Disable for Practice Mode)</span></label>
-        <input type="checkbox" id="timerToggle" checked style="accent-color: var(--primary); width: 18px; height: 18px; outline: none; cursor: pointer;">
+            <label for="timerToggle" style="font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); color: var(--color-text-primary);">Enable Timer <span style="font-weight: 400; font-size: var(--font-size-xs); color: var(--color-text-secondary);">(Disable for Practice Mode)</span></label>
+            <input type="checkbox" id="timerToggle" checked style="accent-color: var(--color-accent); width: 16px; height: 16px; outline: none; cursor: pointer;">
       </div>
-      <div id="customTimerWrapper" style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px; transition: opacity 0.2s;">
-        <label for="customTimerInput" style="font-size: 0.85rem; color: var(--muted);">Seconds per question</label>
-        <input type="number" id="customTimerInput" min="5" max="300" value="30" class="text-input" style="width: 80px; height: 36px; padding: 0 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--text); font-size: 0.9rem; outline: none; text-align: center;">
+          <div id="customTimerWrapper" style="display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-1); transition: opacity 0.2s;">
+            <label for="customTimerInput" style="font-size: var(--font-size-sm); color: var(--color-text-secondary);">Seconds per question</label>
+            <input type="number" id="customTimerInput" min="5" max="300" value="30" class="text-input" style="width: 80px; min-height: 36px; text-align: center;">
       </div>
     </div>
   `;

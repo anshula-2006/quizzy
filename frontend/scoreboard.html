@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./design-system.css" />
-  <link rel="stylesheet" href="./styles-app-clean.css" />
+  <link rel="stylesheet" href="./app.css" />
   <style>
     :root {
       --primary: var(--purple);
@@ -56,9 +56,9 @@
 <body>
   <div class="page-shell">
     <div class="page-container">
-      <header class="panel top-nav" style="margin-bottom: 2rem; padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+      <header class="top-nav">
         <a class="brand" href="./index.html"><span class="brand-badge">Q</span><span>Quizzy</span></a>
-        <nav class="nav-links" style="display: flex; gap: 1.5rem; flex-wrap: wrap; align-items: center;">
+        <nav class="nav-links">
           <a class="nav-link" href="./index.html">Home</a>
           <a class="nav-link" href="./generate.html">Generate</a>
           <a class="nav-link" href="./flashcards.html">Flashcards</a>
@@ -66,7 +66,7 @@
           <a class="nav-link" href="./arcade.html">Arcade</a>
           <a class="nav-link is-active" href="./scoreboard.html">Leaderboard</a>
         </nav>
-        <div class="nav-actions" style="display:flex; gap:1rem; align-items:center;">
+        <div class="nav-actions" style="display:flex; gap:1.5rem; align-items:center; font-size: 1.05rem; font-weight: 500;">
           <span id="authUser" class="hidden"></span>
           <a id="loginLink" class="nav-link" href="./login.html">Login</a>
           <a id="registerLink" class="nav-link" href="./register.html">Register</a>

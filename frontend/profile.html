@@ -8,18 +8,20 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./design-system.css" />
-  <link rel="stylesheet" href="./styles-app-clean.css" />
+  <link rel="stylesheet" href="./app.css" />
 </head>
 <body>
   <div class="page-shell">
     <div class="page-container">
-      <header class="panel top-nav" style="margin-bottom: 2rem; padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+      <header class="top-nav">
         <a class="brand" href="./index.html"><span class="brand-badge">Q</span><span>Quizzy</span></a>
-        <nav class="nav-links" style="display: flex; gap: 1.5rem; flex-wrap: wrap; align-items: center;">
-          <a class="nav-link" href="./dashboard.html">Dashboard</a>
+        <nav class="nav-links">
+          <a class="nav-link" href="./index.html">Home</a>
           <a class="nav-link" href="./generate.html">Generate</a>
+          <a class="nav-link" href="./flashcards.html">Flashcards</a>
+          <a class="nav-link" href="./dashboard.html">Dashboard</a>
+          <a class="nav-link" href="./arcade.html">Arcade</a>
           <a class="nav-link" href="./scoreboard.html">Leaderboard</a>
-          <a class="nav-link is-active" href="./profile.html">Profile</a>
         </nav>
       </header>
       <main id="profileRoot" class="page-fade"></main>

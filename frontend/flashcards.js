@@ -17,14 +17,14 @@ function init() {
 
   if (!activeDeck || !activeDeck.flashcards || activeDeck.flashcards.length === 0) {
     root.innerHTML = `
-      <div class="center-page">
-        <div class="panel flow-card empty-state glass-card glow-hover" style="padding: 48px 32px; text-align: center; border: 1px dashed rgba(139, 92, 246, 0.3); background: rgba(17, 24, 39, 0.4); max-width: 500px; width: 100%;">
-          <div style="width: 64px; height: 64px; background: rgba(139, 92, 246, 0.1); border-radius: 50%; display: grid; place-items: center; margin: 0 auto 20px; border: 1px solid rgba(139, 92, 246, 0.3); box-shadow: 0 0 25px rgba(139, 92, 246, 0.2);">
+      <div class="center-page flashcards-shell">
+        <div class="panel flow-card empty-state">
+          <div class="empty-state-icon">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
           </div>
-          <h3 class="neon-text" style="font-size: 1.8rem; margin: 0 0 12px; font-weight: 800;">No Flashcards</h3>
-          <p style="color: var(--muted); font-size: 0.95rem; margin: 0 auto 24px; line-height: 1.6;">Generate a deck from a topic, URL, or PDF to start studying.</p>
-          <a href="./generate.html" class="btn" style="color: #ffffff !important; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);">Create Deck</a>
+          <h3 class="section-title">No Flashcards</h3>
+          <p class="section-copy">Generate a deck from a topic, URL, or PDF to start studying.</p>
+          <a href="./generate.html" class="btn">Create Deck</a>
         </div>
       </div>
     `;
@@ -40,9 +40,9 @@ function init() {
     const wikiLink = isWiki && activeDeck.sourceInput ? `<a href="${escapeHtml(activeDeck.sourceInput)}" target="_blank" style="display:inline-block; margin-top:8px; font-size:0.85rem; color:#3b82f6; text-decoration:underline;">Read Wikipedia Article</a>` : "";
     const progress = Math.round(((currentIndex + 1) / activeDeck.flashcards.length) * 100);
     const deckRail = decks.length > 1 ? `
-      <div style="display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 12px; margin-bottom: 18px;">
+      <div class="deck-rail">
         ${decks.slice(0, 8).map((deck, index) => `
-          <button class="btn-outline deck-switch-btn" data-deck-index="${index}" type="button" style="min-height: 34px; padding: 0 12px; font-size: 0.8rem; white-space: nowrap; ${deck.id === activeDeck.id ? "background: var(--text); color: var(--bg); border-color: var(--text);" : ""}">
+          <button class="btn-outline deck-switch-btn" data-deck-index="${index}" type="button" ${deck.id === activeDeck.id ? "aria-pressed=\"true\"" : ""}>
             ${escapeHtml(deck.title || `Deck ${index + 1}`)}
           </button>
         `).join("")}
@@ -50,39 +50,46 @@ function init() {
     ` : "";
 
     root.innerHTML = `
-      <div style="max-width: 720px; margin: 0 auto; padding-top: 2vh;">
+      <div class="flashcards-shell">
         ${deckRail}
-        <div style="text-align: center; margin-bottom: 32px;">
-          <span class="saas-stat-label">Study Deck</span>
-          <h1 style="font-size: 2rem; font-weight: 700; margin: 8px 0 0; letter-spacing: -0.03em;">${escapeHtml(activeDeck.title || "Flashcards")}</h1>
-          <p style="color: var(--muted); font-size: 0.95rem; margin: 8px 0 0;">Review saved cards and return to any deck from this workspace.</p>
-          ${wikiLink}
-        </div>
-        <div class="mini-progress" aria-label="Flashcard progress" style="height: 8px; margin: 0 0 18px;"><span style="width:${progress}%"></span></div>
-        
-        <div style="perspective: 1000px; width: 100%; height: min(400px, 60vh); cursor: pointer;" id="fcContainer">
-          <div id="fcInner" style="position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; ${isFlipped ? 'transform: rotateY(180deg);' : ''}">
-            
-            <!-- Front -->
-            <div class="panel glass-card" style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px; border-radius: var(--radius-xl);">
-              <span class="meta-chip" style="position: absolute; top: 24px; left: 24px;">Question</span>
-              <h2 style="font-size: clamp(1.5rem, 4vw, 2.2rem); font-weight: 600; line-height: 1.4;">${escapeHtml(card.front)}</h2>
-            </div>
-
-            <!-- Back -->
-            <div class="panel glass-card" style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px; border-radius: var(--radius-xl); transform: rotateY(180deg);">
-              <span class="meta-chip" style="position: absolute; top: 24px; left: 24px; background: rgba(34, 197, 94, 0.15); color: var(--success);">Answer</span>
-              <h2 style="font-size: clamp(1.5rem, 4vw, 2.2rem); font-weight: 600; line-height: 1.4;">${escapeHtml(card.back)}</h2>
-              ${card.hint ? `<p style="margin: 24px 0 0; font-size: 0.95rem; color: var(--muted); padding: 12px 16px; background: rgba(255,255,255,0.03); border-radius: var(--radius-md); border: 1px solid var(--line);">💡 ${escapeHtml(card.hint)}</p>` : ""}
-            </div>
-
+        <div class="flash-shell-head">
+          <div class="flash-head">
+            <span class="eyebrow">Study Deck</span>
+            <h1 class="section-title">${escapeHtml(activeDeck.title || "Flashcards")}</h1>
+            <p class="section-copy">Review saved cards and return to any deck from this workspace.</p>
+            ${wikiLink}
           </div>
         </div>
-        
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 32px;">
-          <button id="fcPrev" class="btn-outline" style="min-width: 100px;" ${currentIndex === 0 ? "disabled" : ""}>Previous</button>
-          <span style="font-size: 0.9rem; font-weight: 600; color: var(--muted);">Card ${currentIndex + 1} of ${activeDeck.flashcards.length}</span>
-          <button id="fcNext" class="btn-outline" style="min-width: 100px;" ${currentIndex === activeDeck.flashcards.length - 1 ? "disabled" : ""}>Next</button>
+        <div class="progress-wrap">
+          <div class="progress-head">
+            <span>${currentIndex + 1} / ${activeDeck.flashcards.length}</span>
+            <span class="fc-status">${progress}% complete</span>
+          </div>
+          <div class="mini-progress" aria-label="Flashcard progress"><span style="width:${progress}%"></span></div>
+        </div>
+        <div class="flash-viewer">
+          <div class="flash-scene" id="fcContainer">
+            <div class="flash-card-3d${isFlipped ? ' is-flipped' : ''}" id="fcInner">
+              <div class="flash-face">
+                <span class="flash-face-badge">Question</span>
+                <div class="flash-face-copy">
+                  <strong>${escapeHtml(card.front)}</strong>
+                </div>
+              </div>
+              <div class="flash-face flash-face-back">
+                <span class="flash-face-badge">Answer</span>
+                <div class="flash-face-copy">
+                  <strong>${escapeHtml(card.back)}</strong>
+                  ${card.hint ? `<span class="flash-answer-hint">💡 ${escapeHtml(card.hint)}</span>` : ""}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="fc-controls">
+          <button id="fcPrev" class="btn-outline" type="button" ${currentIndex === 0 ? "disabled" : ""}>Previous</button>
+          <span class="fc-status">Card ${currentIndex + 1} of ${activeDeck.flashcards.length}</span>
+          <button id="fcNext" class="btn-outline" type="button" ${currentIndex === activeDeck.flashcards.length - 1 ? "disabled" : ""}>Next</button>
         </div>
       </div>
     `;

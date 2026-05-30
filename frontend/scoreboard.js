@@ -715,17 +715,20 @@ function renderBoard() {
             const isMe = (player.email === auth?.getSession?.()?.email);
 
             return `
-            <div class="lb-row fade-in glass-card glow-hover" style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; animation-delay: ${idx * 0.04}s; ${isMe ? 'border-color: var(--primary) !important; box-shadow: var(--glow-shadow) !important;' : ''}">
-              <div style="display: flex; align-items: center; gap: 18px; flex: 1; min-width: 0;">
-                <div style="font-size: 1.1rem; font-weight: 800; color: var(--muted); width: 32px; text-align: center;">${rank}</div>
-                <div style="display: flex; flex-direction: column; min-width: 0; gap: 4px;">
-                  <strong style="font-size: 1.05rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700;">${escapeHtml(player.name)} ${isMe ? '<span style="font-size:0.75rem; background: var(--primary); color: #fff; padding:2px 8px; border-radius:12px; margin-left:8px; font-weight: 700; box-shadow: 0 2px 8px rgba(124,58,237,0.4);">You</span>' : ''}</strong>
-                  <span style="font-size: 0.85rem; color: var(--muted);">Streak: 🔥 ${player.currentStreak || 0}</span>
+            <div class="lb-row fade-in glass-card glow-hover ${isMe ? 'me' : ''}" style="animation-delay: ${idx * 0.04}s;">
+              <div class="lb-left">
+                <div class="rank-badge ${rank <= 3 ? 'podium-rank-'+rank : ''}">${rank}</div>
+                <div class="player-info">
+                  <strong class="player-name">${escapeHtml(player.name)} ${isMe ? '<span class="you-chip">You</span>' : ''}</strong>
+                  <span class="player-meta">Streak: 🔥 ${player.currentStreak || 0}</span>
                 </div>
               </div>
-              <div style="text-align: right; display: flex; flex-direction: column; gap: 4px;">
-                <div style="font-size: 1.1rem; font-weight: 800; color: var(--primary);">${player.totalXp || 0} XP</div>
-                <div style="font-size: 0.8rem; color: var(--muted); font-weight: 500;">${player.leaderboardScore || 0} pts</div>
+              <div class="lb-right">
+                <div class="player-xp">${player.totalXp || 0} XP</div>
+                <div class="player-points">${player.leaderboardScore || 0} pts</div>
+                <div class="player-badges">
+                  ${(Array.isArray(player.badges) ? player.badges.slice(0,3).map(b => `<img src="${escapeHtml(b.icon || '')}" alt="${escapeHtml(b.label || '')}" class="tiny-badge" title="${escapeHtml(b.label || '')}"/>`) : []).join('')}
+                </div>
               </div>
             </div>
           `}).join("")}

@@ -196,17 +196,17 @@ function getCompactIcon(type) {
 
 function compactStatCard(label, value, helper, iconType) {
   return `
-    <article class="panel glass-card glow-hover" style="padding: 20px; display: flex; align-items: flex-start; gap: 16px; min-width: 0;">
-      <div style="width: 40px; height: 40px; border-radius: 12px; background: var(--primary); color: white; display: grid; place-items: center; flex-shrink: 0; opacity: 0.9; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);">
-        <div style="width: 20px; height: 20px;">
+    <article class="dash-stat-card">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div style="width: 40px; height: 40px; display: grid; place-items: center; border-radius: 14px; background: var(--color-surface-3); color: var(--color-text-primary);">
           ${getCompactIcon(iconType)}
         </div>
+        <div style="min-width: 0;">
+          <span class="saas-stat-label">${label}</span>
+          <div class="saas-stat-value">${value}</div>
+        </div>
       </div>
-      <div style="min-width: 0; flex: 1;">
-        <span style="font-size: 0.75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">${label}</span>
-        <strong style="font-size: 1.4rem; font-weight: 800; color: var(--text); display: block; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${value}</strong>
-        ${helper ? `<span style="font-size: 0.8rem; color: var(--secondary); display: block; margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${helper}</span>` : ''}
-      </div>
+      ${helper ? `<p class="section-copy" style="margin: 0;">${helper}</p>` : ''}
     </article>
   `;
 }
@@ -328,159 +328,139 @@ function renderDashboard(data) {
     `;
   }
 
-  let weakTopicsHtml = "";
+  const quizzesCompleted = attempts.length;
+  const currentName = escapeHtml(auth?.getSession?.()?.name || auth?.getSession?.()?.email || 'Player');
+  const latestFlashcards = Array.isArray(flashDecks) ? flashDecks.slice(0, 3) : [];
+  const totalFlashcards = Array.isArray(flashDecks) ? flashDecks.length : 0;
+  const recentActivity = recent.slice(0, 4);
+  const lastAttempt = attempts[0] || null;
+  const reviewTopic = lastAttempt?.settings?.topic || lastAttempt?.sourceType || 'your next review';
   const weakTopics = categoryStats.filter(c => c.average < 75).sort((a,b) => a.average - b.average).slice(0, 3);
-  if ((userType === "student" || userType === "self_learner") && weakTopics.length > 0) {
-    weakTopicsHtml = `
-      <section class="panel flow-card glass-card glow-hover" style="padding: 24px; margin-top: 16px; border-color: rgba(239, 68, 68, 0.3);">
-        <div style="margin-bottom: 12px;">
-          <strong style="font-size:1.05rem; display:block; color: var(--error);">Attention Required</strong>
-          <span style="font-size:0.8rem; color: var(--muted);">Weak topics & recommended revision</span>
-        </div>
-        <div style="display: flex; flex-direction: column; gap: 6px;">
-          ${weakTopics.map(w => `
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(239, 68, 68, 0.05); border-radius: var(--radius-md); border: 1px solid rgba(239, 68, 68, 0.2);">
-              <span style="font-size: 0.85rem; font-weight: 600; color: var(--error); text-transform: capitalize;">${escapeHtml(w.label)}</span>
-              <a href="./generate.html?topic=${encodeURIComponent(w.label)}&mode=revision" class="btn-outline" style="min-height: 24px; padding: 0 8px; font-size: 0.7rem; border-color: rgba(239, 68, 68, 0.4); color: var(--error);">Revise</a>
-            </div>
-          `).join("")}
-        </div>
-      </section>
-    `;
-  }
+
+  const continueLearningHtml = `
+    <article class="dash-stat-card">
+      <span class="saas-stat-label">Continue your progress</span>
+      <div class="saas-stat-value">${lastAttempt ? `${escapeHtml(reviewTopic)} practice` : 'Start your first quiz'}</div>
+      <p class="section-copy" style="margin: 0;">${lastAttempt ? 'Return to your most recent quiz and improve your score.' : 'Begin a quiz to unlock progress tracking and rewards.'}</p>
+      <a href="./generate.html" class="btn" style="margin-top: 12px;">Take a Quiz</a>
+    </article>
+    <article class="dash-stat-card">
+      <span class="saas-stat-label">Flashcard review</span>
+      <div class="saas-stat-value">${totalFlashcards} deck${totalFlashcards === 1 ? '' : 's'}</div>
+      <p class="section-copy" style="margin: 0;">${totalFlashcards ? 'Review cards from your latest decks to lock in learning.' : 'Create flashcards from a quiz or source to start review sessions.'}</p>
+      <a href="./flashcards.html" class="btn-outline" style="margin-top: 12px;">Open Flashcards</a>
+    </article>
+    ${weakTopics.length ? weakTopics.slice(0, 2).map(topic => `
+      <article class="dash-stat-card">
+        <span class="saas-stat-label">Review priority topic</span>
+        <div class="saas-stat-value">${escapeHtml(topic.label)}</div>
+        <p class="section-copy" style="margin: 0;">Current accuracy ${topic.average}%. Focus here for rapid improvement.</p>
+        <a href="./generate.html?topic=${encodeURIComponent(topic.label)}&mode=revision" class="btn-outline" style="margin-top: 12px;">Review Topic</a>
+      </article>
+    `).join('') : `
+      <article class="dash-stat-card">
+        <span class="saas-stat-label">Focus next</span>
+        <div class="saas-stat-value">Balanced practice</div>
+        <p class="section-copy" style="margin: 0;">Use a mixed quiz to build confidence across topics.</p>
+        <a href="./generate.html" class="btn-outline" style="margin-top: 12px;">Try a quiz</a>
+      </article>
+    `}
+  `;
 
   root.className = "page-fade";
   root.innerHTML = `
-      <!-- Welcome & Quick Actions -->
-      <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 4px; flex-wrap: wrap; gap: 16px;">
-        <div>
-          <h1 style="font-size: 1.75rem; font-weight: 800; margin: 0 0 4px; letter-spacing: -0.02em; color: var(--text);">Welcome back, <span class="neon-text">${escapeHtml(auth?.getSession?.()?.name || "Player")}</span></h1>
-          <p style="color: var(--muted); font-size: 0.9rem; margin: 0;">${welcomeSub}</p>
+    <section class="panel flow-card dashboard-hero">
+      <div class="dashboard-hero-copy">
+        <p class="eyebrow">Learning hub</p>
+        <h1 class="section-title">Welcome back, ${currentName}</h1>
+        <p class="section-copy">${welcomeSub}</p>
+        <div class="button-row">
+          <a href="./generate.html" class="btn">Start a Quiz</a>
+          <a href="./flashcards.html" class="btn-outline">Review Flashcards</a>
+          <a href="./arcade.html" class="ghost">Play Arcade</a>
         </div>
-        ${actionButtons}
       </div>
-
-      <!-- Quick Stats Row -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
-        ${statsRow}
+      <div class="dashboard-top-metrics">
+        ${compactStatCard('XP', game.totalXp, `Level ${game.level}`, 'xp')}
+        ${compactStatCard('Rank', rank === '--' ? '--' : `#${rank}`, 'Leaderboard rank', 'rank')}
       </div>
+    </section>
 
-      <!-- Main Two-Column Layout -->
-      <div class="dashboard-content-grid" style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 24px; align-items: start; margin-top: 8px;">
-          
-        <!-- Left Column: Performance & Insights -->
-        <div style="display: flex; flex-direction: column; gap: 16px;">
-          
-          <section class="panel flow-card glass-card glow-hover" style="padding: 24px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-              <div>
-                <strong style="font-size:1.05rem; display:block;">Accuracy Trend</strong>
-                <span style="font-size:0.8rem; color: var(--muted);">Last 7 days performance</span>
-              </div>
+    <div class="dashboard-stat-grid">
+      ${compactStatCard('Accuracy', `${avg}%`, `Best score ${best}%`, 'accuracy')}
+      ${compactStatCard('Streak', `${quizzesCompleted ? game.streak : 0}`, 'Current streak', 'streak')}
+      ${compactStatCard('Quizzes', `${quizzesCompleted}`, 'Completed sets', 'quizzes')}
+      ${compactStatCard('Flashcards', `${totalFlashcards}`, 'Decks saved', 'badges')}
+    </div>
+
+    <div class="dashboard-content-grid">
+      <section class="panel flow-card">
+        <div class="dashboard-block">
+          <div class="scoreboard-head">
+            <div>
+              <strong class="section-title" style="font-size:1.15rem;">Recent Activity</strong>
+              <p class="section-copy">Latest quiz sessions and performance details.</p>
             </div>
-            ${renderLineChart(weekly)}
-          </section>
-
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-            <section class="panel flow-card glass-card glow-hover" style="padding: 24px;">
-              <div style="margin-bottom: 12px;">
-                <strong style="font-size:1.05rem; display:block;">Category Mastery</strong>
-                <span style="font-size:0.8rem; color: var(--muted);">Accuracy by topic</span>
-              </div>
-              <div style="display: flex; flex-direction: column; gap: 6px;">
-                ${categoryStats.length ? categoryStats.slice(0,4).map(c => `
-                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--bg-secondary); border-radius: var(--radius-md); border: 1px solid var(--line);">
-                    <span style="font-size: 0.85rem; text-transform: capitalize; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(c.label)}</span>
-                    <strong style="font-size: 0.9rem; color: var(--primary);">${c.average}%</strong>
+            ${attempts.length > 4 ? `<a href="./profile.html" class="ghost">View all</a>` : ''}
+          </div>
+          <div class="dashboard-list">
+            ${recentActivity.length ? recentActivity.map(a => `
+              <article class="dashboard-activity-item">
+                <div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; align-items:center;">
+                  <div>
+                    <strong style="display:block; color: var(--color-text-primary);">${a.percentage}% score</strong>
+                    <span class="section-copy">${escapeHtml((a.settings?.difficulty || 'Mixed').toString())} • ${escapeHtml(a.settings?.questionMode || 'Quiz')}</span>
                   </div>
-                `).join("") : `<div class="empty-state-mini" style="padding: 16px; text-align: center; border: 1px dashed var(--line); border-radius: var(--radius-md);"><span style="color: var(--muted); font-size: 0.8rem;">No categories yet.</span></div>`}
-              </div>
-            </section>
-
-            ${weakTopicsHtml}
-
-            <section class="panel flow-card glass-card glow-hover" style="padding: 24px; margin-top: 16px;">
-              <div style="margin-bottom: 12px;">
-                <strong style="font-size:1.05rem; display:block;">AI Insights</strong>
-                <span style="font-size:0.8rem; color: var(--muted);">Smart recommendations</span>
-              </div>
-              <div style="display: flex; flex-direction: column; gap: 6px;">
-                ${insights.slice(0, 3).map(i => `
-                  <div style="padding: 8px 12px; background: var(--bg-secondary); border-radius: var(--radius-md); border: 1px solid var(--line);">
-                    <span style="color: var(--text); font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 2px;">${i.label}</span>
-                    <span style="font-size: 0.8rem; color: var(--muted); line-height: 1.4;">${i.value}</span>
-                  </div>
-                `).join("")}
-              </div>
-            </section>
+                  <span class="meta-chip">${formatDate(a.createdAt)}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+                  <span class="section-copy">${a.score || 0}/${a.total || 0} correct</span>
+                  <span class="section-copy">${a.settings?.topic ? escapeHtml(a.settings.topic) : 'Practice session'}</span>
+                </div>
+              </article>
+            `).join('') : `<div class="empty-state-mini" style="padding: 20px; text-align: center; border: 1px dashed var(--color-border-default); border-radius: var(--radius-md);"><span>No recent activity yet. Take a quiz to create progress history.</span></div>`}
           </div>
         </div>
+      </section>
 
-        <!-- Right Column: Activity, Achievements, Leaderboard -->
-        <div style="display: flex; flex-direction: column; gap: 16px;">
-          
-          <section class="panel flow-card glass-card glow-hover" style="padding: 24px;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+      <div class="dashboard-side-grid">
+        <section class="panel flow-card">
+          <div class="dashboard-block">
+            <div class="scoreboard-head">
               <div>
-                <strong style="font-size:1.05rem; display:block;">${userType === 'teacher' ? 'Recent Assessments' : 'Recent Activity'}</strong>
-                <span style="font-size:0.8rem; color: var(--muted);">${userType === 'teacher' ? 'Quizzes generated for class' : 'Latest learning sessions'}</span>
+                <strong class="section-title" style="font-size:1.15rem;">Continue Learning</strong>
+                <p class="section-copy">Next actions to stay on track.</p>
               </div>
-              ${attempts.length > 4 ? `<a href="./profile.html" style="font-size: 0.8rem; color: var(--text); font-weight: 500;">View All</a>` : ''}
             </div>
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-              ${recent.length ? recent.slice(0,4).map(a => `
-                <div style="padding: 10px 12px; background: var(--bg-secondary); border-radius: var(--radius-md); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 4px;">
-                  <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <strong style="color: var(--text); font-size: 0.9rem; font-weight: 700;">${a.percentage}% Score</strong>
-                    <span style="font-size: 0.7rem; background: var(--panel-soft); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--line); color: var(--muted);">${a.settings?.difficulty?.toUpperCase() || 'MODERATE'}</span>
-                  </div>
-                  <div style="display: flex; justify-content: space-between; align-items: center;">
-                     <span style="color: var(--muted); font-size: 0.75rem;">${formatDate(a.createdAt)}</span>
-                     <span style="color: var(--text); font-size: 0.8rem; font-weight: 500;">${a.score}/${a.total} Correct</span>
-                  </div>
-                </div>
-              `).join("") : `<div class="empty-state-mini" style="padding: 16px; text-align: center; border: 1px dashed var(--line); border-radius: var(--radius-md);"><span style="color: var(--muted); font-size: 0.85rem;">No recent activity.</span></div>`}
+            <div class="dashboard-list">
+              ${continueLearningHtml}
             </div>
-          </section>
+          </div>
+        </section>
 
-          <section class="panel flow-card glass-card glow-hover" style="padding: 24px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <section class="panel flow-card">
+          <div class="dashboard-block">
+            <div class="scoreboard-head">
               <div>
-                <strong style="font-size:1.05rem; display:block;">${userType === 'teacher' ? 'Student Rankings' : 'Top Players'}</strong>
-                <span style="font-size:0.8rem; color: var(--muted);">${userType === 'teacher' ? 'Top performers in cohort' : 'Global preview'}</span>
+                <strong class="section-title" style="font-size:1.15rem;">Recent Flashcards</strong>
+                <p class="section-copy">Deck summaries and review links.</p>
               </div>
-              <a href="./scoreboard.html" style="font-size: 0.8rem; color: var(--text); font-weight: 500;">Leaderboard</a>
             </div>
-            <div style="display: flex; flex-direction: column; gap: 6px;">
-               ${topPlayers.length ? topPlayers.slice(0, 4).map((p, idx) => `
-                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--bg-secondary); border-radius: var(--radius-md); border: 1px solid var(--line); ${p.email === auth?.getSession?.()?.email ? 'border-color: var(--primary); box-shadow: var(--glow-shadow);' : ''}">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                      <span style="font-size: 0.8rem; font-weight: 700; color: var(--muted); width: 16px; text-align: center;">${idx + 1}</span>
-                      <strong style="font-size: 0.85rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px;">${escapeHtml(p.name)}</strong>
-                    </div>
-                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--secondary);">${p.totalXp} XP</span>
-                 </div>
-               `).join("") : `<div class="empty-state-mini" style="padding: 16px; text-align: center; border: 1px dashed var(--line); border-radius: var(--radius-md);"><span style="color: var(--muted); font-size: 0.8rem;">No players ranked yet.</span></div>`}
+            <div class="dashboard-flashcards-list">
+              ${latestFlashcards.length ? latestFlashcards.map(deck => `
+                <article class="dashboard-flashcard-item">
+                  <div>
+                    <strong style="display:block; color: var(--color-text-primary);">${escapeHtml(deck.title || 'Untitled Deck')}</strong>
+                    <span class="section-copy">${Array.isArray(deck.flashcards) ? deck.flashcards.length : 0} cards</span>
+                  </div>
+                  <a href="./flashcards.html" class="ghost">Open</a>
+                </article>
+              `).join('') : `<div class="empty-state-mini" style="padding: 20px; text-align: center; border: 1px dashed var(--color-border-default); border-radius: var(--radius-md);"><span>No flashcards yet. Create one from Generate or Quiz results.</span></div>`}
             </div>
-          </section>
-          
-          <section class="panel flow-card glass-card glow-hover" style="padding: 24px;">
-            <div style="margin-bottom: 12px;">
-              <strong style="font-size:1.05rem; display:block;">Recent Badges</strong>
-              <span style="font-size:0.8rem; color: var(--muted);">${unlockedBadges.length}/${badges.length} Unlocked</span>
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-               ${unlockedBadges.length ? unlockedBadges.slice(0, 4).map(b => `
-                 <div style="display: flex; align-items: center; gap: 8px; padding: 8px; background: var(--bg-secondary); border-radius: var(--radius-md); border: 1px solid var(--line);">
-                    <span class="meta-chip" style="font-size: 0.68rem; padding: 2px 6px;">${escapeHtml(b.rarity)}</span>
-                    <strong style="font-size: 0.8rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(b.label)}</strong>
-                 </div>
-               `).join("") : `<div class="empty-state-mini" style="padding: 16px; text-align: center; border: 1px dashed var(--line); border-radius: var(--radius-md); grid-column: 1 / -1;"><span style="color: var(--muted); font-size: 0.8rem;">No badges earned.</span></div>`}
-            </div>
-          </section>
-
-        </div>
+          </div>
+        </section>
       </div>
+    </div>
 `;
 
   const downloadBtn = document.getElementById("downloadClassReportBtn");

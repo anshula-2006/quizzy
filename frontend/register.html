@@ -13,104 +13,107 @@
 <body>
   <div class="auth-shell">
     <div class="auth-grid">
-      <section class="auth-hero">
-        <a class="auth-brand" href="./index.html">
-          <span class="auth-brand-icon" aria-hidden="true">Q</span>
-          <span>Quizzy</span>
-        </a>
-        <span class="auth-pill">Choose your workspace</span>
-        <h1>Create your Quizzy account</h1>
-        <p class="section-copy">Set up your learning profile — generate quizzes, save flashcards, monitor progress, and compete on leaderboards.</p>
+      <div class="auth-hero">
+        <div class="auth-hero-inner">
+          <a class="auth-brand" href="./index.html">
+            <span class="auth-brand-icon" aria-hidden="true">Q</span>
+            <span>Quizzy</span>
+          </a>
+          
+          <div>
+            <span class="auth-pill">Choose your workspace</span>
+            <h1 style="margin-top: var(--space-4);">Create your account</h1>
+            <p class="section-copy" style="margin-top: var(--space-3);">Set up your learning profile — generate quizzes, save flashcards, monitor progress, and compete on leaderboards.</p>
+          </div>
 
-        <ul class="auth-feature-list">
-          <li class="auth-feature-item"><strong>Generate Quizzes</strong> — From text, URLs or PDFs in seconds.</li>
-          <li class="auth-feature-item"><strong>Study Smarter</strong> — Convert content to flashcards for quick review.</li>
-          <li class="auth-feature-item"><strong>Track Growth</strong> — XP, accuracy and streaks shown over time.</li>
-          <li class="auth-feature-item"><strong>Earn Badges</strong> — Collect achievements and climb leaderboards.</li>
-        </ul>
+          <ul class="auth-feature-list">
+            <li class="auth-feature-item"><strong>Generate Quizzes</strong> — From text, URLs or PDFs.</li>
+            <li class="auth-feature-item"><strong>Study Smarter</strong> — Convert content to flashcards.</li>
+            <li class="auth-feature-item"><strong>Track Growth</strong> — XP, accuracy and streaks.</li>
+          </ul>
 
-        <div class="auth-hero-grid">
-          <article class="auth-feature-card">
-            <strong>Student</strong>
-            <span>Daily practice, streaks, badges, and review decks</span>
-          </article>
-          <article class="auth-feature-card">
-            <strong>Teacher</strong>
-            <span>Assessment creation and class-ready review workflows</span>
-          </article>
+          <div class="auth-hero-grid">
+            <article class="auth-feature-card">
+              <strong>Student</strong>
+              <span>Daily practice, streaks, badges, and review decks</span>
+            </article>
+            <article class="auth-feature-card">
+              <strong>Teacher</strong>
+              <span>Assessment creation and class-ready workflows</span>
+            </article>
+          </div>
         </div>
-      </section>
-
-      <main class="auth-card">
-      <div class="auth-card-head">
-        <p class="auth-eyebrow">Register</p>
-        <h2>Create your account</h2>
-        <p>One account gives you quiz generation, saved history, and leaderboard access.</p>
-        <p class="auth-footer">
-          Quick links:
-          <a href="./dashboard.html">Dashboard</a>
-          <span>·</span>
-          <a href="./index.html">Home</a>
-        </p>
       </div>
 
-      <form id="registerForm" class="auth-form">
-        <div class="auth-field">
-          <label for="name">Name</label>
-          <input id="name" name="name" type="text" autocomplete="name" placeholder="Your full name" required />
-        </div>
-        <div class="auth-field">
-          <label for="email">Email</label>
-          <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required />
-        </div>
-        <div class="auth-field">
-          <label for="userId">User ID</label>
-          <input id="userId" name="userId" type="text" autocomplete="username" placeholder="Choose a unique ID" required />
-        </div>
-        <div class="auth-field">
-          <label for="phone">Phone Number</label>
-          <input id="phone" name="phone" type="tel" autocomplete="tel" placeholder="Your phone number" />
-        </div>
-        <div class="auth-field">
-          <label for="userType">User Type</label>
-          <select id="userType" name="userType" class="auth-select" required>
-            <option value="student" selected>Student</option>
-            <option value="teacher">Teacher</option>
-            <option value="self_learner">Self Learner</option>
-          </select>
-          <p id="userTypeHint" class="auth-field-hint">Practice quizzes, flashcards, streaks, and progress insights.</p>
-        </div>
-        <div class="auth-field">
-          <label for="grade">Grade / Class</label>
-          <input id="grade" name="grade" type="text" placeholder="e.g., 10th Grade, College, N/A" />
-        </div>
-        <div class="auth-field">
-          <label for="password">Password</label>
-          <div class="input-action-group">
-            <input id="password" name="password" type="password" autocomplete="new-password" placeholder="At least 6 characters" required class="text-input" />
-            <button type="button" id="togglePasswordBtn" class="input-action-btn" aria-label="Toggle password visibility">👁</button>
+      <div class="auth-card-wrap">
+        <main class="auth-card">
+          <div class="auth-card-head">
+            <p class="auth-eyebrow">Register</p>
+            <h2>Join Quizzy</h2>
+            <p>One account gives you quiz generation, saved history, and leaderboard access.</p>
           </div>
-          <div class="password-strength" aria-live="polite">
-            <span></span>
-            <em id="passwordStrengthText">Use 6+ characters</em>
-          </div>
-        </div>
-        <div class="auth-field">
-          <label for="confirmPassword">Confirm Password</label>
-          <div class="input-action-group">
-            <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" placeholder="Repeat your password" required class="text-input" />
-            <button type="button" id="toggleConfirmPasswordBtn" class="input-action-btn" aria-label="Toggle password visibility">👁</button>
-          </div>
-        </div>
-        <button id="registerSubmitBtn" class="auth-btn" type="submit">Create Account</button>
-        <p id="message" class="auth-msg"></p>
-      </form>
 
-      <p class="auth-footer">
-        Already have an account?
-        <a href="./login.html">Log in</a>
-      </p>
-    </main>
+          <form id="registerForm" class="auth-form">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+              <div class="auth-field">
+                <label for="name">Name</label>
+                <input id="name" name="name" type="text" autocomplete="name" placeholder="Your full name" required class="text-input" />
+              </div>
+              <div class="auth-field">
+                <label for="userId">User ID</label>
+                <input id="userId" name="userId" type="text" autocomplete="username" placeholder="Unique ID" required class="text-input" />
+              </div>
+            </div>
+            
+            <div class="auth-field">
+              <label for="email">Email</label>
+              <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required class="text-input" />
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+              <div class="auth-field">
+                <label for="userType">User Type</label>
+                <select id="userType" name="userType" class="auth-select">
+                  <option value="student" selected>Student</option>
+                  <option value="teacher">Teacher</option>
+                  <option value="self_learner">Self Learner</option>
+                </select>
+              </div>
+              <div class="auth-field">
+                <label for="grade">Grade</label>
+                <input id="grade" name="grade" type="text" placeholder="e.g., 10th Grade" class="text-input" />
+              </div>
+            </div>
+
+            <div class="auth-field">
+              <label for="password">Password</label>
+              <div class="input-action-group">
+                <input id="password" name="password" type="password" autocomplete="new-password" placeholder="At least 6 characters" required class="text-input" />
+                <button type="button" id="togglePasswordBtn" class="input-action-btn" aria-label="Toggle password visibility">👁</button>
+              </div>
+              <div class="password-strength" aria-live="polite">
+                <span></span>
+                <em id="passwordStrengthText">Use 6+ characters</em>
+              </div>
+            </div>
+
+            <div class="auth-field">
+              <label for="confirmPassword">Confirm Password</label>
+              <div class="input-action-group">
+                <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" placeholder="Repeat your password" required class="text-input" />
+                <button type="button" id="toggleConfirmPasswordBtn" class="input-action-btn" aria-label="Toggle password visibility">👁</button>
+              </div>
+            </div>
+
+            <button id="registerSubmitBtn" class="auth-btn" type="submit">Create Account</button>
+            <p id="message" class="auth-msg"></p>
+          </form>
+
+          <p class="auth-footer">
+            Already have an account? <a href="./login.html">Log in</a>
+          </p>
+        </main>
+      </div>
     </div>
   </div>
 

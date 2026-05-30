@@ -13,84 +13,83 @@
 <body>
   <div class="auth-shell">
     <div class="auth-grid">
-      <section class="auth-hero">
-        <a class="auth-brand" href="./index.html">
-          <span class="auth-brand-icon" aria-hidden="true">Q</span>
-          <span>Quizzy</span>
-        </a>
-        <span class="auth-pill">Role-aware workspace</span>
-        <h1>Welcome back</h1>
-        <p class="section-copy">Get started quickly—generate quizzes, study flashcards, track progress, and compete on leaderboards.</p>
+      <div class="auth-hero">
+        <div class="auth-hero-inner">
+          <a class="auth-brand" href="./index.html">
+            <span class="auth-brand-icon" aria-hidden="true">Q</span>
+            <span>Quizzy</span>
+          </a>
+          
+          <div>
+            <span class="auth-pill">Role-aware workspace</span>
+            <h1 style="margin-top: var(--space-4);">Welcome back</h1>
+            <p class="section-copy" style="margin-top: var(--space-3);">Get started quickly—generate quizzes, study flashcards, track progress, and compete on leaderboards.</p>
+          </div>
 
-        <ul class="auth-feature-list">
-          <li class="auth-feature-item"><strong>Generate Quizzes</strong> — Create practice sets from topics, URLs, or PDFs.</li>
-          <li class="auth-feature-item"><strong>Study Flashcards</strong> — Turn quiz content into quick review sessions.</li>
-          <li class="auth-feature-item"><strong>Track Progress</strong> — Monitor XP, streaks, and accuracy.</li>
-          <li class="auth-feature-item"><strong>Compete on Leaderboards</strong> — Climb ranks and earn badges.</li>
-        </ul>
+          <ul class="auth-feature-list">
+            <li class="auth-feature-item"><strong>Generate Quizzes</strong> — Create practice sets from topics, URLs, or PDFs.</li>
+            <li class="auth-feature-item"><strong>Study Flashcards</strong> — Turn quiz content into quick review sessions.</li>
+            <li class="auth-feature-item"><strong>Track Progress</strong> — Monitor XP, streaks, and accuracy.</li>
+          </ul>
 
-        <div class="auth-hero-grid">
-          <article class="auth-feature-card">
-            <strong>Students</strong>
-            <span>Practice, revise, and keep progress visible</span>
-          </article>
-          <article class="auth-feature-card">
-            <strong>Teachers</strong>
-            <span>Create assessments and use class analytics</span>
-          </article>
-        </div>
-      </section>
-
-      <main class="auth-card">
-      <div class="auth-card-head">
-        <p class="auth-eyebrow">Login</p>
-        <h2>Sign in to Quizzy</h2>
-        <p>Access your dashboard, history, and leaderboard profile.</p>
-        <p class="auth-footer">
-          Quick links:
-          <a href="./dashboard.html">Dashboard</a>
-          <span>·</span>
-          <a href="./index.html">Home</a>
-        </p>
-      </div>
-
-      <form id="loginForm" class="auth-form">
-        <div class="auth-field">
-          <label for="loginUserType">Workspace</label>
-          <select id="loginUserType" name="userType" class="auth-select">
-            <option value="student" selected>Student</option>
-            <option value="teacher">Teacher</option>
-            <option value="self_learner">Self Learner</option>
-          </select>
-          <p id="loginUserTypeHint" class="auth-field-hint">Practice quizzes, flashcards, streaks, and progress insights.</p>
-        </div>
-        <div class="auth-field">
-          <label for="email">Email</label>
-          <input id="email" name="email" type="email" autocomplete="username" placeholder="you@example.com" required />
-        </div>
-        <div class="auth-field">
-          <label for="password">Password</label>
-          <div class="input-action-group">
-            <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required class="text-input" />
-            <button type="button" id="togglePasswordBtn" class="input-action-btn" aria-label="Toggle password visibility">👁</button>
+          <div class="auth-hero-grid">
+            <article class="auth-feature-card">
+              <strong>Students</strong>
+              <span>Practice, revise, and keep progress visible</span>
+            </article>
+            <article class="auth-feature-card">
+              <strong>Teachers</strong>
+              <span>Create assessments and use class analytics</span>
+            </article>
           </div>
         </div>
-        <div class="checkbox-row">
-          <label class="checkbox-label">
-            <input type="checkbox" id="rememberMe" name="rememberMe" class="checkbox-input" checked />
-            Remember me
-          </label>
-          <a href="#" id="forgotPasswordLink" class="helper-link">Forgot password?</a>
-        </div>
-        <button id="loginSubmitBtn" class="auth-btn" type="submit">Log In</button>
-        <p id="message" class="auth-msg"></p>
-      </form>
+      </div>
 
-      <p class="auth-footer">
-        New user?
-        <a href="./register.html">Create an account</a>
-      </p>
-    </main>
+      <div class="auth-card-wrap">
+        <main class="auth-card">
+          <div class="auth-card-head">
+            <p class="auth-eyebrow">Login</p>
+            <h2>Sign in to Quizzy</h2>
+            <p>Access your dashboard, history, and leaderboard profile.</p>
+          </div>
+
+          <form id="loginForm" class="auth-form">
+            <div class="auth-field">
+              <label for="loginUserType">Workspace</label>
+              <select id="loginUserType" name="userType" class="auth-select">
+                <option value="student" selected>Student</option>
+                <option value="teacher">Teacher</option>
+                <option value="self_learner">Self Learner</option>
+              </select>
+              <p id="loginUserTypeHint" class="auth-field-hint">Practice quizzes, flashcards, streaks, and progress insights.</p>
+            </div>
+            <div class="auth-field">
+              <label for="email">Email</label>
+              <input id="email" name="email" type="email" autocomplete="username" placeholder="you@example.com" required class="text-input" />
+            </div>
+            <div class="auth-field">
+              <label for="password">Password</label>
+              <div class="input-action-group">
+                <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required class="text-input" />
+                <button type="button" id="togglePasswordBtn" class="input-action-btn" aria-label="Toggle password visibility">👁</button>
+              </div>
+            </div>
+            <div class="checkbox-row">
+              <label class="checkbox-label">
+                <input type="checkbox" id="rememberMe" name="rememberMe" class="checkbox-input" checked />
+                Remember me
+              </label>
+              <a href="#" id="forgotPasswordLink" class="helper-link">Forgot password?</a>
+            </div>
+            <button id="loginSubmitBtn" class="auth-btn" type="submit">Log In</button>
+            <p id="message" class="auth-msg"></p>
+          </form>
+
+          <p class="auth-footer">
+            New user? <a href="./register.html">Create an account</a>
+          </p>
+        </main>
+      </div>
     </div>
   </div>
 

@@ -9,49 +9,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./design-system.css" />
   <link rel="stylesheet" href="./app.css" />
-  <style>
-    :root {
-      --primary: var(--purple);
-      --secondary: var(--cyan);
-      --accent: var(--blue);
-      --glass-border: var(--line);
-      --glow-shadow: var(--shadow-soft);
-    }
-
-    .theme-toggle {
-      gap: 8px;
-      white-space: nowrap;
-    }
-
-    .theme-icon {
-      font-size: 1rem;
-      line-height: 1;
-    }
-
-    .scoreboard-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 18px;
-    }
-
-    .scoreboard-content-grid {
-      grid-template-columns: 1fr !important;
-    }
-
-    .scoreboard-support-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(280px, 0.55fr);
-      gap: 24px;
-      align-items: start;
-    }
-
-    @media (max-width: 900px) {
-      .scoreboard-support-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
 </head>
 <body>
   <div class="page-shell">
@@ -66,7 +23,7 @@
           <a class="nav-link" href="./arcade.html">Arcade</a>
           <a class="nav-link is-active" href="./scoreboard.html">Leaderboard</a>
         </nav>
-        <div class="nav-actions" style="display:flex; gap:1.5rem; align-items:center; font-size: 1.05rem; font-weight: 500;">
+        <div class="nav-actions">
           <span id="authUser" class="hidden"></span>
           <a id="loginLink" class="nav-link" href="./login.html">Login</a>
           <a id="registerLink" class="nav-link" href="./register.html">Register</a>

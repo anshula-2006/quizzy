@@ -25,16 +25,16 @@
         </nav>
       </header>
 
-      <main class="split-grid two-col generate-workspace" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; align-items: start;">
+      <main class="split-grid two-col generate-workspace">
         <section class="panel flow-card page-fade generate-composer">
           <p class="eyebrow">Generate</p>
           <h1 class="section-title">Create your quiz</h1>
           <p class="section-copy">Choose a source, tune the assessment, and launch a focused quiz without leaving the workflow.</p>
 
-          <form id="generateForm" class="field-stack" style="margin-top:28px;">
+          <form id="generateForm" class="field-stack generate-form">
             <div>
               <label class="field-label">Step 1 - Choose Source</label>
-              <div class="source-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem;">
+              <div class="source-grid">
                 <button type="button" class="source-card is-active" data-source="text"><strong>Topic</strong><span>Prompt or pasted notes.</span></button>
                 <button type="button" class="source-card" data-source="pdf"><strong>PDF</strong><span>Upload source material.</span></button>
                 <button type="button" class="source-card" data-source="url"><strong>URL</strong><span>Parse a public article.</span></button>
@@ -48,12 +48,12 @@
               <div class="file-wrap" hidden>
                 <input id="pdfInput" class="file-input" type="file" accept=".pdf,application/pdf" />
               </div>
-              <p id="sourceHint" class="helper-text" style="margin:12px 0 0;">Type a topic or paste your notes.</p>
+              <p id="sourceHint" class="helper-text">Type a topic or paste your notes.</p>
             </div>
 
             <div>
               <label class="field-label">Step 3 - Tune Quiz</label>
-              <div class="settings-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.25rem;">
+              <div class="settings-grid">
                 <div class="setting-card">
                   <label class="field-label" for="difficultySelect">Difficulty</label>
                   <select id="difficultySelect" class="select-input">
@@ -102,8 +102,8 @@
 
         <aside class="panel game-card page-fade workflow-sidebar">
           <p class="eyebrow">Workspace</p>
-          <h2 class="section-title" style="font-size:1.8rem;">Assessment setup</h2>
-          <div class="field-stack" style="margin-top:18px;">
+          <h2 class="section-title">Assessment setup</h2>
+          <div class="field-stack section-gap">
             <div class="setting-card"><strong>Input</strong><p class="helper-text">Topic, PDF, or URL source.</p></div>
             <div class="setting-card"><strong>Generation</strong><p class="helper-text">Backend call starts only on command.</p></div>
             <div class="setting-card"><strong>Analytics</strong><p class="helper-text">Results feed XP, badges, and history.</p></div>

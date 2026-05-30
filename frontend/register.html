@@ -12,28 +12,36 @@
 </head>
 <body>
   <div class="auth-shell">
-    <section class="auth-hero">
-      <a class="auth-brand" href="./index.html">
-        <span class="auth-brand-icon" aria-hidden="true">Q</span>
-        <span>Quizzy</span>
-      </a>
-      <span class="auth-pill">Choose your workspace</span>
-      <h1>Create your Quizzy account</h1>
-      <p>Set up a learning profile for quizzes, saved decks, analytics, and progress tracking.</p>
+    <div class="auth-grid">
+      <section class="auth-hero">
+        <a class="auth-brand" href="./index.html">
+          <span class="auth-brand-icon" aria-hidden="true">Q</span>
+          <span>Quizzy</span>
+        </a>
+        <span class="auth-pill">Choose your workspace</span>
+        <h1>Create your Quizzy account</h1>
+        <p class="section-copy">Set up your learning profile — generate quizzes, save flashcards, monitor progress, and compete on leaderboards.</p>
 
-      <div class="auth-hero-grid">
-        <article class="auth-feature-card">
-          <strong>Student</strong>
-          <span>Daily practice, streaks, badges, and review decks</span>
-        </article>
-        <article class="auth-feature-card">
-          <strong>Teacher</strong>
-          <span>Assessment creation and class-ready review workflows</span>
-        </article>
-      </div>
-    </section>
+        <ul class="auth-feature-list">
+          <li class="auth-feature-item"><strong>Generate Quizzes</strong> — From text, URLs or PDFs in seconds.</li>
+          <li class="auth-feature-item"><strong>Study Smarter</strong> — Convert content to flashcards for quick review.</li>
+          <li class="auth-feature-item"><strong>Track Growth</strong> — XP, accuracy and streaks shown over time.</li>
+          <li class="auth-feature-item"><strong>Earn Badges</strong> — Collect achievements and climb leaderboards.</li>
+        </ul>
 
-    <main class="auth-card">
+        <div class="auth-hero-grid">
+          <article class="auth-feature-card">
+            <strong>Student</strong>
+            <span>Daily practice, streaks, badges, and review decks</span>
+          </article>
+          <article class="auth-feature-card">
+            <strong>Teacher</strong>
+            <span>Assessment creation and class-ready review workflows</span>
+          </article>
+        </div>
+      </section>
+
+      <main class="auth-card">
       <div class="auth-card-head">
         <p class="auth-eyebrow">Register</p>
         <h2>Create your account</h2>
@@ -103,6 +111,7 @@
         <a href="./login.html">Log in</a>
       </p>
     </main>
+    </div>
   </div>
 
   <script type="module" src="./js/page-auth.js"></script>

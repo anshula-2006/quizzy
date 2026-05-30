@@ -1043,6 +1043,55 @@
   text-transform: uppercase;
   letter-spacing: 0.1em;
   font-weight: var(--font-weight-semibold);
+
+/* Auth page grid & messaging */
+.auth-grid {
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: var(--space-6);
+  align-items: start;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+.auth-hero {
+  padding: var(--space-6);
+  background: linear-gradient(180deg, rgba(139,92,246,0.03), transparent);
+  border-radius: var(--radius-lg);
+}
+.auth-pill {
+  display: inline-block;
+  background: var(--panel-soft);
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-3);
+}
+.auth-feature-list {
+  margin: var(--space-4) 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  list-style: none;
+}
+.auth-feature-item { color: var(--color-text-secondary); font-size: var(--font-size-base); }
+.auth-hero-grid { display: flex; gap: var(--space-3); margin-top: var(--space-4); }
+.auth-feature-card { padding: var(--space-4); border-radius: var(--radius-md); background: var(--color-surface-2); border: 1px solid var(--color-border-default); }
+
+@media (max-width: 920px) {
+  .auth-grid { grid-template-columns: 1fr; padding: 0 var(--space-4); }
+}
+
+/* Register / Auth tweaks */
+.auth-card-head {
+  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-surface-3);
+}
+.auth-eyebrow { margin: 0 0 var(--space-2); color: var(--color-text-secondary); font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold); text-transform: uppercase; letter-spacing: 0.08em; }
+.password-strength { margin-top: var(--space-3); }
+.password-strength span { display: block; height: 8px; width: 10%; border-radius: var(--radius-full); background: var(--color-surface-3); transition: width var(--transition-fast); }
+.password-strength em { display: block; margin-top: 6px; color: var(--color-text-secondary); font-style: normal; font-size: var(--font-size-sm); }
 }
 
 .auth-hero-grid {

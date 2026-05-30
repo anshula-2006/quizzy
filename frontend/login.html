@@ -12,28 +12,36 @@
 </head>
 <body>
   <div class="auth-shell">
-    <section class="auth-hero">
-      <a class="auth-brand" href="./index.html">
-        <span class="auth-brand-icon" aria-hidden="true">Q</span>
-        <span>Quizzy</span>
-      </a>
-      <span class="auth-pill">Role-aware workspace</span>
-      <h1>Welcome back</h1>
-      <p>Continue in the workspace that matches how you learn, teach, or self-study.</p>
+    <div class="auth-grid">
+      <section class="auth-hero">
+        <a class="auth-brand" href="./index.html">
+          <span class="auth-brand-icon" aria-hidden="true">Q</span>
+          <span>Quizzy</span>
+        </a>
+        <span class="auth-pill">Role-aware workspace</span>
+        <h1>Welcome back</h1>
+        <p class="section-copy">Get started quickly—generate quizzes, study flashcards, track progress, and compete on leaderboards.</p>
 
-      <div class="auth-hero-grid">
-        <article class="auth-feature-card">
-          <strong>Students</strong>
-          <span>Practice, revise, and keep progress visible</span>
-        </article>
-        <article class="auth-feature-card">
-          <strong>Teachers</strong>
-          <span>Create assessments and review learner progress</span>
-        </article>
-      </div>
-    </section>
+        <ul class="auth-feature-list">
+          <li class="auth-feature-item"><strong>Generate Quizzes</strong> — Create practice sets from topics, URLs, or PDFs.</li>
+          <li class="auth-feature-item"><strong>Study Flashcards</strong> — Turn quiz content into quick review sessions.</li>
+          <li class="auth-feature-item"><strong>Track Progress</strong> — Monitor XP, streaks, and accuracy.</li>
+          <li class="auth-feature-item"><strong>Compete on Leaderboards</strong> — Climb ranks and earn badges.</li>
+        </ul>
 
-    <main class="auth-card">
+        <div class="auth-hero-grid">
+          <article class="auth-feature-card">
+            <strong>Students</strong>
+            <span>Practice, revise, and keep progress visible</span>
+          </article>
+          <article class="auth-feature-card">
+            <strong>Teachers</strong>
+            <span>Create assessments and use class analytics</span>
+          </article>
+        </div>
+      </section>
+
+      <main class="auth-card">
       <div class="auth-card-head">
         <p class="auth-eyebrow">Login</p>
         <h2>Sign in to Quizzy</h2>
@@ -83,6 +91,7 @@
         <a href="./register.html">Create an account</a>
       </p>
     </main>
+    </div>
   </div>
 
   <script type="module" src="./js/page-auth.js"></script>

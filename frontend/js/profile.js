@@ -61,10 +61,10 @@ function getCategoryStats(attempts) {
 
 function statCard(label, value, helper) {
   return `
-    <article class="saas-stat-card panel glass-card glow-hover" style="padding: 16px; border-radius: var(--radius-md);">
+    <article class="dash-stat-card glass-card glow-hover">
       <span class="saas-stat-label">${label}</span>
-      <strong class="saas-stat-value" style="font-size: 1.5rem; margin: 4px 0;">${value}</strong>
-      <span class="saas-stat-helper" style="font-size: 0.8rem;">${helper}</span>
+      <strong class="saas-stat-value">${value}</strong>
+      <span class="saas-stat-helper">${helper}</span>
     </article>
   `;
 }
@@ -125,111 +125,111 @@ async function init() {
   const avatarInitial = escapeHtml(name.slice(0, 1).toUpperCase());
 
   root.innerHTML = `
-    <section class="profile-header-compact panel glass-card" style="margin-bottom: 24px; padding: 24px;">
-      <div class="profile-identity">
-        <div class="profile-avatar-large" style="width: 64px; height: 64px; font-size: 2rem;">${avatarInitial}</div>
-        <div class="profile-title">
-          <h1 style="font-size: 1.6rem; font-weight: 700; margin: 0 0 6px; letter-spacing: -0.02em;">${escapeHtml(name)}</h1>
-          <span style="color: var(--muted); font-size: 0.95rem;">Level ${game.level} • ${game.totalXp} XP</span>
-        </div>
+    <section class="panel flow-card dashboard-hero">
+      <div class="dashboard-hero-copy">
+        <p class="eyebrow">Profile overview</p>
+        <h1 class="section-title">${escapeHtml(name)}</h1>
+        <p class="section-copy">Your learning profile, progress, and achievements in one place.</p>
       </div>
-      <div class="profile-metrics" style="gap: 32px;">
-        <div class="profile-metric"><span>Global Rank</span><strong style="font-size: 1.4rem;">${rank === "--" ? "--" : "#" + rank}</strong></div>
-        <div class="profile-metric border-left" style="padding-left: 32px;"><span>Streak</span><strong style="font-size: 1.4rem;">${game.streak} 🔥</strong></div>
+
+      <div class="dashboard-top-metrics">
+        ${statCard("Rank", rank === "--" ? "--" : `#${rank}`, "Leaderboard position")}
+        ${statCard("Level", game.level, "Current stage")}
+        ${statCard("Streak", `${game.streak} days`, "Live streak")}
+        ${statCard("XP", game.totalXp, "Total points")}
       </div>
     </section>
 
-    <section class="hero-stats-grid" style="margin-bottom: 24px;">
-      ${statCard("Total Quizzes", attempts.length || Number(profile?.totalQuizzes || 0), "Completions")}
-      ${statCard("Accuracy", avg + "%", "Average score")}
+    <div class="dashboard-stat-grid">
+      ${statCard("Quizzes completed", attempts.length || Number(profile?.totalQuizzes || 0), "Sets finished")}
+      ${statCard("Accuracy", `${avg}%`, "Average score")}
       ${statCard("Flashcards", flashDecks.length, "Decks created")}
-      ${statCard("Badges", unlocked.length, "Earned out of " + badges.length)}
-    </section>
+      ${statCard("Badges unlocked", unlocked.length, `out of ${badges.length}`)}
+    </div>
 
-    <div class="dashboard-content-grid" style="grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: 24px;">
-      <!-- Left Column -->
-      <div style="display: grid; gap: 24px; align-content: start;">
-        <section class="panel flow-card glass-card">
-           <div class="card-title-row">
-             <div><strong style="font-size:1.1rem;">Accuracy Trend</strong><span style="display:block; margin-top:2px; font-size:0.85rem;">Performance over the last 7 days</span></div>
-           </div>
-           ${renderLineChart(weeklyData)}
-        </section>
-        
-        <section class="panel flow-card glass-card">
-           <div class="card-title-row">
-             <div><strong style="font-size:1.1rem;">Category Performance</strong><span style="display:block; margin-top:2px; font-size:0.85rem;">Accuracy by subject or mode</span></div>
-           </div>
-           <div style="display: grid; gap: 8px; margin-top: 16px;">
-             ${categoryStats.length ? categoryStats.slice(0, 5).map(c => `
-               <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--panel-soft); border-radius: var(--radius-md); border: 1px solid var(--line);">
-                 <span style="font-size: 0.9rem; text-transform: capitalize; font-weight: 600;">${escapeHtml(c.label)}</span>
-                 <div style="display: flex; align-items: center; gap: 16px;">
-                   <span style="font-size: 0.8rem; color: var(--muted);">${c.count} quizzes</span>
-                   <strong style="font-size: 0.95rem; color: var(--text);">${c.average}%</strong>
-                 </div>
-               </div>
-             `).join("") : `<div class="empty-state-mini" style="padding: 16px; text-align: center; border: 1px dashed var(--line); border-radius: var(--radius-md);"><span style="color: var(--muted); font-size: 0.85rem;">No category data yet.</span></div>`}
-           </div>
-        </section>
-        
-        <section class="panel flow-card glass-card">
-           <div class="card-title-row">
-             <div><strong style="font-size:1.1rem;">Activity Map</strong><span style="display:block; margin-top:2px; font-size:0.85rem;">Quiz completions in the last 28 days</span></div>
-           </div>
-           <div class="activity-heatmap" style="margin-top: 20px;">${heatmap(attempts)}</div>
-        </section>
-      </div>
+    <div class="dashboard-content-grid">
+      <section class="panel flow-card">
+        <div class="dashboard-block">
+          <div class="card-title-row">
+            <div>
+              <strong class="section-title">Recent activity</strong>
+              <span class="section-copy">Latest quiz sessions and performance details.</span>
+            </div>
+            ${attempts.length > 5 ? `<a href="./profile.html" class="ghost">View all</a>` : ""}
+          </div>
+          <div class="dashboard-list">
+            ${attempts.length ? attempts.slice(0, 6).map((a) => `
+              <article class="dashboard-activity-item">
+                <div style="display:flex; justify-content:space-between; gap: var(--space-3); flex-wrap:wrap; align-items:center;">
+                  <div>
+                    <strong>${a.percentage}% score</strong>
+                    <span class="section-copy">${escapeHtml(a.settings?.difficulty || "Mixed")} · ${escapeHtml(a.settings?.questionMode || "Quiz")}</span>
+                  </div>
+                  <span class="meta-chip">${formatShortDate(a.createdAt)}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; gap: var(--space-3); flex-wrap:wrap;">
+                  <span class="section-copy">${a.score || 0}/${a.total || 0} correct</span>
+                  <span class="section-copy">${a.settings?.topic ? escapeHtml(a.settings.topic) : "Practice session"}</span>
+                </div>
+              </article>
+            `).join("") : `<div class="empty-state-mini"><span>No recent activity yet. Take a quiz to begin your streak.</span></div>`}
+          </div>
+        </div>
+      </section>
 
-      <!-- Right Column -->
-      <div style="display: grid; gap: 24px; align-content: start;">
-        <section class="panel flow-card glass-card">
-          <div class="card-title-row">
-            <div><strong style="font-size:1.1rem;">Level Progress</strong><span style="display:block; margin-top:2px; font-size:0.85rem;">Journey to Level ${game.level + 1}</span></div>
-          </div>
-          <div class="mini-progress" style="margin-top: 16px; height: 8px;"><span style="width:${game.progress}%"></span></div>
-          <div style="display: flex; justify-content: space-between; margin-top: 12px;">
-             <span style="font-size: 0.85rem; color: var(--text); font-weight: 600;">${game.totalXp} XP</span>
-             <span style="font-size: 0.85rem; color: var(--muted);">${180 - (game.totalXp % 180)} XP to next level</span>
-          </div>
-        </section>
-        
-        <section class="panel flow-card glass-card">
-          <div class="card-title-row">
-            <div><strong style="font-size:1.1rem;">Recent Activity</strong><span style="display:block; margin-top:2px; font-size:0.85rem;">Your latest sessions</span></div>
-          </div>
-          <div class="timeline-list" style="margin-top: 16px; display: grid; gap: 8px;">
-             ${attempts.length ? attempts.slice(0, 5).map(a => `
-               <div class="timeline-item" style="grid-template-columns: 1fr; padding: 14px; border-radius: var(--radius-md);">
-                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                   <strong style="color: var(--text); font-size: 0.95rem;">${a.percentage}% Score</strong>
-                   <span style="font-size: 0.75rem; background: var(--panel-soft); padding: 4px 8px; border-radius: 6px; border: 1px solid var(--line); font-weight: 600;">${a.settings?.difficulty?.toUpperCase() || 'MODERATE'}</span>
-                 </div>
-                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
-                    <span style="color: var(--muted); font-size: 0.8rem;">${formatShortDate(a.createdAt)}</span>
-                    <span style="color: var(--muted); font-size: 0.8rem;">${a.score}/${a.total} Correct</span>
-                 </div>
-               </div>
-             `).join("") : `<div class="empty-state-mini" style="padding: 24px; text-align: center; border: 1px dashed var(--line); border-radius: var(--radius-md);"><span style="color: var(--muted); font-size: 0.9rem;">No recent activity.</span></div>`}
+      <div class="dashboard-side-grid">
+        <section class="panel flow-card">
+          <div class="dashboard-block">
+            <div class="card-title-row">
+              <div>
+                <strong class="section-title">Progress</strong>
+                <span class="section-copy">XP to the next level and momentum.</span>
+              </div>
+            </div>
+            <div class="profile-progress">
+              <div class="mini-progress"><span style="width:${game.progress}%"></span></div>
+              <div class="profile-progress-meta">
+                <span>${game.totalXp} XP earned</span>
+                <span>${Math.max(0, 180 - (game.totalXp % 180))} XP to next level</span>
+              </div>
+            </div>
           </div>
         </section>
 
-        <section class="panel flow-card glass-card">
-          <div class="card-title-row">
-            <div><strong style="font-size:1.1rem;">Top Achievements</strong><span style="display:block; margin-top:2px; font-size:0.85rem;">Your most recent badges</span></div>
+        <section class="panel flow-card">
+          <div class="dashboard-block">
+            <div class="card-title-row">
+              <div>
+                <strong class="section-title">Recent badges</strong>
+                <span class="section-copy">Your newest achievements at a glance.</span>
+              </div>
+            </div>
+            <div class="profile-badge-grid">
+              ${unlocked.length ? unlocked.slice(0, 6).map((badge) => `
+                <article class="badge-card">
+                  <span class="badge-icon">
+                    <img src="${badge.icon}" alt="${badge.label}" loading="lazy" />
+                  </span>
+                  <div>
+                    <strong>${badge.label}</strong>
+                    <span>${badge.rarity}</span>
+                  </div>
+                </article>
+              `).join("") : `<div class="empty-state-mini"><span>No badges earned yet. Keep quizzing to unlock new rewards.</span></div>`}
+            </div>
+            ${unlocked.length > 6 ? `<p class="section-copy" style="margin-top: var(--space-3);">+${unlocked.length - 6} more badges earned</p>` : ""}
           </div>
-          <div class="premium-badges" style="display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-top: 16px;">
-             ${unlocked.length ? unlocked.slice(0, 4).map(badge => `
-                 <article class="badge-card is-unlocked glass-card ${badge.rarity}" style="min-height: auto; padding: 16px; border-radius: var(--radius-md); display: flex; align-items: center; gap: 12px;">
-                   <span class="badge-icon" style="width: 40px; height: 40px; margin: 0; box-shadow: none; background: var(--bg-secondary); border: none; display: grid; place-items: center; border-radius: 8px; flex-shrink: 0;">
-                   <img src="${badge.icon}" alt="${badge.label}" loading="lazy" style="width: 24px; height: 24px;" />
-                 </span>
-                 <div style="min-width: 0;">
-                   <strong style="display: block; font-size: 0.95rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${badge.label}</strong>
-                   <span style="display: block; margin-top: 2px; font-size: 0.75rem; color: var(--muted);">${badge.rarity}</span>
-                 </div>
-               </article>
-             `).join("") : `<div class="empty-state-mini" style="padding: 16px; text-align: center; border: 1px dashed var(--line); border-radius: var(--radius-md); grid-column: 1 / -1;"><span style="color: var(--muted); font-size: 0.85rem;">No badges earned yet.</span></div>`}
+        </section>
+
+        <section class="panel flow-card">
+          <div class="dashboard-block">
+            <div class="card-title-row">
+              <div>
+                <strong class="section-title">Activity map</strong>
+                <span class="section-copy">Quiz habit over the last 28 days.</span>
+              </div>
+            </div>
+            <div class="heatmap-grid">${heatmap(attempts)}</div>
           </div>
         </section>
       </div>

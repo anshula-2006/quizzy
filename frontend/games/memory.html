@@ -9,52 +9,45 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../design-system.css" />
-  <link rel="stylesheet" href="../styles-arcade-clean.css" />
-  <link rel="stylesheet" href="./arcade-games-clean.css" />
+  <link rel="stylesheet" href="../app.css" />
 </head>
 
-<body class="arcade-body">
-  <div class="arcade-shell">
-    <div class="arcade-frame">
-
-      <header class="arcade-header">
-        <div>
-          <div class="arcade-mark">Mini Arcade</div>
-          <h1 class="arcade-title">Memory Match</h1>
-          <p class="arcade-subtitle">
-            Train visual recall by matching pairs with as few moves as possible.
-          </p>
-        </div>
-        <a class="arcade-back" href="../arcade.html">Back to Arcade</a>
+<body>
+  <div class="page-shell">
+    <div class="page-container">
+      <header class="top-nav">
+        <a class="brand" href="../index.html"><span class="brand-badge">Q</span><span>Quizzy</span></a>
+        <nav class="nav-links">
+          <a class="nav-link" href="../arcade.html">← Back to Arcade</a>
+        </nav>
       </header>
 
-      <main class="arcade-panel arcade-game-wrap">
-
-        <section class="arcade-game-head">
-          <div class="arcade-kpis">
-            <div class="arcade-kpi">
-              <span>Moves</span>
-              <strong id="movesCount">0</strong>
+      <main class="panel flow-card">
+        <div class="card-title-row">
+          <div>
+            <p class="eyebrow">Mini Arcade</p>
+            <h1 class="section-title">Memory Match</h1>
+            <p class="section-copy">Train visual recall by matching pairs with as few moves as possible.</p>
+          </div>
+          <div style="display: flex; gap: var(--space-4);">
+            <div class="dash-stat-card">
+              <span class="saas-stat-label">Moves</span>
+              <strong id="movesCount" class="saas-stat-value">0</strong>
             </div>
-            <div class="arcade-kpi">
-              <span>Time</span>
-              <strong id="timeCount">0s</strong>
+            <div class="dash-stat-card">
+              <span class="saas-stat-label">Time</span>
+              <strong id="timeCount" class="saas-stat-value">0s</strong>
             </div>
           </div>
+        </div>
 
-          <div class="arcade-actions">
-            <button id="restartGameBtn" class="arcade-btn-secondary">
-              Restart
-            </button>
-          </div>
-        </section>
+        <div class="button-row section-gap" style="align-items: center; justify-content: space-between;">
+          <button id="restartGameBtn" class="btn-outline" type="button">Restart Game</button>
+          <p id="memoryStatus" class="helper-text" style="margin: 0;">Ready to play 🚀</p>
+        </div>
 
-        <p id="memoryStatus" class="arcade-feedback">Ready to play 🚀</p>
-
-        <div id="memoryBoard" class="memory-grid"></div>
-
+        <div id="memoryBoard" class="memory-grid section-gap"></div>
       </main>
-
     </div>
   </div>
 

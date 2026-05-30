@@ -25,88 +25,116 @@
         </nav>
       </header>
 
-      <main class="split-grid two-col generate-workspace">
+      <main class="dashboard-content-grid generate-workspace">
         <section class="panel flow-card page-fade generate-composer">
-          <p class="eyebrow">Generate</p>
-          <h1 class="section-title">Create your quiz</h1>
-          <p class="section-copy">Choose a source, tune the assessment, and launch a focused quiz without leaving the workflow.</p>
-
-          <form id="generateForm" class="field-stack generate-form">
-            <div>
-              <label class="field-label">Step 1 - Choose Source</label>
-              <div class="source-grid">
-                <button type="button" class="source-card is-active" data-source="text"><strong>Topic</strong><span>Prompt or pasted notes.</span></button>
-                <button type="button" class="source-card" data-source="pdf"><strong>PDF</strong><span>Upload source material.</span></button>
-                <button type="button" class="source-card" data-source="url"><strong>URL</strong><span>Parse a public article.</span></button>
+          <div class="dashboard-block">
+            <div class="card-title-row">
+              <div>
+                <p class="eyebrow">Generate</p>
+                <h1 class="section-title">Create your quiz</h1>
+                <p class="section-copy">Choose a source, tune the assessment, and launch a focused quiz without leaving the workflow.</p>
               </div>
             </div>
 
-            <div>
-              <label class="field-label">Step 2 - Add Content</label>
-              <textarea id="topicInput" class="text-input" placeholder="Photosynthesis, recursion, Indian constitution, your own notes..."></textarea>
-              <input id="urlInput" class="text-input" type="url" placeholder="https://example.com/article" hidden />
-              <div class="file-wrap" hidden>
-                <input id="pdfInput" class="file-input" type="file" accept=".pdf,application/pdf" />
-              </div>
-              <p id="sourceHint" class="helper-text">Type a topic or paste your notes.</p>
-            </div>
-
-            <div>
-              <label class="field-label">Step 3 - Tune Quiz</label>
-              <div class="settings-grid">
-                <div class="setting-card">
-                  <label class="field-label" for="difficultySelect">Difficulty</label>
-                  <select id="difficultySelect" class="select-input">
-                    <option value="easy">Easy</option>
-                    <option value="moderate" selected>Moderate</option>
-                    <option value="tough">Tough</option>
-                    <option value="super">Super</option>
-                  </select>
+            <form id="generateForm" class="field-stack generate-form">
+              <div class="generate-step">
+                <div class="step-header">
+                  <p class="eyebrow">Step 1</p>
+                  <h2 class="section-title" style="font-size: 1.1rem; margin-top: 0.25rem;">Choose source</h2>
                 </div>
-                <div class="setting-card">
-                  <label class="field-label" for="modeSelect">Question Type</label>
-                  <select id="modeSelect" class="select-input">
-                    <option value="mcq" selected>MCQ</option>
-                    <option value="mixed">Mixed</option>
-                    <option value="short">Short</option>
-                  </select>
-                </div>
-                <div class="setting-card">
-                  <label class="field-label" for="languageSelect">Language</label>
-                  <select id="languageSelect" class="select-input">
-                    <option value="English" selected>English</option>
-                    <option value="Hindi">Hindi</option>
-                    <option value="Bengali">Bengali</option>
-                    <option value="Tamil">Tamil</option>
-                    <option value="Telugu">Telugu</option>
-                    <option value="Marathi">Marathi</option>
-                  </select>
-                </div>
-                <div class="setting-card">
-                  <label class="field-label" for="countSelect">Questions</label>
-                  <select id="countSelect" class="select-input">
-                    <option value="5">5 Questions</option>
-                    <option value="10" selected>10 Questions</option>
-                  </select>
+                <div class="source-grid">
+                  <button type="button" class="source-card is-active" data-source="text"><strong>Topic</strong><span>Prompt or pasted notes.</span></button>
+                  <button type="button" class="source-card" data-source="pdf"><strong>PDF</strong><span>Upload source material.</span></button>
+                  <button type="button" class="source-card" data-source="url"><strong>URL</strong><span>Parse a public article.</span></button>
                 </div>
               </div>
-            </div>
 
-            <div id="generateError" class="error-message" hidden></div>
-            <div class="button-row">
-              <button id="generateBtn" class="btn" type="submit">Generate Quiz</button>
-              <button id="flashcardsBtn" class="btn-outline" type="button">Generate Flashcards</button>
-            </div>
-          </form>
+              <div class="generate-step">
+                <div class="step-header">
+                  <p class="eyebrow">Step 2</p>
+                  <h2 class="section-title" style="font-size: 1.1rem; margin-top: 0.25rem;">Add content</h2>
+                </div>
+                <div class="field-stack">
+                  <textarea id="topicInput" class="text-input" placeholder="Photosynthesis, recursion, Indian constitution, your own notes..."></textarea>
+                  <input id="urlInput" class="text-input" type="url" placeholder="https://example.com/article" hidden />
+                  <div class="file-wrap" hidden>
+                    <input id="pdfInput" class="file-input" type="file" accept=".pdf,application/pdf" />
+                  </div>
+                  <p id="sourceHint" class="helper-text">Type a topic or paste your notes.</p>
+                </div>
+              </div>
+
+              <div class="generate-step">
+                <div class="step-header">
+                  <p class="eyebrow">Step 3</p>
+                  <h2 class="section-title" style="font-size: 1.1rem; margin-top: 0.25rem;">Tune quiz</h2>
+                </div>
+                <div class="settings-grid">
+                  <div class="setting-card">
+                    <label class="field-label" for="difficultySelect">Difficulty</label>
+                    <select id="difficultySelect" class="select-input">
+                      <option value="easy">Easy</option>
+                      <option value="moderate" selected>Moderate</option>
+                      <option value="tough">Tough</option>
+                      <option value="super">Super</option>
+                    </select>
+                  </div>
+                  <div class="setting-card">
+                    <label class="field-label" for="modeSelect">Question Type</label>
+                    <select id="modeSelect" class="select-input">
+                      <option value="mcq" selected>MCQ</option>
+                      <option value="mixed">Mixed</option>
+                      <option value="short">Short</option>
+                    </select>
+                  </div>
+                  <div class="setting-card">
+                    <label class="field-label" for="languageSelect">Language</label>
+                    <select id="languageSelect" class="select-input">
+                      <option value="English" selected>English</option>
+                      <option value="Hindi">Hindi</option>
+                      <option value="Bengali">Bengali</option>
+                      <option value="Tamil">Tamil</option>
+                      <option value="Telugu">Telugu</option>
+                      <option value="Marathi">Marathi</option>
+                    </select>
+                  </div>
+                  <div class="setting-card">
+                    <label class="field-label" for="countSelect">Questions</label>
+                    <select id="countSelect" class="select-input">
+                      <option value="5">5 Questions</option>
+                      <option value="10" selected>10 Questions</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div id="generateError" class="error-message" hidden></div>
+              <div class="button-row">
+                <button id="generateBtn" class="btn" type="submit">Generate Quiz</button>
+                <button id="flashcardsBtn" class="btn-outline" type="button">Generate Flashcards</button>
+              </div>
+            </form>
+          </div>
         </section>
 
         <aside class="panel game-card page-fade workflow-sidebar">
-          <p class="eyebrow">Workspace</p>
-          <h2 class="section-title">Assessment setup</h2>
-          <div class="field-stack section-gap">
-            <div class="setting-card"><strong>Input</strong><p class="helper-text">Topic, PDF, or URL source.</p></div>
-            <div class="setting-card"><strong>Generation</strong><p class="helper-text">Backend call starts only on command.</p></div>
-            <div class="setting-card"><strong>Analytics</strong><p class="helper-text">Results feed XP, badges, and history.</p></div>
+          <div class="dashboard-block">
+            <p class="eyebrow">Workspace</p>
+            <h2 class="section-title">Assessment setup</h2>
+            <div class="dashboard-list section-gap">
+              <article class="dashboard-activity-item">
+                <strong>Input</strong>
+                <span class="section-copy">Topic, PDF, or URL source.</span>
+              </article>
+              <article class="dashboard-activity-item">
+                <strong>Generation</strong>
+                <span class="section-copy">Backend call starts only on command.</span>
+              </article>
+              <article class="dashboard-activity-item">
+                <strong>Analytics</strong>
+                <span class="section-copy">Results feed XP, badges, and history.</span>
+              </article>
+            </div>
           </div>
         </aside>
       </main>

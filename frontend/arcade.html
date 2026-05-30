@@ -8,86 +8,49 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./design-system.css" />
-  <link rel="stylesheet" href="./styles-arcade-clean.css" />
+  <link rel="stylesheet" href="./app.css" />
 </head>
-<body class="arcade-body">
-  <div class="arcade-shell">
-    <div class="arcade-frame">
-      <header class="arcade-header">
-        <div>
-          <div class="arcade-mark">Quizzy</div>
-          <h1 class="arcade-title">Learning Arcade</h1>
-          <p class="arcade-subtitle">Short cognitive drills for recall, attention, and recognition speed.</p>
-        </div>
-        <a class="arcade-back" href="./index.html">Back Home</a>
+<body>
+  <div class="page-shell">
+    <div class="page-container">
+      <header class="top-nav">
+        <a class="brand" href="./index.html"><span class="brand-badge">Q</span><span>Quizzy</span></a>
+        <nav class="nav-links">
+          <a class="nav-link" href="./index.html">Home</a>
+          <a class="nav-link" href="./generate.html">Generate</a>
+          <a class="nav-link" href="./flashcards.html">Flashcards</a>
+          <a class="nav-link" href="./dashboard.html">Dashboard</a>
+          <a class="nav-link is-active" href="./arcade.html">Arcade</a>
+          <a class="nav-link" href="./scoreboard.html">Leaderboard</a>
+        </nav>
       </header>
 
-      <main class="arcade-panel arcade-hero">
-        <section class="arcade-hub">
-          <a class="arcade-card-link" href="./games/memory.html">
-            <article class="arcade-game-card memory">
-              <div class="arcade-preview">
-                <img src="./assets/memory-game/image1.jpg" alt="Memory Match preview" />
-              </div>
-              <div class="arcade-icon-tile" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none">
-                  <path d="M12 4c-4.4 0-8 2.9-8 6.5 0 2.4 1.6 4.6 4 5.7V20l3-2h1c4.4 0 8-2.9 8-6.5S16.4 4 12 4Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M9.5 11.5h.01M14.5 11.5h.01" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-                </svg>
-              </div>
-              <div>
-                <h2 class="arcade-card-title">Memory Match</h2>
-                <p class="arcade-card-copy">Build visual recall by matching pairs with fewer moves and cleaner focus.</p>
-              </div>
-              <span class="arcade-card-cta">Train Recall</span>
-            </article>
+      <main class="panel flow-card">
+        <div class="card-title-row">
+          <div>
+            <p class="eyebrow">Cognitive Training</p>
+            <h1 class="section-title">Learning Arcade</h1>
+            <p class="section-copy">Short drills for recall, attention, and recognition speed.</p>
+          </div>
+        </div>
+
+        <section class="mini-games-grid">
+          <a class="mini-game-panel" href="./games/memory.html" style="text-decoration: none; color: inherit;">
+            <h3 class="heading-5" style="margin: 0 0 var(--space-2);">Memory Match</h3>
+            <p class="text-secondary text-sm" style="margin: 0;">Build visual recall by matching pairs with fewer moves and cleaner focus.</p>
+            <div style="margin-top: auto; padding-top: var(--space-4);"><span class="btn-outline" style="width: 100%;">Train Recall</span></div>
           </a>
 
-          <a class="arcade-card-link" href="./games/reaction.html">
-            <article class="arcade-game-card reaction">
-              <div class="arcade-preview">
-                <span class="arcade-preview-badge">Speed</span>
-                <div class="arcade-preview-overlay">
-                  <strong>Attention control</strong>
-                  <span>Respond only after the signal changes.</span>
-                </div>
-              </div>
-              <div class="arcade-icon-tile" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none">
-                  <path d="M13 2L4 14h6l-1 8 9-12h-6l1-8Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </div>
-              <div>
-                <h2 class="arcade-card-title">Reaction Tap</h2>
-                <p class="arcade-card-copy">Practice inhibition and fast response timing with one controlled tap.</p>
-              </div>
-              <span class="arcade-card-cta">Train Focus</span>
-            </article>
+          <a class="mini-game-panel" href="./games/reaction.html" style="text-decoration: none; color: inherit;">
+            <h3 class="heading-5" style="margin: 0 0 var(--space-2);">Reaction Tap</h3>
+            <p class="text-secondary text-sm" style="margin: 0;">Practice inhibition and fast response timing with one controlled tap.</p>
+            <div style="margin-top: auto; padding-top: var(--space-4);"><span class="btn-outline" style="width: 100%;">Train Focus</span></div>
           </a>
 
-          <a class="arcade-card-link" href="./games/recall.html">
-            <article class="arcade-game-card recall">
-              <div class="arcade-preview">
-                <span class="arcade-preview-badge">Recall</span>
-                <div class="arcade-preview-overlay">
-                  <strong>Working memory</strong>
-                  <span>Encode, hide, then reproduce the sequence.</span>
-                </div>
-              </div>
-              <div class="arcade-icon-tile" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none">
-                  <path d="M6 5h12M6 12h12M6 19h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                  <circle cx="4" cy="5" r="1" fill="currentColor"/>
-                  <circle cx="4" cy="12" r="1" fill="currentColor"/>
-                  <circle cx="4" cy="19" r="1" fill="currentColor"/>
-                </svg>
-              </div>
-              <div>
-                <h2 class="arcade-card-title">Number Recall</h2>
-                <p class="arcade-card-copy">Strengthen short-term memory with progressively longer numeric sequences.</p>
-              </div>
-              <span class="arcade-card-cta">Train Memory</span>
-            </article>
+          <a class="mini-game-panel" href="./games/recall.html" style="text-decoration: none; color: inherit;">
+            <h3 class="heading-5" style="margin: 0 0 var(--space-2);">Number Recall</h3>
+            <p class="text-secondary text-sm" style="margin: 0;">Strengthen working memory with progressively longer numeric sequences.</p>
+            <div style="margin-top: auto; padding-top: var(--space-4);"><span class="btn-outline" style="width: 100%;">Train Memory</span></div>
           </a>
         </section>
       </main>

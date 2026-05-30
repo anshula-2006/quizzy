@@ -8,37 +8,45 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../design-system.css" />
-  <link rel="stylesheet" href="../styles-arcade-clean.css" />
-  <link rel="stylesheet" href="./arcade-games-clean.css" />
+  <link rel="stylesheet" href="../app.css" />
 </head>
-<body class="arcade-body">
-  <div class="arcade-shell">
-    <div class="arcade-frame">
-      <header class="arcade-header">
-        <div>
-          <div class="arcade-mark">Mini Arcade</div>
-          <h1 class="arcade-title">Reaction Tap</h1>
-          <p class="arcade-subtitle">Train attention control: wait for the signal, then respond with one clean tap.</p>
-        </div>
-        <a class="arcade-back" href="../arcade.html">Back to Arcade</a>
+<body>
+  <div class="page-shell">
+    <div class="page-container">
+      <header class="top-nav">
+        <a class="brand" href="../index.html"><span class="brand-badge">Q</span><span>Quizzy</span></a>
+        <nav class="nav-links">
+          <a class="nav-link" href="../arcade.html">← Back to Arcade</a>
+        </nav>
       </header>
 
-      <main class="arcade-panel arcade-game-wrap">
-        <section class="arcade-game-head">
-          <div class="arcade-kpis">
-            <div class="arcade-kpi"><span>Best</span><strong id="bestReaction">--</strong></div>
+      <main class="panel flow-card">
+        <div class="card-title-row">
+          <div>
+            <p class="eyebrow">Mini Arcade</p>
+            <h1 class="section-title">Reaction Tap</h1>
+            <p class="section-copy">Train attention control: wait for the signal, then respond with one clean tap.</p>
           </div>
-          <div class="arcade-actions">
-            <button id="startReactionBtn" class="arcade-btn" type="button">Start Round</button>
+          <div style="display: flex; gap: var(--space-4);">
+            <div class="dash-stat-card">
+              <span class="saas-stat-label">Best Time</span>
+              <strong id="bestReaction" class="saas-stat-value">--</strong>
+            </div>
           </div>
-        </section>
+        </div>
 
-        <button id="reactionStage" class="reaction-stage" type="button">
-          <div id="reactionStatus" class="reaction-stage-inner">
-            <div class="reaction-label">Wait...</div>
-            <p class="reaction-caption">Press start to begin a round.</p>
-          </div>
-        </button>
+        <div class="button-row section-gap">
+          <button id="startReactionBtn" class="btn" type="button">Start Round</button>
+        </div>
+
+        <div class="section-gap">
+          <button id="reactionStage" class="reaction-stage waiting" type="button" style="border: none; width: 100%; cursor: pointer;">
+            <div id="reactionStatus" style="display: flex; flex-direction: column; align-items: center; gap: var(--space-2);">
+              <div class="heading-2">Wait...</div>
+              <p class="text-secondary">Press start to begin a round.</p>
+            </div>
+          </button>
+        </div>
       </main>
     </div>
   </div>

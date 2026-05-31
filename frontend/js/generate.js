@@ -163,7 +163,7 @@ function renderWorkspace() {
                <span class="meta-chip" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: var(--error); margin-bottom: 8px;">Needs Improvement</span>
                <strong style="display: block; font-size: 0.9rem; color: var(--text);">${escapeHtml(weakest.topic)} (${weakest.avg}%)</strong>
                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
-                  <a href="?topic=${encodeURIComponent(weakest.topic)}&mode=revision&auto=flashcards" class="btn-outline" style="padding: 4px 10px; font-size: 0.75rem;">Review Flashcards</a>
+                  <a href="?topic=${encodeURIComponent(weakest.topic)}&mode=revision&auto=flashcards" class="btn btn-secondary">Review Flashcards</a>
                   <a href="?topic=${encodeURIComponent(weakest.topic)}&mode=focus" class="btn" style="padding: 4px 10px; font-size: 0.75rem; background: var(--error); border-color: var(--error);">Retry Quiz</a>
                </div>
             </div>

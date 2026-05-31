@@ -291,7 +291,7 @@ function render() {
           <div class="answer-stack" id="answerStack"></div>
           <div id="feedbackWrap"></div>
           <div class="quiz-actions">
-            <button class="btn-outline" id="prevBtn" ${quizState.currentIndex === 0 ? "disabled" : ""}>Previous</button>
+            <button class="btn btn-secondary" id="prevBtn" ${quizState.currentIndex === 0 ? "disabled" : ""}>Previous</button>
             <button class="btn" id="nextBtn" ${answer ? "" : "disabled"}>${quizState.currentIndex === quizState.questions.length - 1 ? "Finish" : "Next"}</button>
           </div>
         </div>

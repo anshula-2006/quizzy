@@ -25,12 +25,12 @@
         </nav>
       </header>
       
-      <main>
+      <main class="page-fade">
         <section class="card">
           <h1>Settings</h1>
           <p class="section-copy section-gap">Manage your account preferences and application settings.</p>
 
-          <div style="display: grid; gap: 18px; max-width: 900px;">
+          <div class="grid" style="gap:24px; max-width:900px;">
             <section class="panel">
               <h3>Account</h3>
               <div id="accountInfo" style="display:flex; gap:12px; align-items:center;">
@@ -38,20 +38,20 @@
                   <div id="accountName" style="font-weight:700"></div>
                   <div id="accountEmail" class="text-secondary" style="font-size:0.9rem;"></div>
                 </div>
-                <div style="margin-left:auto;">
-                  <button id="logoutBtn" class="btn-outline">Logout</button>
-                  <button id="logoutAllBtn" class="btn-outline">Logout All Sessions</button>
+                <div style="margin-left:auto; display:flex; gap:8px;">
+                  <button id="logoutBtn" class="btn btn-secondary">Logout</button>
+                  <button id="logoutAllBtn" class="btn btn-secondary">Logout All Sessions</button>
                 </div>
               </div>
             </section>
 
             <section class="panel">
               <h3>Security</h3>
-              <form id="changePasswordForm" style="display:grid; gap:8px; max-width:420px;">
-                <input id="oldPassword" type="password" placeholder="Current password" required />
-                <input id="newPassword" type="password" placeholder="New password" required />
-                <input id="confirmPassword" type="password" placeholder="Confirm new password" required />
-                <div style="display:flex; gap:8px;"><button class="btn" type="submit">Change Password</button></div>
+              <form id="changePasswordForm" class="field-stack" style="max-width:420px;">
+                <input id="oldPassword" class="input" type="password" placeholder="Current password" required />
+                <input id="newPassword" class="input" type="password" placeholder="New password" required />
+                <input id="confirmPassword" class="input" type="password" placeholder="Confirm new password" required />
+                <div style="display:flex; gap:8px;"><button class="btn btn-primary" type="submit">Change Password</button></div>
               </form>
             </section>
 
@@ -67,7 +67,7 @@
             <section class="panel">
               <h3>Danger Zone</h3>
               <p class="section-copy">Permanently delete your account and all associated data.</p>
-              <div style="display:flex; gap:12px;"><button id="deleteAccountBtn" class="btn-outline" style="border-color:var(--error); color:var(--error);">Delete Account</button></div>
+              <div style="display:flex; gap:12px;"><button id="deleteAccountBtn" class="btn btn-danger">Delete Account</button></div>
             </section>
           </div>
         </section>

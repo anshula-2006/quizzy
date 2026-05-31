@@ -1050,7 +1050,7 @@ function renderEvaluationBoard() {
         <span class="saas-stat-label" style="display: block; margin-bottom: 8px;">${labels.dashboard}</span>
         <h3 class="neon-text" style="margin: 0 0 12px; font-size: 1.8rem; font-weight: 800;">No recent activity available</h3>
         <p style="margin: 0 auto 24px; color: var(--muted); max-width: 460px; font-size: 0.95rem; line-height: 1.6;">Generate your first quiz and this area will turn into a progress snapshot with streaks, XP, and review notes.</p>
-        <button id="clearHistoryBtn" class="btn-outline" type="button" style="border-color: rgba(239, 68, 68, 0.5) !important; color: #fca5a5 !important; background: rgba(239, 68, 68, 0.1) !important;">Clear History</button>
+        <button id="clearHistoryBtn" class="btn btn-danger" type="button">Clear History</button>
       </div>
     `;
     document.getElementById("clearHistoryBtn")?.addEventListener("click", clearDashboardHistory);
@@ -1079,7 +1079,7 @@ function renderEvaluationBoard() {
               <h3 class="neon-text" style="margin: 4px 0 8px; font-size: 2.2rem; font-weight: 800;">${latest.percentage}% latest score</h3>
               <p style="margin: 0; color: var(--muted); font-size: 0.9rem;">${getFeedback(entries)}</p>
             </div>
-            <button id="clearHistoryBtn" class="btn-outline" style="min-height: 32px; padding: 0 12px; font-size: 0.8rem;" type="button">Clear</button>
+            <button id="clearHistoryBtn" class="btn btn-secondary" style="min-height: 32px; padding: 0 12px; font-size: 0.8rem;" type="button">Clear</button>
           </div>
           <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 24px;">
             <div><span class="saas-stat-label">Level</span><strong class="saas-stat-value" style="display:block; margin-top:4px; font-size: 1.2rem;">${game.level}</strong></div>
@@ -1131,7 +1131,7 @@ function renderEvaluationBoard() {
           <h4 style="margin: 0; font-size: 1.25rem; font-weight: 700;">Question review</h4>
           <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px;">
             ${latestAnswers.map((a, i) => `
-              <button class="review-q-btn btn-outline" style="min-height: 32px; padding: 0 12px; font-size: 0.8rem; ${a.isCorrect ? 'border-color: rgba(34,197,94,0.4); background: rgba(34,197,94,0.1); color: #fff;' : 'border-color: rgba(248,113,113,0.4); background: rgba(248,113,113,0.1); color: #fff;'}" data-review-index="${i}">
+              <button class="review-q-btn btn btn-secondary" style="min-height: 32px; padding: 0 12px; font-size: 0.8rem; ${a.isCorrect ? 'border-color: rgba(34,197,94,0.4); background: rgba(34,197,94,0.1); color: #fff;' : 'border-color: rgba(248,113,113,0.4); background: rgba(248,113,113,0.1); color: #fff;'}" data-review-index="${i}">
                 Q${i + 1}
               </button>
             `).join("")}
@@ -2574,8 +2574,8 @@ function showQuestion() {
 
         <div class="button-row" style="margin-top: 32px; justify-content: space-between;">
           <div class="button-row">
-            <button id="prevBtn" class="btn-outline" ${index === 0 ? "disabled" : ""}>Previous</button>
-            <button id="moreQuestionsBtn" class="btn-outline" ${isLoadingMoreQuestions ? "disabled" : ""}>${isLoadingMoreQuestions ? "Loading..." : "More Questions"}</button>
+            <button id="prevBtn" class="btn btn-secondary" ${index === 0 ? "disabled" : ""}>Previous</button>
+            <button id="moreQuestionsBtn" class="btn btn-secondary" ${isLoadingMoreQuestions ? "disabled" : ""}>${isLoadingMoreQuestions ? "Loading..." : "More Questions"}</button>
           </div>
           <div class="button-row">
             <button id="finishBtn" class="ghost" style="color: var(--red);">Finish</button>
@@ -2740,7 +2740,7 @@ function reveal(q, choice, isReview) {
         <p style="margin: 16px 0 0; color: var(--muted); line-height: 1.6;">${q.explanation || ""}</p>
         ${wrongBlock}
         ${imageBlock}
-        <button id="saveQuestionBtn" class="btn-outline" style="margin-top: 20px;" type="button">Save Question</button>
+        <button id="saveQuestionBtn" class="btn btn-secondary" style="margin-top: 20px;" type="button">Save Question</button>
       </div>`
     );
     document.getElementById("saveQuestionBtn")?.addEventListener("click", () => {
@@ -2954,7 +2954,7 @@ async function finish() {
 
         <div class="button-row" style="margin-top: 32px; justify-content: center;">
           <button id="retryQuizBtn" class="btn" type="button">Retry</button>
-          <button id="goDashboardBtn" class="btn-outline" type="button">New Quiz</button>
+          <button id="goDashboardBtn" class="btn btn-secondary" type="button">New Quiz</button>
         </div>
       </div>
     </div>

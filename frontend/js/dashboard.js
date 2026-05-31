@@ -174,10 +174,10 @@ function getWeeklyData(attempts) {
 function renderSkeleton() {
   root.className = "page-fade";
   root.innerHTML = `
-    <div class="hero-stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 24px;">${Array.from({ length: 4 }, () => `<div class="analytics-card skeleton-panel" style="height: 100px; border-radius: 12px;"></div>`).join("")}</div>
-    <div class="dashboard-content-grid" style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 24px;">
-       <div class="chart-card panel skeleton-panel" style="height: 300px; border-radius: 16px;"></div>
-       <div class="chart-card panel skeleton-panel" style="height: 300px; border-radius: 16px;"></div>
+    <div class="dashboard-stat-grid">${Array.from({ length: 4 }, () => `<div class="analytics-card skeleton-panel"></div>`).join("")}</div>
+    <div class="dashboard-content-grid">
+       <div class="chart-card panel skeleton-panel"></div>
+       <div class="chart-card panel skeleton-panel"></div>
     </div>
   `;
 }
@@ -251,9 +251,9 @@ function renderDashboard(data) {
   const smartCount = hasHistory && avg < 60 ? 5 : hasHistory && avg > 85 ? 15 : 10;
 
   let actionButtons = `
-    <div style="display: flex; gap: 8px;">
-      <a href="./generate.html?count=${smartCount}" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;"><i data-lucide="play" style="width: 14px; height: 14px; margin-right: 4px;"></i> Start Smart Quiz</a>
-      <a href="./flashcards.html" class="btn-outline" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;"><i data-lucide="layers" style="width: 14px; height: 14px; margin-right: 4px;"></i> Study Flashcards</a>
+    <div class="dashboard-actions">
+      <a href="./generate.html?count=${smartCount}" class="btn btn-primary"><i data-lucide="play" style="width: 14px; height: 14px; margin-right: 6px;"></i> Start Smart Quiz</a>
+      <a href="./flashcards.html" class="btn btn-secondary"><i data-lucide="layers" style="width: 14px; height: 14px; margin-right: 6px;"></i> Study Flashcards</a>
     </div>
   `;
 
@@ -288,17 +288,17 @@ function renderDashboard(data) {
 
   root.className = "page-fade";
   root.innerHTML = `
-    <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-4);">
+    <div class="card-title-row">
       <div>
-        <h1 class="section-title" style="font-size: 1.5rem;">Welcome back, ${currentName}</h1>
-        <p class="section-copy" style="max-width: 600px; margin-top: var(--space-2);">${welcomeSub}</p>
+        <h1 class="section-title">Welcome back, ${currentName}</h1>
+        <p class="section-copy">${welcomeSub}</p>
       </div>
-      <div style="display: flex; align-items: center;">
+      <div>
         ${actionButtons}
       </div>
     </div>
 
-    <div class="dashboard-stat-grid" style="margin-bottom: var(--space-4);">
+    <div class="dashboard-stat-grid">
       ${statsRow}
     </div>
 
@@ -383,7 +383,7 @@ function renderDashboard(data) {
                 : `
                 <div style="padding: var(--space-4); text-align: center; background: var(--color-surface-2); border-radius: var(--radius-lg); border: 1px dashed var(--color-border-default);">
                   <p class="section-copy" style="margin: 0 0 var(--space-2); font-size: 0.9rem;">No quizzes yet</p>
-                  <a href="./generate.html" class="btn-outline" style="display: inline-block; padding: 0.5rem 1rem; font-size: 0.85rem; white-space: nowrap;">Take your first quiz</a>
+                  <a href="./generate.html" class="btn btn-secondary">Take your first quiz</a>
                 </div>
               `
               }
@@ -407,7 +407,7 @@ function renderDashboard(data) {
                 : `
                 <div style="padding: var(--space-4); text-align: center; background: var(--color-surface-2); border-radius: var(--radius-lg); border: 1px dashed var(--color-border-default);">
                   <p class="section-copy" style="margin: 0 0 var(--space-2); font-size: 0.9rem;">No flashcards yet</p>
-                  <a href="./generate.html" class="btn-outline" style="display: inline-block; padding: 0.5rem 1rem; font-size: 0.85rem; white-space: nowrap;">Create a deck</a>
+                  <a href="./generate.html" class="btn btn-secondary">Create a deck</a>
                 </div>
               `
               }

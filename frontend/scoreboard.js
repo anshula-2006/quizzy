@@ -644,6 +644,7 @@ function renderProgressExtras(entries) {
         </div>
         <div class="saas-stat-card" style="padding: 12px; border-radius: 8px;">
           <span class="saas-stat-label">Reaction</span>
+          <strong class="saas-stat-value" style="font-size: 1.1rem; display: block; margin-top: 4px;">${game.gameStats.reactionBest ? `${game.gameStats.reactionBest}ms` : "--"}</strong>
           <strong class="saas-stat-value" style="font-size: 1.2rem;">${game.gameStats.reactionBest ? `${game.gameStats.reactionBest}ms` : "--"}</strong>
         </div>
         <div class="saas-stat-card" style="padding: 12px; border-radius: 8px;">
@@ -785,80 +786,96 @@ function renderBoard() {
   const game = getGamification(entries);
 
   scoreboardContent.innerHTML = `
-    <div class="dashboard-content-grid scoreboard-content-grid" style="gap: 24px; align-items: start;">
-      <div style="display: grid; gap: 24px; align-content: start;">
-        <div class="panel flow-card">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+    <div class="dashboard-content-grid" style="align-items: start;">
+      
+      <!-- Left Column -->
+      <div style="display: grid; gap: var(--space-4); align-content: start;">
+        <div class="panel flow-card" style="padding: var(--space-4);">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-3);">
             <div>
-              <h2 style="font-size: 2rem; font-weight: 800; margin: 0 0 4px; letter-spacing: -0.03em;">Performance Overview</h2>
-              <p style="margin: 0; color: var(--muted); font-size: 0.9rem;">Analyze your recent results and trends.</p>
+              <h2 style="font-size: 1.25rem; font-weight: 700; margin: 0 0 2px; color: var(--color-text-primary);">Performance Overview</h2>
+              <p style="margin: 0; color: var(--color-text-secondary); font-size: 0.85rem;">Analyze your recent results and trends.</p>
             </div>
-            <div style="text-align: right;">
-              <div class="meta-chip" style="font-size: 1.1rem; padding: 8px 16px; background: var(--primary); color: #fff; border: none; box-shadow: var(--glow-shadow); font-weight: 700;">${latest}% Latest</div>
-              <div style="margin-top: 8px; color: var(--muted); font-size: 0.8rem;">Trend: ${trend.label}</div>
+            <div style="text-align: right; display: flex; align-items: center; gap: var(--space-3);">
+              <div style="text-align: right;">
+                <span style="font-size: 0.75rem; color: var(--color-text-secondary); text-transform: uppercase;">Trend</span>
+                <strong style="display: block; font-size: 0.85rem; color: var(--color-text-primary);">${trend.label}</strong>
+              </div>
+              <div class="meta-chip" style="font-size: 0.9rem; padding: 4px 10px; background: var(--color-accent); color: #fff; border: none; font-weight: 700;">${latest}% Latest</div>
             </div>
           </div>
           
-          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 32px;">
-            <div class="saas-stat-card glass-card glow-hover" style="padding: 16px;">
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-2); margin-top: var(--space-4);">
+            <div class="saas-stat-card glass-card glow-hover" style="padding: var(--space-3); border: 1px solid var(--color-border-default); border-radius: var(--radius-md); background: var(--color-surface-2);">
               <span class="saas-stat-label">Total XP</span>
-              <strong class="saas-stat-value neon-text" style="font-size: 1.6rem; font-weight: 800;">${cloudProfile?.totalXp ?? game.totalXp}</strong>
+              <strong class="saas-stat-value neon-text" style="font-size: 1.15rem; font-weight: 700; display: block; margin-top: 4px;">${cloudProfile?.totalXp ?? game.totalXp}</strong>
             </div>
-            <div class="saas-stat-card glass-card glow-hover" style="padding: 16px;">
+            <div class="saas-stat-card glass-card glow-hover" style="padding: var(--space-3); border: 1px solid var(--color-border-default); border-radius: var(--radius-md); background: var(--color-surface-2);">
               <span class="saas-stat-label">Level</span>
-              <strong class="saas-stat-value" style="font-size: 1.6rem; font-weight: 800;">${game.level}</strong>
+              <strong class="saas-stat-value" style="font-size: 1.15rem; font-weight: 700; display: block; margin-top: 4px;">${game.level}</strong>
             </div>
-            <div class="saas-stat-card glass-card glow-hover" style="padding: 16px;">
+            <div class="saas-stat-card glass-card glow-hover" style="padding: var(--space-3); border: 1px solid var(--color-border-default); border-radius: var(--radius-md); background: var(--color-surface-2);">
               <span class="saas-stat-label">Best Score</span>
-              <strong class="saas-stat-value" style="font-size: 1.6rem; font-weight: 800;">${best}%</strong>
+              <strong class="saas-stat-value" style="font-size: 1.15rem; font-weight: 700; display: block; margin-top: 4px;">${best}%</strong>
             </div>
-            <div class="saas-stat-card glass-card glow-hover" style="padding: 16px;">
+            <div class="saas-stat-card glass-card glow-hover" style="padding: var(--space-3); border: 1px solid var(--color-border-default); border-radius: var(--radius-md); background: var(--color-surface-2);">
               <span class="saas-stat-label">Avg Score</span>
-              <strong class="saas-stat-value" style="font-size: 1.6rem; font-weight: 800;">${avg}%</strong>
+              <strong class="saas-stat-value" style="font-size: 1.15rem; font-weight: 700; display: block; margin-top: 4px;">${avg}%</strong>
             </div>
           </div>
 
-          <div style="margin-top: 32px; padding: 16px; background: var(--panel-soft); border-radius: var(--radius-md); border: 1px solid var(--line);">
-            <strong style="display: block; margin-bottom: 8px; font-size: 0.95rem;">AI Feedback</strong>
-            <p style="margin: 0; font-size: 0.9rem; color: var(--muted); line-height: 1.6;">${getFeedback(entries)}</p>
+          <div style="margin-top: var(--space-3); padding: var(--space-3); background: var(--color-surface-3); border-radius: var(--radius-md); border: 1px solid var(--color-border-default);">
+            <strong style="display: block; margin-bottom: 4px; font-size: 0.85rem; color: var(--color-text-primary);">AI Feedback</strong>
+            <p style="margin: 0; font-size: 0.8rem; color: var(--color-text-secondary); line-height: 1.5;">${getFeedback(entries)}</p>
           </div>
         </div>
 
-        <div class="panel flow-card">
-          <div class="table-header-block" style="margin-bottom: 20px;">
-            <h3 style="font-size: 1.2rem; font-weight: 600;">Question Review</h3>
-            <p style="color: var(--muted); font-size: 0.85rem; margin-top: 4px;">Review missed concepts from your selected attempt.</p>
+        <div class="panel flow-card" style="padding: var(--space-4);">
+          <div class="table-header-block" style="margin-bottom: var(--space-3);">
+            <strong style="font-size: 1.1rem; color: var(--color-text-primary);">Question Review</strong>
+            <p style="color: var(--color-text-secondary); font-size: 0.85rem; margin-top: 2px;">Review missed concepts from your selected attempt.</p>
           </div>
-          <div class="attempt-review-rail" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px;">
+          <div class="attempt-review-rail" style="display: flex; gap: var(--space-2); overflow-x: auto; padding-bottom: var(--space-2);">
             ${entries.slice(0, 8).map((entry, index) => `
-              <button class="btn-outline attempt-review-btn ${index === activeReviewAttemptIndex ? "active" : ""}" data-attempt-index="${index}" type="button" style="min-width: 120px; flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-start; padding: 10px; height: auto; ${index === activeReviewAttemptIndex ? 'background: var(--text); color: var(--bg); border-color: var(--text);' : ''}">
-                <span style="font-size: 0.75rem; opacity: 0.8; font-weight: normal;">${formatShortDate(entry.createdAt).split(",")[0]}</span>
-                <strong style="font-size: 1.1rem; margin-top: 2px;">${entry.percentage || 0}%</strong>
+              <button class="btn-outline attempt-review-btn ${index === activeReviewAttemptIndex ? "active" : ""}" data-attempt-index="${index}" type="button" style="min-width: 100px; flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-start; padding: 8px 12px; height: auto; border-radius: var(--radius-sm); ${index === activeReviewAttemptIndex ? 'background: var(--color-text-primary); color: var(--color-bg-base); border-color: var(--color-text-primary);' : 'background: var(--color-surface-2); border-color: var(--color-border-default); color: var(--color-text-primary);'}">
+                <span style="font-size: 0.7rem; font-weight: normal; opacity: 0.8;">${formatShortDate(entry.createdAt).split(",")[0]}</span>
+                <strong style="font-size: 1rem; margin-top: 2px;">${entry.percentage || 0}%</strong>
+              <button class="btn-outline attempt-review-btn ${index === activeReviewAttemptIndex ? "active" : ""}" data-attempt-index="${index}" type="button" style="min-width: 80px; flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-start; padding: 6px 10px; height: auto; border-radius: var(--radius-sm); ${index === activeReviewAttemptIndex ? 'background: var(--color-text-primary); color: var(--color-bg-base); border-color: var(--color-text-primary);' : 'background: var(--color-surface-2); border-color: var(--color-border-default); color: var(--color-text-primary);'}">
+                <span style="font-size: 0.65rem; font-weight: normal; opacity: 0.8;">${formatShortDate(entry.createdAt).split(",")[0]}</span>
+                <strong style="font-size: 0.9rem; margin-top: 2px;">${entry.percentage || 0}%</strong>
               </button>
             `).join("")}
           </div>
           
-          <div class="review-rail" style="display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap;">
+          <div class="review-rail" style="display: flex; gap: var(--space-2); margin-top: var(--space-3); flex-wrap: wrap;">
             ${reviewAnswers.length
               ? reviewAnswers.map((answer, index) => `
-                <button class="review-q-btn btn-outline" data-review-index="${index}" type="button" style="min-height: 32px; padding: 0 12px; font-size: 0.8rem; ${answer.isCorrect ? 'border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.1);' : 'border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.1);'}">
+                <button class="review-q-btn btn-outline" data-review-index="${index}" type="button" style="min-height: 28px; padding: 0 10px; font-size: 0.75rem; border-radius: var(--radius-sm); ${answer.isCorrect ? 'border-color: var(--color-success); background: var(--color-success-bg); color: var(--color-success-light);' : 'border-color: var(--color-error); background: var(--color-error-bg); color: var(--color-error-light);'}">
+                <button class="review-q-btn btn-outline" data-review-index="${index}" type="button" style="min-height: 24px; padding: 0 8px; font-size: 0.7rem; border-radius: var(--radius-sm); ${answer.isCorrect ? 'border-color: var(--color-success); background: var(--color-success-bg); color: var(--color-success-light);' : 'border-color: var(--color-error); background: var(--color-error-bg); color: var(--color-error-light);'}">
                   Q${index + 1}
                 </button>
               `).join("")
-              : `<p class="cabinet-note">No question review is available for this attempt yet.</p>`}
+              : `<p class="cabinet-note" style="color: var(--color-text-secondary); font-size: 0.85rem;">No question review is available for this attempt yet.</p>`}
+              : `<p class="cabinet-note" style="color: var(--color-text-secondary); font-size: 0.8rem;">No question review is available for this attempt yet.</p>`}
           </div>
-          <div id="reviewDetail" class="review-detail" style="margin-top: 16px; padding: 16px; background: var(--panel-soft); border-radius: var(--radius-md); border: 1px solid var(--line); font-size: 0.9rem; color: var(--muted); line-height: 1.6;">
+          <div id="reviewDetail" class="review-detail" style="margin-top: var(--space-3); padding: var(--space-3) var(--space-4); background: var(--color-surface-3); border-radius: var(--radius-md); border: 1px solid var(--color-border-default); font-size: 0.85rem; color: var(--color-text-secondary); line-height: 1.5;">
+          <div id="reviewDetail" class="review-detail" style="margin-top: var(--space-3); padding: var(--space-3); background: var(--color-surface-3); border-radius: var(--radius-md); border: 1px solid var(--color-border-default); font-size: 0.8rem; color: var(--color-text-secondary); line-height: 1.5;">
             ${reviewAnswers.length ? "Select a question to view the explanation." : "Question explanations will appear here after you complete a quiz."}
           </div>
           
-          <div class="scoreboard-tool-actions" style="display: flex; gap: 12px; margin-top: 20px;">
-            <button id="saveAttemptQuestionsBtn" class="btn-outline" type="button" ${reviewAnswers.length ? "" : "disabled"} style="flex:1;">Save Questions</button>
-            <button id="generateAttemptFlashcardsBtn" class="btn-outline" type="button" ${reviewEntry ? "" : "disabled"} style="flex:1;">Generate Flashcards</button>
+          <div class="scoreboard-tool-actions" style="display: flex; gap: var(--space-3); margin-top: var(--space-4);">
+            <button id="saveAttemptQuestionsBtn" class="btn-outline" type="button" ${reviewAnswers.length ? "" : "disabled"} style="flex:1; min-height: 36px; font-size: 0.85rem;">Save Questions</button>
+            <button id="generateAttemptFlashcardsBtn" class="btn-outline" type="button" ${reviewEntry ? "" : "disabled"} style="flex:1; min-height: 36px; font-size: 0.85rem;">Generate Flashcards</button>
+          <div class="scoreboard-tool-actions" style="display: flex; gap: var(--space-2); margin-top: var(--space-3);">
+            <button id="saveAttemptQuestionsBtn" class="btn-outline" type="button" ${reviewAnswers.length ? "" : "disabled"} style="flex:1; min-height: 32px; font-size: 0.8rem;">Save Questions</button>
+            <button id="generateAttemptFlashcardsBtn" class="btn-outline" type="button" ${reviewEntry ? "" : "disabled"} style="flex:1; min-height: 32px; font-size: 0.8rem;">Generate Flashcards</button>
           </div>
         </div>
       </div>
 
       <div class="scoreboard-support-grid">
+      <!-- Right Column -->
+      <div style="display: grid; gap: var(--space-4); align-content: start;">
         ${leaderboardMarkup}
         ${renderProgressExtras(entries)}
       </div>
@@ -878,6 +895,10 @@ function renderBoard() {
       : "";
 
     detailNode.innerHTML = `
+      <p style="margin-bottom: var(--space-2); color: var(--color-text-primary);"><strong>${questionText}</strong></p>
+      <p style="margin-bottom: 4px;">Your answer: <span style="color: var(--color-text-primary);">${selectedText}</span></p>
+      <p style="margin-bottom: var(--space-2);">Correct answer: <span style="color: var(--color-text-primary);">${correctText}</span></p>
+      <p style="margin: 0;">${explanation}</p>
       <p><strong>${questionText}</strong></p>
       <p>Your answer: ${selectedText}</p>
       <p>Correct answer: ${correctText}</p>

@@ -169,6 +169,7 @@ Rules:
 - Questions must be factually correct and grounded in the provided topic/content.
 - Strict Scope: Stay STRICTLY within the boundaries of the requested topic. Do not generate random, generic trivia or unrelated questions under any circumstances.
 - Academic Context & Normalization: If the topic implies a specific educational grade, class, or syllabus (e.g., "10th class mathematics", "biology class 12"), strictly interpret it as the standard academic syllabus for that subject and level (e.g., secondary school mathematics, higher secondary biology). Match the concepts and difficulty appropriately to the academic context.
+- Context Override: If the provided Content appears completely unrelated to the requested Topic (e.g., due to an automated search mismatch), IGNORE the Content and rely entirely on your internal expert knowledge of the Topic.
 - Avoid ambiguity and avoid opinion-based prompts.
 - Explanation must clearly justify the correct answer.
 - The "explanation" MUST provide a detailed, factual justification for why the correct answer is right.
@@ -216,6 +217,7 @@ Rules:
 - Today's date and time${locationContext} is ${today}. Frame your facts and tenses accordingly.
 - Strict Scope: Stay STRICTLY within the requested topic scope. Do not deviate into unrelated trivia.
 - Academic Context: If the topic implies an educational grade, class, or syllabus, strictly align the definitions, concepts, and terminology with that specific academic level.
+- Context Override: If the provided Content appears completely unrelated to the requested Topic, IGNORE the Content and rely entirely on your internal expert knowledge of the Topic.
 - learnerMode: "${learnerMode}"
 - difficulty: "${difficulty}"
 - outputLanguage: "${outputLanguage}"

@@ -42,7 +42,7 @@ export async function createJsonCompletion(prompt, temperature = 0.4) {
     model: provider.model,
     messages: [{ role: "user", content: prompt }],
     temperature,
-    max_completion_tokens: 4096,
+    max_completion_tokens: 8192,
     response_format: { type: "json_object" }
   });
 

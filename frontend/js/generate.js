@@ -329,7 +329,7 @@ form?.addEventListener("submit", async (event) => {
       ...contentPayload,
       ...settings,
       questionCount,
-      variation: Date.now()
+      variation: `${Date.now()}-${Math.random().toString(36).slice(2)}`
     });
 
     setQuizState({

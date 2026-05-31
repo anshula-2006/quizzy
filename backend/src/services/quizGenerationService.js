@@ -127,10 +127,52 @@ function hasGenerationMismatch(questions, questionMode, questionCount) {
   return hasModeMismatch(questions, questionMode) || questions.length !== questionCount;
 }
 
-function buildQuizPrompt({ topic, text, sourceType, difficulty, learnerMode, questionMode, outputLanguage, questionCount, timerEnabled, timerSeconds, variation, userLocalTime, userTimezone }) {
+function buildQuestionBatches(questionCount) {
+  if (questionCount <= 20) return [questionCount];
+
+  const batches = [];
+  let remaining = questionCount;
+  const preferredBatchSize = 15;
+
+  while (remaining > 0) {
+    if (remaining <= preferredBatchSize) {
+      batches.push(remaining);
+      break;
+    }
+
+    const next = remaining - preferredBatchSize < 5
+      ? remaining - 5
+      : preferredBatchSize;
+    batches.push(next);
+    remaining -= next;
+  }
+
+  return batches;
+}
+
+async function runLimited(items, limit, worker) {
+  const results = new Array(items.length);
+  let nextIndex = 0;
+
+  async function runWorker() {
+    while (nextIndex < items.length) {
+      const currentIndex = nextIndex;
+      nextIndex += 1;
+      results[currentIndex] = await worker(items[currentIndex], currentIndex);
+    }
+  }
+
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, runWorker));
+  return results;
+}
+
+function buildQuizPrompt({ topic, text, sourceType, difficulty, learnerMode, questionMode, outputLanguage, questionCount, totalQuestionCount = questionCount, timerEnabled, timerSeconds, variation, userLocalTime, userTimezone }) {
   const today = userLocalTime || new Date().toLocaleString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   const locationContext = userTimezone ? ` in the ${userTimezone} timezone` : "";
   const difficultyRule = difficulty === "current_events" ? 'Difficulty: "Current Events". Focus heavily on recent news, dynamic updates, and the latest established context for the topic.' : `Difficulty: "${difficulty}".`;
+  const explanationDepthRule = Number(totalQuestionCount) > 20
+    ? "For larger quizzes above 20 questions, keep each explanation and wrongExplanation concise but useful, usually 1 sentence each, so the full JSON can be returned completely."
+    : "For normal quizzes, explanations may be 2-3 sentences when needed.";
   const isTopicOnly = String(sourceType || "").trim().toLowerCase() === "topic" && !String(text || "").trim();
   const topicOnlyRule = isTopicOnly
     ? '- Topic Mode: Use ONLY the requested Topic as the scope. Do not infer or fetch source articles, boards, institutions, history, or general knowledge adjacent to the words in the topic.\n- If the Topic is "10th class mathematics" or similar, generate Class 10 mathematics questions only, covering age-appropriate algebra, geometry, trigonometry, probability, statistics, and mensuration. Do not ask about education boards, school history, unrelated general knowledge, or college-level mathematics.'
@@ -168,7 +210,7 @@ Format:
       "acceptableAnswers": ["Optional synonyms for short type"],
       "explanation": "Clear teaching explanation with step-by-step reasoning when useful",
       "wrongExplanation": "Explanation of why a likely wrong answer or misconception is incorrect",
-      "image": "Direct Wikimedia Commons image URL ending with .jpg or .png, or null"
+      "image": null
     }
   ]
 }
@@ -186,6 +228,7 @@ ${topicOnlyRule}
 - For mathematics, science, coding, grammar, and other skill-based subjects, the "explanation" MUST include concise step-by-step reasoning, not just the final answer.
 - The "wrongExplanation" MUST explicitly address a common misconception or clarify exactly why a specific distractor is wrong.
 - Avoid generic explanations such as "this is correct because it is the right answer"; explain the concept, rule, or calculation.
+- Explanation length: ${explanationDepthRule}
 - Focus on highly specific, varied, and insightful facts. Do NOT generate generic, repetitive, or obvious questions.
 - For topics involving future dates (e.g., 2026), rely strictly on established structural rules, schedules, term limits, and current contexts rather than substituting past events.
 - If the topic involves dates around or after ${today}, rely on established schedules, laws, and the most current data available.
@@ -199,8 +242,10 @@ ${topicOnlyRule}
 - Keep JSON keys in English.
 - Use plain text math notation only. Do not use LaTeX commands or backslashes in any JSON string.
 - Avoid quotation marks inside question, option, answer, and explanation text.
-- Vary the questions every time.
-- Image URL must start with https://upload.wikimedia.org/ and end with .jpg or .png, otherwise use null.
+- Diversity requirement: Treat the Variation ID as a unique seed. Even when the topic, source, difficulty, and question count are the same, generate a fresh question set with different wording, examples, numerical values, option order, and subtopic coverage.
+- For mathematics and science, vary problem numbers, diagrams described in text, scenarios, and concept combinations between generations.
+- Vary the questions every time and avoid repeating the most obvious first questions for a topic.
+- Always set image to null for quiz questions.
 
 Current Date: ${today}
 Variation ID: ${variation}
@@ -247,7 +292,7 @@ Content: ${text || "Use general knowledge"}
 `;
 }
 
-async function parseJsonCompletion(prompt, sanitizer, retries = 3) {
+async function parseJsonCompletion(prompt, sanitizer, retries = 2) {
   let lastError = null;
   for (let attempt = 0; attempt < retries; attempt += 1) {
     try {
@@ -262,9 +307,27 @@ async function parseJsonCompletion(prompt, sanitizer, retries = 3) {
   throw new AppError(lastError?.message || "AI generation failed", 502);
 }
 
+async function generateQuestionBatch(prompt, questionMode, questionCount) {
+  let questions = await parseJsonCompletion(prompt, (parsed) => sanitizeQuestions(parsed?.questions, questionMode, questionCount));
+
+  for (let repairAttempt = 0; repairAttempt < 1 && hasGenerationMismatch(questions, questionMode, questionCount); repairAttempt += 1) {
+    questions = await parseJsonCompletion(
+      `${prompt}\nPrevious output violated the question count or question mode rules. Regenerate from scratch and return exactly ${questionCount} valid ${questionMode} questions. For MCQ questions, every item must include exactly 4 non-empty options and correct must be only A, B, C, or D. Do not return fewer than ${questionCount} valid questions.`,
+      (parsed) => sanitizeQuestions(parsed?.questions, questionMode, questionCount)
+    );
+  }
+
+  if (hasGenerationMismatch(questions, questionMode, questionCount)) {
+    throw new AppError(`Could not generate exactly ${questionCount} valid ${questionMode} questions for this topic. Please try again.`, 502);
+  }
+
+  return questions;
+}
+
 export async function generateQuizSession({ userId = null, topic = "", text = "", difficulty = "medium", learnerMode = "student", questionMode = "mcq", outputLanguage = "English", extractionId = "", preferFull = false, sourceType = "topic", sourceInput = "", questionCount = 5, timerEnabled = false, timerSeconds = null, variation = null, userLocalTime = "", userTimezone = "" }) {
   const resolvedCount = Math.max(5, Math.min(100, Math.floor(Number(questionCount) || 5)));
   const resolvedTimerSeconds = timerEnabled ? Math.max(15, Math.floor(Number(timerSeconds) || 15)) : null;
+  const variationSeed = `${variation || Date.now()}-${userId || "guest"}-${Math.random().toString(36).slice(2)}`;
   let effectiveText = resolveFullExtractedText(extractionId, text, preferFull);
   const isTopicMode = String(sourceType || "").trim().toLowerCase() === "topic";
   if (isTopicMode) {
@@ -286,31 +349,29 @@ export async function generateQuizSession({ userId = null, topic = "", text = ""
     throw new AppError("Text or topic is required", 400);
   }
 
-  const prompt = buildQuizPrompt({
-    topic,
-    text: effectiveText,
-    sourceType,
-    difficulty,
-    learnerMode,
-    questionMode,
-    outputLanguage,
-    questionCount: resolvedCount,
-    timerEnabled: Boolean(timerEnabled),
-    timerSeconds: resolvedTimerSeconds,
-    variation: Number.isFinite(Number(variation)) ? Number(variation) : Math.floor(Math.random() * 100000),
-    userLocalTime,
-    userTimezone
+  const batches = buildQuestionBatches(resolvedCount);
+  const batchResults = await runLimited(batches, 3, async (batchCount, batchIndex) => {
+    const prompt = buildQuizPrompt({
+      topic,
+      text: effectiveText,
+      sourceType,
+      difficulty,
+      learnerMode,
+      questionMode,
+      outputLanguage,
+      questionCount: batchCount,
+      totalQuestionCount: resolvedCount,
+      timerEnabled: Boolean(timerEnabled),
+      timerSeconds: resolvedTimerSeconds,
+      variation: `${variationSeed}-batch-${batchIndex + 1}-of-${batches.length}`,
+      userLocalTime,
+      userTimezone
+    });
+
+    return generateQuestionBatch(prompt, questionMode, batchCount);
   });
 
-  let questions = await parseJsonCompletion(prompt, (parsed) => sanitizeQuestions(parsed?.questions, questionMode, resolvedCount));
-
-  for (let repairAttempt = 0; repairAttempt < 2 && hasGenerationMismatch(questions, questionMode, resolvedCount); repairAttempt += 1) {
-    questions = await parseJsonCompletion(
-      `${prompt}\nPrevious output violated the question count or question mode rules. Regenerate from scratch and return exactly ${resolvedCount} valid ${questionMode} questions. For MCQ questions, every item must include exactly 4 non-empty options and correct must be only A, B, C, or D. Do not return fewer than ${resolvedCount} valid questions.`,
-      (parsed) => sanitizeQuestions(parsed?.questions, questionMode, resolvedCount)
-    );
-  }
-
+  const questions = batchResults.flat().slice(0, resolvedCount);
   if (hasGenerationMismatch(questions, questionMode, resolvedCount)) {
     throw new AppError(`Could not generate exactly ${resolvedCount} valid ${questionMode} questions for this topic. Please try again.`, 502);
   }

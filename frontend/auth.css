@@ -17,7 +17,8 @@
 }
 
 /* Page layout */
-html,body{height:100%;}
+html,body{min-height:100%;}
+html{background:var(--bg, #0B1220);}
 body{
   margin:0;
   min-height:100vh;
@@ -188,11 +189,14 @@ body {
 
 /* Compact auth pages for login/register */
 body.auth-body {
+  height: auto !important;
+  min-height: 100vh !important;
   min-height: 100vh;
   padding: 18px !important;
   background:
     linear-gradient(135deg, rgba(99, 102, 241, 0.13), transparent 36rem),
     var(--bg, #0B1220) !important;
+  background-attachment: fixed;
 }
 
 .auth-body .auth-page {
@@ -201,9 +205,9 @@ body.auth-body {
 
 .auth-body .auth-grid,
 .auth-body .auth-grid.two-col {
-  width: min(1180px, 100%);
-  grid-template-columns: minmax(320px, 0.86fr) minmax(430px, 1fr);
-  gap: 18px;
+  width: min(1260px, 100%);
+  grid-template-columns: minmax(340px, 0.9fr) minmax(500px, 1fr);
+  gap: 24px;
 }
 
 .auth-hero-compact {
@@ -217,7 +221,7 @@ body.auth-body {
 }
 
 .register-card {
-  padding: 24px !important;
+  padding: 30px !important;
 }
 
 .auth-card-head {
@@ -261,23 +265,24 @@ body.auth-body {
 }
 
 .auth-form {
-  gap: 12px !important;
+  gap: 16px !important;
 }
 
 .auth-inline-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 16px;
 }
 
 .auth-inline-grid.three-col {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
 }
 
 .auth-identifier-box {
   display: grid;
-  gap: 10px;
-  padding: 12px;
+  gap: 14px;
+  padding: 18px;
   border: 1px solid var(--border, rgba(148, 163, 184, 0.24));
   border-radius: 16px;
   background: rgba(99, 102, 241, 0.08);
@@ -294,8 +299,8 @@ body.auth-body {
 }
 
 .auth-input {
-  min-height: 46px !important;
-  height: 46px !important;
+  min-height: 50px !important;
+  height: 50px !important;
 }
 
 .input-action-group .auth-input {
@@ -305,13 +310,14 @@ body.auth-body {
 
 .input-action-btn {
   width: 54px !important;
-  height: 46px !important;
+  height: 50px !important;
   font-size: 0.78rem;
   font-weight: 800;
 }
 
 .password-strength {
-  min-height: 18px;
+  min-height: 22px;
+  margin-top: 2px;
 }
 
 .password-strength span {

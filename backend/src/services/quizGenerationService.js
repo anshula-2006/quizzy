@@ -263,7 +263,7 @@ async function parseJsonCompletion(prompt, sanitizer, retries = 3) {
 }
 
 export async function generateQuizSession({ userId = null, topic = "", text = "", difficulty = "medium", learnerMode = "student", questionMode = "mcq", outputLanguage = "English", extractionId = "", preferFull = false, sourceType = "topic", sourceInput = "", questionCount = 5, timerEnabled = false, timerSeconds = null, variation = null, userLocalTime = "", userTimezone = "" }) {
-  const resolvedCount = Math.max(5, Math.min(20, Math.floor(Number(questionCount) || 5)));
+  const resolvedCount = Math.max(5, Math.min(100, Math.floor(Number(questionCount) || 5)));
   const resolvedTimerSeconds = timerEnabled ? Math.max(15, Math.floor(Number(timerSeconds) || 15)) : null;
   let effectiveText = resolveFullExtractedText(extractionId, text, preferFull);
   const isTopicMode = String(sourceType || "").trim().toLowerCase() === "topic";

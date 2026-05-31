@@ -123,6 +123,10 @@ function hasModeMismatch(questions, questionMode) {
   return false;
 }
 
+function hasGenerationMismatch(questions, questionMode, questionCount) {
+  return hasModeMismatch(questions, questionMode) || questions.length !== questionCount;
+}
+
 function buildQuizPrompt({ topic, text, sourceType, difficulty, learnerMode, questionMode, outputLanguage, questionCount, timerEnabled, timerSeconds, variation, userLocalTime, userTimezone }) {
   const today = userLocalTime || new Date().toLocaleString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   const locationContext = userTimezone ? ` in the ${userTimezone} timezone` : "";
@@ -257,7 +261,7 @@ async function parseJsonCompletion(prompt, sanitizer, retries = 3) {
 }
 
 export async function generateQuizSession({ userId = null, topic = "", text = "", difficulty = "medium", learnerMode = "student", questionMode = "mcq", outputLanguage = "English", extractionId = "", preferFull = false, sourceType = "topic", sourceInput = "", questionCount = 5, timerEnabled = false, timerSeconds = null, variation = null, userLocalTime = "", userTimezone = "" }) {
-  const resolvedCount = Math.max(5, Math.min(30, Math.floor(Number(questionCount) || 5)));
+  const resolvedCount = Math.max(5, Math.min(20, Math.floor(Number(questionCount) || 5)));
   const resolvedTimerSeconds = timerEnabled ? Math.max(15, Math.floor(Number(timerSeconds) || 15)) : null;
   let effectiveText = resolveFullExtractedText(extractionId, text, preferFull);
   const isTopicMode = String(sourceType || "").trim().toLowerCase() === "topic";
@@ -298,15 +302,15 @@ export async function generateQuizSession({ userId = null, topic = "", text = ""
 
   let questions = await parseJsonCompletion(prompt, (parsed) => sanitizeQuestions(parsed?.questions, questionMode, resolvedCount));
 
-  if (hasModeMismatch(questions, questionMode)) {
+  for (let repairAttempt = 0; repairAttempt < 2 && hasGenerationMismatch(questions, questionMode, resolvedCount); repairAttempt += 1) {
     questions = await parseJsonCompletion(
-      `${prompt}\nPrevious output violated the question mode rules. Regenerate from scratch and follow them exactly.`,
+      `${prompt}\nPrevious output violated the question count or question mode rules. Regenerate from scratch and return exactly ${resolvedCount} valid ${questionMode} questions. For MCQ questions, every item must include exactly 4 non-empty options and correct must be only A, B, C, or D. Do not return fewer than ${resolvedCount} valid questions.`,
       (parsed) => sanitizeQuestions(parsed?.questions, questionMode, resolvedCount)
     );
   }
 
-  if (hasModeMismatch(questions, questionMode)) {
-    throw new AppError(`Could not generate valid ${questionMode} questions for this topic. Please try a broader topic.`, 502);
+  if (hasGenerationMismatch(questions, questionMode, resolvedCount)) {
+    throw new AppError(`Could not generate exactly ${resolvedCount} valid ${questionMode} questions for this topic. Please try again.`, 502);
   }
 
   const quizSession = await QuizSession.create({

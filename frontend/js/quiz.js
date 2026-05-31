@@ -88,9 +88,9 @@ function timerForQuestion(question) {
   try {
     const adaptive = isAdaptiveMode() ? quizState.meta && quizState.meta.adaptive : null;
     if (adaptive && adaptive.nextDifficulty) {
-      if (adaptive.nextDifficulty === "easier") {
+      if (adaptive.nextDifficulty.startsWith("easier")) {
         base = base + 12; // give more time for easier mode
-      } else if (adaptive.nextDifficulty === "harder") {
+      } else if (adaptive.nextDifficulty.startsWith("harder")) {
         base = Math.max(6, base - 8); // reduce time for harder mode, keep floor
       }
     }
@@ -206,7 +206,7 @@ function startTimer() {
   const seconds = timerForQuestion(question);
   // Consume adaptive.nextDifficulty so it applies only once
   try {
-    if (quizState.meta && quizState.meta.adaptive && quizState.meta.adaptive.nextDifficulty) {
+    if (isAdaptiveMode() && quizState.meta && quizState.meta.adaptive && quizState.meta.adaptive.nextDifficulty) {
       quizState.meta.adaptive.nextDifficulty = null;
       persist();
     }
@@ -238,6 +238,13 @@ function render() {
   const timerLabel = timerSeconds !== null
     ? `${timerSeconds}s left`
     : "No timer";
+  const configuredTimer = quizState.settings?.customTimer === "off"
+    ? "Timer: Off"
+    : `Timer: ${Number(quizState.settings?.customTimer || timerSeconds || 0)}s`;
+  const difficultyLabel = isAdaptiveMode()
+    ? `Difficulty: Adaptive (${formatDifficulty(ensureAdaptiveState().currentDifficulty)})`
+    : `Difficulty: ${formatDifficulty(quizState.settings?.difficulty)}`;
+  const questionCountLabel = `Questions: ${quizState.questions.length}`;
 
   const modeLabel = quizState.settings?.learnerMode || "quiz";
   const isExam = modeLabel === "exam";
@@ -282,12 +289,12 @@ function render() {
   // Compute adaptive badge if adaptive.nextDifficulty is set in session meta
   let adaptiveBadge = "";
   try {
-    const adaptive = quizState.meta && quizState.meta.adaptive;
+    const adaptive = isAdaptiveMode() ? quizState.meta && quizState.meta.adaptive : null;
     if (adaptive && adaptive.nextDifficulty) {
-      if (adaptive.nextDifficulty === "easier") {
-        adaptiveBadge = `<span class="pill" style="background: rgba(239,68,68,0.06); color: var(--error); border-color: rgba(239,68,68,0.12);">Easier next question</span>`;
-      } else if (adaptive.nextDifficulty === "harder") {
-        adaptiveBadge = `<span class="pill" style="background: rgba(34,197,94,0.06); color: var(--success); border-color: rgba(34,197,94,0.12);">Harder next question</span>`;
+      if (adaptive.nextDifficulty.startsWith("easier")) {
+        adaptiveBadge = `<span class="pill" style="background: rgba(239,68,68,0.06); color: var(--error); border-color: rgba(239,68,68,0.12);">Next: ${escapeHtml(adaptive.nextDifficulty)}</span>`;
+      } else if (adaptive.nextDifficulty.startsWith("harder")) {
+        adaptiveBadge = `<span class="pill" style="background: rgba(34,197,94,0.06); color: var(--success); border-color: rgba(34,197,94,0.12);">Next: ${escapeHtml(adaptive.nextDifficulty)}</span>`;
       }
     }
   } catch (e) {
@@ -303,6 +310,9 @@ function render() {
         </div>
         <div class="quiz-focus-meta">
           <span class="pill">${question.type.toUpperCase()}</span>
+          <span class="pill">${questionCountLabel}</span>
+          <span class="pill">${configuredTimer}</span>
+          <span class="pill">${difficultyLabel}</span>
           ${wikiLink}
           ${streakPill}
           ${adaptiveBadge}

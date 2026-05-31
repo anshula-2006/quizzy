@@ -283,6 +283,12 @@ form?.addEventListener("submit", async (event) => {
     countInput?.focus();
     return;
   }
+  if (questionCount > 20) {
+    errorNode.hidden = false;
+    errorNode.textContent = "Maximum 20 questions allowed.";
+    countInput?.focus();
+    return;
+  }
 
   const timerEnabled = timerMode?.value === "on";
   const timerSeconds = Math.floor(Number(timerSecondsInput?.value || 0));

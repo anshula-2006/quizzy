@@ -19,6 +19,14 @@ function statCard(label, value, helper) {
   `;
 }
 
+function learnerIdentifier(student) {
+  return student.email || student.userId || student.parentPhone || "No login ID shown";
+}
+
+function learnerType(student) {
+  return student.grade || (student.userType === "self_learner" ? "Self Learner" : "Student");
+}
+
 function renderAccessMessage() {
   root.innerHTML = `
     <section class="panel flow-card teacher-hero">
@@ -110,14 +118,14 @@ function renderDashboard(data) {
               ${students.map((student) => `
                 <tr>
                   <td>
-                    <strong>${escapeHtml(student.name)}</strong>
-                    <span>${escapeHtml(student.email)}</span>
+                    <strong>${escapeHtml(student.name || learnerIdentifier(student))}</strong>
+                    <span>${escapeHtml(learnerIdentifier(student))}</span>
                   </td>
-                  <td>${escapeHtml(student.grade || student.userType || "student")}</td>
-                  <td>${student.totalQuizzes}</td>
-                  <td>${student.accuracy}%</td>
-                  <td>${student.bestPercentage}%</td>
-                  <td>${student.totalXp}</td>
+                  <td>${escapeHtml(learnerType(student))}</td>
+                  <td>${Number(student.totalQuizzes || 0)}</td>
+                  <td>${Number(student.accuracy || 0)}%</td>
+                  <td>${Number(student.bestPercentage || 0)}%</td>
+                  <td>${Number(student.totalXp || 0)}</td>
                   <td>${formatDate(student.lastAttemptAt)}</td>
                 </tr>
               `).join("")}

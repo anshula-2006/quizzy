@@ -175,7 +175,7 @@ export async function teacherDashboardData(req, res) {
     })
       .sort({ "stats.lastAttemptAt": -1, createdAt: -1 })
       .limit(100)
-      .select("name email userType grade stats createdAt")
+      .select("name email parentPhone userId userType grade stats createdAt")
       .lean(),
     QuizAttempt.find({})
       .populate({ path: "user", select: "name email userType grade" })
@@ -240,6 +240,8 @@ export async function teacherDashboardData(req, res) {
         id: user._id?.toString(),
         name: String(user.name || "Learner"),
         email: String(user.email || ""),
+        parentPhone: String(user.parentPhone || ""),
+        userId: String(user.userId || ""),
         userType: String(user.userType || "student"),
         grade: String(user.grade || ""),
         totalQuizzes: Number(stats.totalQuizzes || 0),

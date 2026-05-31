@@ -73,8 +73,8 @@
 
 .hero-home .page-title {
   max-width: 900px;
-  font-size: clamp(3rem, 6.8vw, 6.6rem);
-  line-height: 0.95;
+  font-size: clamp(2.55rem, 5.4vw, 5.2rem);
+  line-height: 1;
   font-weight: 900;
 }
 
@@ -1952,6 +1952,163 @@ select:focus,
   transition: transform 420ms ease !important;
 }
 
+/* Quiz page readability */
+#quizRoot .quiz-card {
+  padding: 22px !important;
+}
+
+#quizRoot .quiz-focus-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+#quizRoot .quiz-focus-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+#quizRoot .quiz-focus-grid {
+  grid-template-columns: minmax(0, 0.95fr) minmax(360px, 1.05fr) !important;
+  gap: 20px !important;
+}
+
+#quizRoot .question-panel {
+  padding: 20px !important;
+  background: var(--card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 18px !important;
+}
+
+#quizRoot .question-text {
+  margin: 10px 0 0 !important;
+  font-size: clamp(1.5rem, 2vw, 1.875rem) !important;
+  line-height: 1.35 !important;
+  font-weight: 800 !important;
+  color: var(--text) !important;
+  letter-spacing: 0 !important;
+}
+
+#quizRoot .section-copy,
+#quizRoot .feedback-copy {
+  font-size: 15.5px !important;
+  line-height: 1.6 !important;
+  color: var(--text-muted) !important;
+}
+
+#quizRoot .eyebrow,
+#quizRoot .progress-head,
+#quizRoot .pill {
+  font-size: 13px !important;
+  line-height: 1.35 !important;
+  color: var(--text-muted) !important;
+}
+
+#quizRoot .pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface) !important;
+  font-weight: 700;
+}
+
+#quizRoot .answer-stack {
+  gap: 12px !important;
+  margin-top: 0 !important;
+}
+
+#quizRoot .answer-option {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-height: 58px;
+  padding: 14px 16px !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  font-size: 15.5px !important;
+  line-height: 1.45 !important;
+  font-weight: 600 !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+}
+
+#quizRoot .answer-option span:not(.answer-key) {
+  color: var(--text) !important;
+}
+
+#quizRoot .answer-option:hover:not(:disabled),
+#quizRoot .answer-option.selected {
+  background: var(--primary-soft) !important;
+  border-color: var(--primary) !important;
+  color: var(--text) !important;
+  box-shadow: inset 4px 0 0 var(--primary) !important;
+  transform: translateY(-1px) !important;
+}
+
+#quizRoot .answer-option:disabled {
+  cursor: default;
+}
+
+#quizRoot .answer-key {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px !important;
+  background: var(--primary-soft) !important;
+  color: var(--primary) !important;
+  border: 1px solid rgba(99, 102, 241, 0.24);
+}
+
+#quizRoot .answer-option.correct {
+  background: rgba(16, 185, 129, 0.12) !important;
+  border-color: var(--success) !important;
+  color: var(--text) !important;
+  box-shadow: inset 4px 0 0 var(--success) !important;
+}
+
+#quizRoot .answer-option.wrong {
+  background: rgba(239, 68, 68, 0.12) !important;
+  border-color: var(--danger) !important;
+  color: var(--text) !important;
+  box-shadow: inset 4px 0 0 var(--danger) !important;
+}
+
+#quizRoot .feedback-box {
+  margin-top: 14px;
+  padding: 16px !important;
+  border-radius: 12px !important;
+  color: var(--text) !important;
+}
+
+#quizRoot .feedback-box.good {
+  background: rgba(16, 185, 129, 0.12) !important;
+  border-color: var(--success) !important;
+}
+
+#quizRoot .feedback-box.bad {
+  background: rgba(239, 68, 68, 0.12) !important;
+  border-color: var(--danger) !important;
+}
+
+#quizRoot .feedback-title {
+  color: var(--text) !important;
+  font-size: 1rem !important;
+  line-height: 1.35 !important;
+}
+
+#quizRoot .quiz-actions {
+  margin-top: 16px;
+}
+
 .page-fade {
   animation: quizzyPageIn 250ms ease both !important;
 }
@@ -2036,5 +2193,22 @@ select:focus,
 
   .hero-home {
     min-height: auto;
+  }
+
+  #quizRoot .quiz-focus-head {
+    display: grid;
+  }
+
+  #quizRoot .quiz-focus-meta {
+    justify-content: flex-start;
+  }
+
+  #quizRoot .quiz-focus-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  #quizRoot .question-text {
+    font-size: clamp(1.25rem, 5vw, 1.5rem) !important;
+    line-height: 1.4 !important;
   }
 }

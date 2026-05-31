@@ -265,6 +265,10 @@ function renderDashboard(data) {
   const lastAttempt = attempts[0] || null;
   const reviewTopic = lastAttempt?.settings?.topic || lastAttempt?.sourceInput || lastAttempt?.sourceTopic || 'your next review';
   const weakestTopic = categoryStats.length ? [...categoryStats].sort((a, b) => a.average - b.average)[0] : null;
+  const mostStudiedTopic = categoryStats.length ? [...categoryStats].sort((a, b) => b.count - a.count)[0] : null;
+  const personalizedFocus = weakestTopic ? `Review ${escapeHtml(weakestTopic.label)}` : `Practice ${escapeHtml(reviewTopic)}`;
+  const personalizedNextStep = attempts.length ? `Continue with ${escapeHtml(reviewTopic)}` : 'Create your first quiz';
+  const flashcardsStatus = totalFlashcards ? `${totalFlashcards} deck${totalFlashcards === 1 ? '' : 's'} ready to review` : 'No decks created yet';
   
   const isNewUser = attempts.length === 0 && flashDecks.length === 0;
 
@@ -423,6 +427,28 @@ function renderDashboard(data) {
           </div>
           <div style="display: flex; flex-direction: column;">
             ${leaderboardHtml}
+          </div>
+        </section>
+
+        <section class="panel flow-card">
+          <strong style="display: block; font-size: 1.1rem; margin-bottom: var(--space-3);">Learning Plan</strong>
+          <div style="display: grid; gap: 16px;">
+            <div style="display: flex; justify-content: space-between; gap: 12px;">
+              <span class="text-xs" style="color: var(--color-text-secondary);">Focus</span>
+              <strong style="font-size: 0.95rem; text-align: right;">${personalizedFocus}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; gap: 12px;">
+              <span class="text-xs" style="color: var(--color-text-secondary);">Next Step</span>
+              <strong style="font-size: 0.95rem; text-align: right;">${personalizedNextStep}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; gap: 12px;">
+              <span class="text-xs" style="color: var(--color-text-secondary);">Top Topic</span>
+              <strong style="font-size: 0.95rem; text-align: right;">${mostStudiedTopic ? escapeHtml(mostStudiedTopic.label) : 'No topic yet'}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; gap: 12px;">
+              <span class="text-xs" style="color: var(--color-text-secondary);">Flashcard Status</span>
+              <strong style="font-size: 0.95rem; text-align: right;">${flashcardsStatus}</strong>
+            </div>
           </div>
         </section>
         

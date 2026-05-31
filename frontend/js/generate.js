@@ -93,8 +93,20 @@ function renderWorkspace() {
   
   const weakest = topicStats.filter(t => t.avg < 70).sort((a,b) => a.avg - b.avg)[0];
   const strongest = topicStats.filter(t => t.avg >= 80).sort((a,b) => b.avg - a.avg)[0];
+  const mostStudied = topicStats.length ? [...topicStats].sort((a,b) => b.count - a.count)[0] : null;
   const recentQuizzes = history.slice(0, 3);
   const lastAttempt = history[0];
+  const recommendedTopic = weakest?.topic || mostStudied?.topic || lastAttempt?.settings?.topic || lastAttempt?.sourceTopic || "General Practice";
+  const recommendedNextQuiz = weakest
+    ? `Sharpen your skills with another quiz on ${escapeHtml(weakest.topic)}`
+    : strongest
+      ? `Take a harder quiz on ${escapeHtml(strongest.topic)}`
+      : `Create your first quiz to get started`;
+  const recommendedFlashcardReview = weakest
+    ? `Review flashcards for ${escapeHtml(weakest.topic)}`
+    : decks.length
+      ? `Review ${escapeHtml(decks[0].title)} deck`
+      : `Create your first flashcard deck`;
 
   sidebar.innerHTML = `
     <section class="panel flow-card">
@@ -107,6 +119,34 @@ function renderWorkspace() {
           <div class="saas-stat-card" style="padding: 12px;"><span class="saas-stat-label">Decks</span><strong class="saas-stat-value" style="font-size: 1.1rem; margin-top: 4px; display: block;">${totalDecks}</strong></div>
        </div>
     </section>
+    ${topicStats.length ? `
+      <section class="panel flow-card">
+         <p class="eyebrow">Recommendations</p>
+         <h3 style="font-size: 1rem; margin: 0 0 12px;">${escapeHtml(recommendedTopic)}</h3>
+         <div style="display: grid; gap: 10px;">
+           <div class="meta-row" style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+             <span style="font-size:0.85rem; color:var(--muted);">Weakest topic</span>
+             <strong>${escapeHtml(weakest?.topic || "N/A")}</strong>
+           </div>
+           <div class="meta-row" style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+             <span style="font-size:0.85rem; color:var(--muted);">Strongest topic</span>
+             <strong>${escapeHtml(strongest?.topic || "N/A")}</strong>
+           </div>
+           <div class="meta-row" style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+             <span style="font-size:0.85rem; color:var(--muted);">Most studied</span>
+             <strong>${escapeHtml(mostStudied?.topic || "N/A")}</strong>
+           </div>
+           <div style="padding: 12px; background: var(--bg-secondary); border-radius: var(--radius-md); border: 1px solid var(--line);">
+             <p class="text-secondary" style="margin:0 0 6px; font-size:0.8rem;">Next quiz</p>
+             <strong style="display:block;">${recommendedNextQuiz}</strong>
+           </div>
+           <div style="padding: 12px; background: var(--bg-secondary); border-radius: var(--radius-md); border: 1px solid var(--line);">
+             <p class="text-secondary" style="margin:0 0 6px; font-size:0.8rem;">Flashcard review</p>
+             <strong style="display:block;">${recommendedFlashcardReview}</strong>
+           </div>
+         </div>
+      </section>
+    ` : ''}
 
     ${(weakest || strongest || lastAttempt) ? `
     <section class="panel flow-card">

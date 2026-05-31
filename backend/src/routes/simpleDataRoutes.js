@@ -13,22 +13,9 @@ function cleanString(value, fallback = "") {
   return text || fallback;
 }
 
-function cleanUsername(value) {
-  return cleanString(value, "guest").slice(0, 80);
-}
-
 function cleanScore(value) {
   const score = Number(value);
   return Number.isFinite(score) && score >= 0 ? score : null;
-}
-
-function validateUsername(req, res) {
-  const username = cleanUsername(req.params.username || req.body.username);
-  if (!username) {
-    res.status(400).json({ error: "username is required" });
-    return null;
-  }
-  return username;
 }
 
 router.post("/save-score", requireAuth, asyncHandler(async (req, res) => {

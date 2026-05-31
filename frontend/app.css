@@ -289,8 +289,6 @@
 
 /* Nav */
 .top-nav {
-/* Nav */
-.top-nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1446,6 +1444,7 @@
   text-transform: uppercase;
   letter-spacing: 0.1em;
   font-weight: var(--font-weight-semibold);
+}
 
 /* Auth page grid & messaging */
 .auth-grid {
@@ -1495,7 +1494,6 @@
 .password-strength { margin-top: var(--space-3); }
 .password-strength span { display: block; height: 8px; width: 10%; border-radius: var(--radius-full); background: var(--color-surface-3); transition: width var(--transition-fast); }
 .password-strength em { display: block; margin-top: 6px; color: var(--color-text-secondary); font-style: normal; font-size: var(--font-size-sm); }
-}
 
 .auth-hero-grid {
   display: grid;
@@ -1590,4 +1588,367 @@
 .auth-msg {
   margin-top: var(--space-4);
   color: var(--color-text-secondary);
+}
+
+/* Modern SaaS polish layer */
+html {
+  background: var(--bg);
+}
+
+html[data-theme="light"] body {
+  --bg: #F8FAFC;
+  --surface: #FFFFFF;
+  --surface-soft: #F1F5F9;
+  --card: rgba(255, 255, 255, 0.82);
+  --card-hover: rgba(248, 250, 252, 0.95);
+  --border: rgba(148, 163, 184, 0.28);
+  --primary: #4F46E5;
+  --primary-hover: #4338CA;
+  --primary-soft: rgba(79, 70, 229, 0.10);
+  --text: #0F172A;
+  --text-muted: #64748B;
+  --text-soft: #94A3B8;
+}
+
+html[data-theme="dark"] body,
+body.dark {
+  --bg: #0B1220;
+  --surface: #111827;
+  --surface-soft: #172033;
+  --card: rgba(31, 41, 55, 0.78);
+  --card-hover: rgba(37, 50, 71, 0.9);
+  --border: rgba(148, 163, 184, 0.18);
+  --primary: #6366F1;
+  --primary-hover: #4F46E5;
+  --primary-soft: rgba(99, 102, 241, 0.14);
+  --text: #F9FAFB;
+  --text-muted: #9CA3AF;
+  --text-soft: #6B7280;
+}
+
+body {
+  background:
+    radial-gradient(circle at top left, rgba(99, 102, 241, 0.10), transparent 34rem),
+    var(--bg) !important;
+  color: var(--text) !important;
+  letter-spacing: 0 !important;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6,
+.page-title,
+.section-title,
+.question-text,
+.auth-title,
+.hero-title {
+  color: var(--text) !important;
+  letter-spacing: 0 !important;
+  text-shadow: none !important;
+}
+
+.page-container,
+.container {
+  max-width: 1400px !important;
+  padding: 24px !important;
+}
+
+.top-nav {
+  height: 72px !important;
+  background: rgba(17, 24, 39, 0.78) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.16) !important;
+  backdrop-filter: blur(18px) !important;
+  -webkit-backdrop-filter: blur(18px) !important;
+}
+
+html[data-theme="light"] .top-nav,
+body:not(.dark) .top-nav {
+  background: rgba(255, 255, 255, 0.82) !important;
+}
+
+.nav-link {
+  border-radius: 10px !important;
+  color: var(--text-muted) !important;
+}
+
+.nav-link:hover,
+.nav-link.is-active {
+  background: var(--primary-soft) !important;
+  border-color: transparent !important;
+  color: var(--primary) !important;
+  box-shadow: none !important;
+}
+
+.panel,
+.card,
+.flow-card,
+.quiz-card,
+.game-card,
+.result-card,
+.glass-card,
+.auth-card,
+.dashboard-main-card,
+.dashboard-side-card,
+.saas-stat-card,
+.chart-card,
+.stat-card,
+.source-card,
+.setting-card,
+.challenge-card,
+.mini-game-panel,
+.lb-row,
+.profile-metric,
+.badge-card,
+.timeline-item,
+.flash-face,
+.fc-front,
+.fc-back {
+  background: var(--card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.22) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease, background-color 220ms ease !important;
+}
+
+.panel:hover,
+.card:hover,
+.flow-card:hover,
+.quiz-card:hover,
+.game-card:hover,
+.result-card:hover,
+.glass-card:hover,
+.auth-card:hover,
+.saas-stat-card:hover,
+.chart-card:hover,
+.source-card:hover,
+.setting-card:hover,
+.challenge-card:hover,
+.mini-game-panel:hover,
+.lb-row:hover,
+.badge-card:hover {
+  transform: translateY(-4px) !important;
+  background: var(--card-hover) !important;
+  border-color: rgba(99, 102, 241, 0.45) !important;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.28) !important;
+}
+
+.btn,
+.btn-primary,
+.auth-btn {
+  min-height: 48px !important;
+  border-radius: 12px !important;
+  background: var(--primary) !important;
+  color: #fff !important;
+  font-weight: 700 !important;
+  border-color: var(--primary) !important;
+  box-shadow: none !important;
+}
+
+.btn:hover,
+.btn-primary:hover,
+.auth-btn:hover {
+  background: var(--primary-hover) !important;
+  transform: translateY(-1px) !important;
+}
+
+.btn-secondary,
+.btn-outline,
+.ghost {
+  background: transparent !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text) !important;
+}
+
+.btn-secondary:hover,
+.btn-outline:hover,
+.ghost:hover {
+  background: var(--primary-soft) !important;
+  border-color: var(--primary) !important;
+  color: var(--primary) !important;
+}
+
+.input,
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="search"],
+textarea,
+select,
+.auth-input,
+.text-input,
+.select-input,
+.file-input,
+.answer-input,
+.source-input {
+  min-height: 50px !important;
+  border-radius: 12px !important;
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text) !important;
+  padding: 0 14px !important;
+  box-shadow: none !important;
+}
+
+textarea,
+.answer-input,
+.text-input {
+  padding-top: 14px !important;
+}
+
+.input:focus,
+input:focus,
+textarea:focus,
+select:focus,
+.auth-input:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px var(--primary-soft) !important;
+}
+
+.section-copy,
+.helper-text,
+.meta-copy,
+.text-secondary,
+.page-subtitle,
+.player-meta,
+.auth-field-hint,
+.auth-msg {
+  color: var(--text-muted) !important;
+}
+
+.eyebrow,
+.field-label,
+.meta-chip,
+.saas-stat-label,
+.auth-eyebrow {
+  color: var(--text-soft) !important;
+  letter-spacing: 0 !important;
+}
+
+.split-grid.two-col,
+.dashboard-content-grid,
+.scoreboard-support-grid,
+.profile-header,
+.generate-workspace {
+  gap: 18px !important;
+}
+
+.dashboard-content-grid {
+  grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr) !important;
+}
+
+.profile-metrics,
+.result-stats,
+.settings-grid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
+}
+
+.generate-form {
+  gap: 16px !important;
+}
+
+.source-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+.lb-row.me {
+  border-color: var(--primary) !important;
+  background: var(--primary-soft) !important;
+}
+
+.rank-badge.podium-rank-1,
+.rank-badge.podium-rank-2,
+.rank-badge.podium-rank-3 {
+  background: var(--primary-soft) !important;
+  color: var(--primary) !important;
+  border-color: rgba(99, 102, 241, 0.28) !important;
+  box-shadow: none !important;
+}
+
+.flash-card-3d,
+.fc-inner {
+  transition: transform 420ms ease !important;
+}
+
+.page-fade {
+  animation: quizzyPageIn 250ms ease both !important;
+}
+
+.panel,
+.card,
+.flow-card,
+.saas-stat-card,
+.chart-card,
+.challenge-card,
+.mini-game-panel,
+.lb-row {
+  animation: quizzyCardIn 280ms ease both;
+}
+
+.panel:nth-child(2),
+.card:nth-child(2),
+.flow-card:nth-child(2),
+.saas-stat-card:nth-child(2),
+.chart-card:nth-child(2),
+.challenge-card:nth-child(2),
+.mini-game-panel:nth-child(2),
+.lb-row:nth-child(2) {
+  animation-delay: 60ms;
+}
+
+.panel:nth-child(3),
+.card:nth-child(3),
+.flow-card:nth-child(3),
+.saas-stat-card:nth-child(3),
+.chart-card:nth-child(3),
+.challenge-card:nth-child(3),
+.mini-game-panel:nth-child(3),
+.lb-row:nth-child(3) {
+  animation-delay: 120ms;
+}
+
+@keyframes quizzyPageIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes quizzyCardIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-fade,
+  .panel,
+  .card,
+  .flow-card,
+  .saas-stat-card,
+  .chart-card,
+  .challenge-card,
+  .mini-game-panel,
+  .lb-row {
+    animation: none !important;
+  }
+
+  * {
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .page-container,
+  .container {
+    padding: 16px !important;
+  }
+
+  .source-grid,
+  .split-grid.two-col,
+  .dashboard-content-grid,
+  .scoreboard-support-grid,
+  .profile-header {
+    grid-template-columns: 1fr !important;
+  }
 }

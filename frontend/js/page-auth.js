@@ -40,8 +40,8 @@ toggleStyles.textContent = `
 
   body.dark {
     color-scheme: dark;
-    --bg: #080C14;
-    --bg-deep: #05070D;
+    --bg: #0B1220;
+    --bg-deep: #0B1220;
     --bg-secondary: #111827;
     --panel: #101622;
     --panel-strong: #151C2B;
@@ -49,9 +49,9 @@ toggleStyles.textContent = `
     --glass-overlay: rgba(255, 255, 255, 0.03);
     --line: rgba(226, 232, 240, 0.10);
     --line-strong: rgba(226, 232, 240, 0.16);
-    --primary: #8B9CFF;
-    --secondary: #22D3EE;
-    --accent: #F472B6;
+    --primary: #6366F1;
+    --secondary: #3B82F6;
+    --accent: #6366F1;
     --success: #22C55E;
     --warning: #F59E0B;
     --error: #EF4444;
@@ -115,15 +115,15 @@ toggleStyles.textContent = `
 
   .nav-link:hover, .side-nav a:hover, .global-auth-link:hover, .side-nav a.active, .nav-link.is-active {
     color: #ffffff !important;
-    background: linear-gradient(135deg, var(--primary), var(--secondary)) !important;
-    border-color: transparent !important;
+    background: rgba(99, 102, 241, 0.14) !important;
+    border-color: rgba(99, 102, 241, 0.28) !important;
   }
 
   .glass-card {
     background: var(--panel) !important;
-    background-image: linear-gradient(135deg, var(--glass-overlay) 0%, transparent 100%) !important;
-    backdrop-filter: blur(24px) !important;
-    -webkit-backdrop-filter: blur(24px) !important;
+    background-image: none !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
     border: 1px solid var(--line) !important;
     border-radius: var(--radius-lg);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
@@ -216,18 +216,18 @@ toggleStyles.textContent = `
 
   /* Global Page Transitions */
   @keyframes pageFadeIn {
-    from { opacity: 0; transform: translateY(10px); filter: brightness(0.9); }
-    to { opacity: 1; transform: translateY(0); filter: brightness(1); }
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
   }
   .page-fade {
-    animation: pageFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: pageFadeIn 250ms ease forwards;
   }
 
   .neon-text, .section-title, .saas-stat-value, .auth-brand span:not(.auth-brand-icon) {
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-shadow: 0 0 25px rgba(139, 92, 246, 0.3);
+    background: none;
+    -webkit-background-clip: initial;
+    -webkit-text-fill-color: currentColor;
+    text-shadow: none;
   }
 
   /* Premium SaaS Navbar Styling */
@@ -421,23 +421,24 @@ toggleStyles.textContent = `
 
   /* Quizzy Design System: slate surfaces, indigo accent, restrained SaaS styling. */
   :root {
-    --ds-bg: #f8fafc;
-    --ds-bg-subtle: #f1f5f9;
-    --ds-surface: #ffffff;
-    --ds-surface-2: #f8fafc;
+    --ds-bg: #F8FAFC;
+    --ds-bg-subtle: #F1F5F9;
+    --ds-surface: rgba(255, 255, 255, 0.82);
+    --ds-surface-2: rgba(248, 250, 252, 0.95);
     --ds-border: rgba(15, 23, 42, 0.12);
     --ds-border-strong: rgba(15, 23, 42, 0.18);
     --ds-text: #0f172a;
     --ds-muted: #64748b;
-    --ds-accent: #4f46e5;
-    --ds-accent-hover: #4338ca;
+    --ds-accent: #4F46E5;
+    --ds-accent-hover: #4338CA;
+    --ds-accent-soft: rgba(79, 70, 229, 0.10);
     --ds-success: #16a34a;
     --ds-warning: #d97706;
     --ds-danger: #dc2626;
     --ds-radius-sm: 8px;
     --ds-radius: 12px;
-    --ds-radius-lg: 16px;
-    --ds-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+    --ds-radius-lg: 18px;
+    --ds-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
     --bg: var(--ds-bg);
     --bg-deep: var(--ds-bg-subtle);
     --bg-secondary: var(--ds-bg-subtle);
@@ -466,16 +467,17 @@ toggleStyles.textContent = `
   }
 
   body.dark {
-    --ds-bg: #020617;
-    --ds-bg-subtle: #0f172a;
-    --ds-surface: #111827;
-    --ds-surface-2: #0f172a;
+    --ds-bg: #0B1220;
+    --ds-bg-subtle: #172033;
+    --ds-surface: rgba(31, 41, 55, 0.78);
+    --ds-surface-2: rgba(37, 50, 71, 0.9);
     --ds-border: rgba(148, 163, 184, 0.18);
     --ds-border-strong: rgba(148, 163, 184, 0.26);
     --ds-text: #f8fafc;
     --ds-muted: #94a3b8;
-    --ds-accent: #818cf8;
-    --ds-accent-hover: #a5b4fc;
+    --ds-accent: #6366F1;
+    --ds-accent-hover: #4F46E5;
+    --ds-accent-soft: rgba(99, 102, 241, 0.14);
     --ds-success: #22c55e;
     --ds-warning: #f59e0b;
     --ds-danger: #f87171;
@@ -526,18 +528,26 @@ toggleStyles.textContent = `
     border-radius: var(--ds-radius-lg) !important;
     box-shadow: var(--ds-shadow) !important;
     color: var(--ds-text) !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
   }
 
   .top-nav,
   .global-auth-bar,
   .arcade-header {
-    background: var(--ds-surface) !important;
+    background: rgba(17, 24, 39, 0.78) !important;
     border: 1px solid var(--ds-border) !important;
     border-radius: var(--ds-radius-lg) !important;
     box-shadow: var(--ds-shadow) !important;
     color: var(--ds-text) !important;
+    backdrop-filter: blur(18px) !important;
+    -webkit-backdrop-filter: blur(18px) !important;
+  }
+
+  body:not(.dark) .top-nav,
+  body:not(.dark) .global-auth-bar,
+  body:not(.dark) .arcade-header {
+    background: rgba(255, 255, 255, 0.82) !important;
   }
 
   .brand-badge,
@@ -562,7 +572,7 @@ toggleStyles.textContent = `
   .auth-card h2 {
     color: var(--ds-text) !important;
     font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
-    letter-spacing: -0.02em !important;
+    letter-spacing: 0 !important;
     text-shadow: none !important;
     -webkit-text-fill-color: currentColor !important;
     background: none !important;
@@ -598,7 +608,7 @@ toggleStyles.textContent = `
     color: var(--ds-accent) !important;
     background: var(--ds-surface-2) !important;
     border-color: var(--ds-border) !important;
-    letter-spacing: 0.08em !important;
+    letter-spacing: 0 !important;
   }
 
   .btn,
@@ -650,7 +660,7 @@ toggleStyles.textContent = `
   .source-card:hover,
   .source-card.is-active,
   .challenge-cta:hover {
-    background: var(--ds-surface-2) !important;
+    background: var(--ds-accent-soft) !important;
     color: var(--ds-accent) !important;
     border-color: var(--ds-accent) !important;
     transform: translateY(-1px) !important;
@@ -701,9 +711,25 @@ toggleStyles.textContent = `
   .badge-card:hover,
   .chart-card:hover,
   .arcade-card-link:hover .arcade-game-card {
-    transform: translateY(-1px) !important;
-    border-color: var(--ds-border-strong) !important;
-    box-shadow: var(--ds-shadow) !important;
+    transform: translateY(-4px) !important;
+    border-color: rgba(99, 102, 241, 0.45) !important;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.28) !important;
+  }
+
+  .panel:hover,
+  .glass-card:hover,
+  .auth-card:hover,
+  .saas-stat-card:hover,
+  .chart-card:hover,
+  .flow-card:hover,
+  .game-card:hover,
+  .result-card:hover,
+  .challenge-card:hover,
+  .mini-game-panel:hover,
+  .lb-row:hover {
+    transform: translateY(-4px) !important;
+    border-color: rgba(99, 102, 241, 0.45) !important;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.28) !important;
   }
 
   .hero-orbit-ring,

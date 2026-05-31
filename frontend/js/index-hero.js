@@ -108,14 +108,14 @@ async function personalizeHomepage() {
 
   if (heroSubtitle) {
     heroSubtitle.textContent = attempts.length
-      ? "Your latest quiz performance and progress snapshot are ready."
-      : "Generate a quiz to unlock your personalized learning dashboard.";
+      ? "Generate another quiz from a topic, PDF, or URL, then use your dashboard to review progress."
+      : "Generate a quiz from a topic, PDF, or URL to unlock your personalized learning dashboard.";
   }
 
-  setText("heroPerformanceValue", attempts.length ? `${performance}%` : "--%");
-  setText("heroTotalXpValue", `${totalXp} XP`);
-  setText("heroStreakValue", attempts.length ? `${streak} days` : "0 days");
-  setText("heroBadgesValue", `${badges}`);
+  setText("heroPerformanceValue", "3 ways");
+  setText("heroTotalXpValue", attempts.length ? `${totalXp} XP` : "Review");
+  setText("heroStreakValue", attempts.length ? `${streak} days` : "Progress");
+  setText("heroBadgesValue", attempts.length ? `${badges}` : "Practice");
 
   const email = String(session?.user?.email || session?.email || "").toLowerCase();
   let rankText = "--";

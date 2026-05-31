@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Memory Match | Mini Arcade</title>
+  <title>Memory Match | Brain Lab</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,18 +18,18 @@
       <header class="top-nav">
         <a class="brand" href="../index.html"><span class="brand-badge">Q</span><span>Quizzy</span></a>
         <nav class="nav-links">
-          <a class="nav-link" href="../arcade.html">← Back to Arcade</a>
+          <a class="nav-link" href="../arcade.html">Back to Brain Lab</a>
         </nav>
       </header>
 
-      <main class="panel flow-card">
+      <main class="panel flow-card mini-game-shell memory-game-shell">
         <div class="card-title-row">
           <div>
-            <p class="eyebrow">Mini Arcade</p>
+            <p class="eyebrow">Brain Lab</p>
             <h1 class="section-title">Memory Match</h1>
             <p class="section-copy">Train visual recall by matching pairs with as few moves as possible.</p>
           </div>
-          <div style="display: flex; gap: var(--space-4);">
+          <div class="mini-game-stats">
             <div class="dash-stat-card">
               <span class="saas-stat-label">Moves</span>
               <strong id="movesCount" class="saas-stat-value">0</strong>
@@ -43,7 +43,7 @@
 
         <div class="button-row section-gap" style="align-items: center; justify-content: space-between;">
           <button id="restartGameBtn" class="btn-outline" type="button">Restart Game</button>
-          <p id="memoryStatus" class="helper-text" style="margin: 0;">Ready to play 🚀</p>
+          <p id="memoryStatus" class="helper-text" style="margin: 0;">Ready to play</p>
         </div>
 
         <div id="memoryBoard" class="memory-grid section-gap"></div>

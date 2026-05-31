@@ -128,10 +128,13 @@ async function init() {
 
   root.innerHTML = `
     <section class="panel flow-card dashboard-hero">
-      <div class="dashboard-hero-copy">
-        <p class="eyebrow">Profile overview</p>
-        <h1 class="section-title">${escapeHtml(name)}</h1>
-        <p class="section-copy">Your learning profile, progress, and achievements in one place.</p>
+      <div class="dashboard-hero-copy profile-identity-block">
+        <div class="profile-identity-mark" aria-hidden="true">${avatarInitial}</div>
+        <div>
+          <p class="eyebrow">Profile overview</p>
+          <h1 class="section-title">${escapeHtml(name)}</h1>
+          <p class="section-copy">Your learning profile, progress, and achievements in one place.</p>
+        </div>
       </div>
 
       <div class="dashboard-top-metrics">

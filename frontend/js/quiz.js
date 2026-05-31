@@ -261,7 +261,7 @@ function render() {
       promptLabel = "Examination Question";
       helperText = "Strict exam conditions. Timer is active. Results shown at the end.";
   } else if (isArcade) {
-      modeDisplay = "Arcade Mode";
+      modeDisplay = "Brain Lab Mode";
       promptLabel = "Trivia Challenge";
       helperText = "Fast-paced trivia. Beat the clock and keep the streak alive!";
   } else if (isFocus) {

@@ -172,7 +172,7 @@ function getWeeklyData(attempts) {
 }
 
 function renderSkeleton() {
-  root.className = "page-fade";
+  root.className = "page-fade dashboard-page";
   root.innerHTML = `
     <div class="dashboard-stat-grid">${Array.from({ length: 4 }, () => `<div class="analytics-card skeleton-panel"></div>`).join("")}</div>
     <div class="dashboard-content-grid">
@@ -289,7 +289,7 @@ function renderDashboard(data) {
       `).join('')
     : '<p class="section-copy">No ranked players yet.</p>';
 
-  root.className = "page-fade";
+  root.className = "page-fade dashboard-page";
   root.innerHTML = `
     <div class="card-title-row">
       <div>

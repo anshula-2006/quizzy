@@ -630,7 +630,7 @@ function renderProgressExtras(entries) {
     <section class="panel flow-card mini-games-shell" style="padding: 24px;">
       <div class="evaluation-head" style="margin-bottom: 20px;">
         <div>
-          <h3 style="font-size: 1.2rem; font-weight: 600; margin-bottom: 4px; color: var(--text);">Arcade Stats</h3>
+          <h3 style="font-size: 1.2rem; font-weight: 600; margin-bottom: 4px; color: var(--text);">Brain Lab Stats</h3>
           <p class="cabinet-note" style="font-size: 0.85rem; color: var(--muted); margin: 0;">A snapshot of mini-game progress.</p>
         </div>
       </div>

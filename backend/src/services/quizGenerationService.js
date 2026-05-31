@@ -115,8 +115,8 @@ function sanitizeQuestions(rawQuestions, questionMode, questionCount) {
   return [...mcqs.slice(0, mcqTarget), ...shorts.slice(0, shortTarget)].slice(0, questionCount);
 }
 
-function hasModeMismatch(questions, questionMode, questionCount) {
-  if (!Array.isArray(questions) || questions.length < questionCount) return true;
+function hasModeMismatch(questions, questionMode) {
+  if (!Array.isArray(questions) || questions.length === 0) return true;
   if (questionMode === "mcq") return questions.some((item) => item.type !== "mcq");
   if (questionMode === "short") return questions.some((item) => item.type !== "short");
   return false;
@@ -279,15 +279,15 @@ export async function generateQuizSession({ userId = null, topic = "", text = ""
 
   let questions = await parseJsonCompletion(prompt, (parsed) => sanitizeQuestions(parsed?.questions, questionMode, resolvedCount));
 
-  if (hasModeMismatch(questions, questionMode, resolvedCount)) {
+  if (hasModeMismatch(questions, questionMode)) {
     questions = await parseJsonCompletion(
       `${prompt}\nPrevious output violated the question mode rules. Regenerate from scratch and follow them exactly.`,
       (parsed) => sanitizeQuestions(parsed?.questions, questionMode, resolvedCount)
     );
   }
 
-  if (hasModeMismatch(questions, questionMode, resolvedCount)) {
-    throw new AppError(`Could not generate ${resolvedCount} valid ${questionMode} questions. Try again.`, 502);
+  if (hasModeMismatch(questions, questionMode)) {
+    throw new AppError(`Could not generate valid ${questionMode} questions for this topic. Please try a broader topic.`, 502);
   }
 
   const quizSession = await QuizSession.create({
@@ -301,7 +301,7 @@ export async function generateQuizSession({ userId = null, topic = "", text = ""
       learnerMode,
       questionMode,
       outputLanguage,
-      questionCount: resolvedCount
+      questionCount: questions.length
     },
     questions
   });

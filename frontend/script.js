@@ -77,6 +77,7 @@ let memoryMatchState = null;
 let wordScrambleState = null;
 let trueFalseState = null;
 let oddOneOutState = null;
+let fillInBlanksState = null;
 let badgePopupQueue = [];
 let activeBadgePopup = null;
 let cloudProfile = null;
@@ -145,6 +146,13 @@ const DEFAULT_ODD_ONE_OUT_POOL = [
   { prompt: "Pick the odd one out", options: ["Mercury", "Venus", "Mars", "Oxygen"], answer: 3 },
   { prompt: "Pick the odd one out", options: ["CPU", "RAM", "Keyboard", "Monitor"], answer: 1 },
   { prompt: "Pick the odd one out", options: ["Circle", "Square", "Triangle", "Banana"], answer: 3 }
+];
+
+const DEFAULT_FILL_IN_BLANKS_POOL = [
+  { prompt: "The capital of France is ______.", answer: "Paris" },
+  { prompt: "Water freezes at ______ degrees Celsius.", answer: "0" },
+  { prompt: "The chemical symbol for Gold is ______.", answer: "Au" },
+  { prompt: "Earth is the ______ planet from the Sun.", answer: "third" }
 ];
 
 const ROLE_PRESETS = {
@@ -676,10 +684,11 @@ function getMiniGameStats() {
       scrambleWins: Math.max(0, Number(parsed?.scrambleWins || 0)),
       trueFalseBest: Math.max(0, Number(parsed?.trueFalseBest || 0)),
       oddOneOutWins: Math.max(0, Number(parsed?.oddOneOutWins || 0)),
+      fillInBlanksBest: Math.max(0, Number(parsed?.fillInBlanksBest || 0)),
       rewards: Array.isArray(parsed?.rewards) ? parsed.rewards : []
     };
   } catch {
-    return { speedBest: 0, speedRuns: 0, memoryWins: 0, scrambleWins: 0, trueFalseBest: 0, oddOneOutWins: 0, rewards: [] };
+    return { speedBest: 0, speedRuns: 0, memoryWins: 0, scrambleWins: 0, trueFalseBest: 0, oddOneOutWins: 0, fillInBlanksBest: 0, rewards: [] };
   }
 }
 
@@ -693,6 +702,7 @@ function saveMiniGameStats(stats) {
     scrambleWins: Math.max(0, Number(stats?.scrambleWins || 0)),
     trueFalseBest: Math.max(0, Number(stats?.trueFalseBest || 0)),
     oddOneOutWins: Math.max(0, Number(stats?.oddOneOutWins || 0)),
+    fillInBlanksBest: Math.max(0, Number(stats?.fillInBlanksBest || 0)),
     rewards: Array.isArray(stats?.rewards) ? stats.rewards : []
   }));
 }
@@ -1247,6 +1257,18 @@ function getOddOneOutPool() {
   return defaults.slice(0, 4);
 }
 
+function getFillInBlanksPool() {
+  const defaults = DEFAULT_FILL_IN_BLANKS_POOL.slice();
+  const flash = getFlashDecks()[0];
+  if (flash?.flashcards?.length >= 3) {
+    return flash.flashcards.slice(0, 5).map(c => ({
+      prompt: `Complete the term: ${c.front} -> ______`,
+      answer: c.back
+    }));
+  }
+  return defaults;
+}
+
 function renderBadgeCabinet() {
   if (!badgeCabinet) return;
   const entries = getHistory();
@@ -1503,6 +1525,41 @@ function renderGameHub() {
       </div>
     `;
 
+  const fillInBlanksPrompt = fillInBlanksState
+    ? `
+      <div class="mini-game-panel glass-card glow-hover" style="padding: 24px;">
+        <div class="mini-game-head">
+          <div>
+            <h4 class="neon-text" style="font-size: 1.25rem; font-weight: 800; margin-bottom: 8px;">Fill in the Blanks</h4>
+            <p>Type the missing word to complete the sentence.</p>
+          </div>
+          <div class="speed-stats">
+            <span>${fillInBlanksState.index + 1} / ${fillInBlanksState.pool.length}</span>
+            <span>${fillInBlanksState.score} score</span>
+          </div>
+        </div>
+        <div class="card speed-question-card">
+          <strong>${fillInBlanksState.current.prompt}</strong>
+          <input id="fillInBlanksInput" class="source-input mini-input" type="text" placeholder="Type the missing word..." />
+          <div class="mini-actions">
+            <button type="button" id="submitFillInBlanksBtn" class="btn">Submit</button>
+          </div>
+        </div>
+      </div>
+    `
+    : `
+      <div class="mini-game-panel glass-card glow-hover" style="padding: 24px;">
+        <div class="mini-game-head">
+          <div>
+            <h4 class="neon-text" style="font-size: 1.25rem; font-weight: 800; margin-bottom: 8px;">Fill in the Blanks</h4>
+            <p>Test your active recall by filling in the missing key terms.</p>
+          </div>
+          <button type="button" id="startFillInBlanksBtn" class="btn">Play for +25 XP</button>
+        </div>
+        <p class="mini-game-note">Excellent for memorizing vocabulary and historical facts.</p>
+      </div>
+    `;
+
   gameHub.innerHTML = `
     <div class="evaluation-wrap">
       <div class="game-hub">
@@ -1529,6 +1586,7 @@ function renderGameHub() {
             ${scramblePrompt}
             ${trueFalsePrompt}
             ${oddOneOutPrompt}
+            ${fillInBlanksPrompt}
           </div>
         </div>
       </div>
@@ -1540,7 +1598,9 @@ function renderGameHub() {
   document.getElementById("startScrambleBtn")?.addEventListener("click", startWordScramble);
   document.getElementById("startTrueFalseBtn")?.addEventListener("click", startTrueFalseToss);
   document.getElementById("startOddOneOutBtn")?.addEventListener("click", startOddOneOut);
+  document.getElementById("startFillInBlanksBtn")?.addEventListener("click", startFillInBlanks);
   document.getElementById("submitScrambleBtn")?.addEventListener("click", submitScrambleGuess);
+  document.getElementById("submitFillInBlanksBtn")?.addEventListener("click", submitFillInBlanksGuess);
   document.querySelectorAll("[data-speed-answer]").forEach((node) => {
     node.addEventListener("click", () => answerSpeedRound(node.dataset.speedAnswer || ""));
   });
@@ -1860,6 +1920,55 @@ function finishOddOneOut() {
   showToast(`Odd One Out: ${result.correct}/${result.pool.length}`, "success");
 }
 
+function startFillInBlanks() {
+  const pool = getFillInBlanksPool();
+  fillInBlanksState = {
+    pool,
+    index: 0,
+    score: 0,
+    current: pool[0]
+  };
+  renderGameHub();
+}
+
+function submitFillInBlanksGuess() {
+  if (!fillInBlanksState) return;
+  const value = (document.getElementById("fillInBlanksInput")?.value || "").trim().toLowerCase();
+  const answer = String(fillInBlanksState.current.answer || "").trim().toLowerCase();
+  
+  // Flexible validation
+  if (value === answer || (answer.length > 3 && value.includes(answer))) {
+    fillInBlanksState.score += 1;
+  }
+  
+  fillInBlanksState.index += 1;
+  if (fillInBlanksState.index >= fillInBlanksState.pool.length) {
+    finishFillInBlanks();
+    return;
+  }
+  fillInBlanksState.current = fillInBlanksState.pool[fillInBlanksState.index];
+  renderGameHub();
+}
+
+function finishFillInBlanks() {
+  if (!fillInBlanksState) return;
+  const previousBadgeIds = captureUnlockedBadgeIds();
+  const result = fillInBlanksState;
+  const stats = getMiniGameStats();
+  stats.fillInBlanksBest = Math.max(stats.fillInBlanksBest || 0, result.score);
+  saveMiniGameStats(stats);
+  if (result.score > 0) awardBonusXp(15 + (result.score * 5), `Fill in the Blanks: ${result.score} correct`);
+  markSessionActivity("miniGameDone");
+  fillInBlanksState = null;
+  syncChallengeRewards();
+  renderBadgeCabinet();
+  renderEvaluationBoard();
+  renderSidebar();
+  renderGameHub();
+  revealNewBadges(previousBadgeIds);
+  showToast(`Fill in the Blanks complete: ${result.score}/${result.pool.length}`, "success");
+}
+
 function normalizeShortAnswer(value) {
   return String(value || "")
     .toLocaleLowerCase()
@@ -1931,6 +2040,7 @@ function getBadgeCatalog(entries) {
     { id: "flash-fan", label: "Flash Fan", icon: getBadgeImagePath("bronze", "flash_fan.png"), rarity: "bronze", unlocked: getFlashDecks().length >= 1, hint: "Generate one flashcard deck." },
     { id: "memory-master", label: "Memory Master", icon: getBadgeImagePath("gold", "memory_master.png"), rarity: "gold", unlocked: Number(gameStats.memoryWins || 0) >= 1, hint: "Win one Memory Match game." },
     { id: "speedster", label: "Speedster", icon: getBadgeImagePath("silver", "speedster.png"), rarity: "silver", unlocked: Number(gameStats.speedBest || 0) >= 4, hint: "Get 4 right in Speed Round." },
+    { id: "blank-master", label: "Blank Master", icon: getBadgeImagePath("silver", "blank_master.png"), rarity: "silver", unlocked: Number(gameStats.fillInBlanksBest || 0) >= 3, hint: "Get 3 right in Fill in the Blanks." },
     { id: "xp-hunter", label: "XP Hunter", icon: getBadgeImagePath("silver", "xp_hunter.png"), rarity: "silver", unlocked: bonusXp >= 300, hint: "Earn 300 bonus XP from games and missions." },
     { id: "challenge-crusher", label: "Challenge Crusher", icon: getBadgeImagePath("gold", "challenge_crusher.png"), rarity: "gold", unlocked: completedChallenges >= 3, hint: "Complete 3 XP missions." },
     { id: "comeback-kid", label: "Comeback Kid", icon: getBadgeImagePath("silver", "comeback_kid.png"), rarity: "silver", unlocked: hasComeback(list), hint: "Improve by 20% from one quiz to the next." },

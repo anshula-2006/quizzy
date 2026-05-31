@@ -89,6 +89,7 @@ function getBadgeCatalog(entries) {
     { id: "flash-fan", label: "Flash Fan", icon: getBadgeImagePath("bronze", "flash_fan.png"), rarity: "bronze", unlocked: getFlashDecks().length >= 1, hint: "Generate one flashcard deck." },
     { id: "memory-master", label: "Memory Master", icon: getBadgeImagePath("gold", "memory_master.png"), rarity: "gold", unlocked: Number(gameStats.memoryWins || 0) >= 1, hint: "Win one Memory Match game." },
     { id: "speedster", label: "Speedster", icon: getBadgeImagePath("silver", "speedster.png"), rarity: "silver", unlocked: Number(gameStats.reactionBest || 0) > 0 && Number(gameStats.reactionBest || 0) <= 350, hint: "Hit 350 ms or faster in Reaction Tap." },
+    { id: "blank-master", label: "Blank Master", icon: getBadgeImagePath("silver", "blank_master.png"), rarity: "silver", unlocked: Number(gameStats.fillInBlanksBest || 0) >= 3, hint: "Get 3 right in Fill in the Blanks." },
     { id: "xp-hunter", label: "XP Hunter", icon: getBadgeImagePath("silver", "xp_hunter.png"), rarity: "silver", unlocked: bonusXp >= 300, hint: "Earn 300 bonus XP from games and missions." },
     { id: "challenge-crusher", label: "Challenge Crusher", icon: getBadgeImagePath("gold", "challenge_crusher.png"), rarity: "gold", unlocked: completedChallenges >= 3, hint: "Complete 3 XP missions." },
     { id: "comeback-kid", label: "Comeback Kid", icon: getBadgeImagePath("silver", "comeback_kid.png"), rarity: "silver", unlocked: hasComeback(list), hint: "Improve by 20% from one quiz to the next." },
@@ -656,6 +657,56 @@ function renderProgressExtras(entries) {
   `;
 }
 
+function renderRecommendedTopics() {
+  const userType = cloudProfile?.userType || auth?.getSession?.()?.userType || localStorage.getItem('quizzy-userType') || 'student';
+  const displayRole = userType === 'self_learner' ? 'self learner' : userType;
+  
+  const recommendations = {
+    student: [
+      { title: "High School Biology Core", hint: "Science" },
+      { title: "World History: Fast Facts", hint: "History" },
+      { title: "Algebra I Formulas", hint: "Math" },
+      { title: "SAT Vocabulary Prep", hint: "English" }
+    ],
+    teacher: [
+      { title: "Classroom Icebreakers", hint: "Engagement" },
+      { title: "Science Lesson Recap", hint: "Review" },
+      { title: "Quick Debate Prompts", hint: "Discussion" },
+      { title: "Grammar Correction Drill", hint: "English" }
+    ],
+    self_learner: [
+      { title: "JavaScript Fundamentals", hint: "Programming" },
+      { title: "Conversational Spanish", hint: "Language" },
+      { title: "Personal Finance Basics", hint: "Life Skills" },
+      { title: "Interview Prep: DS & Algo", hint: "Career" }
+    ]
+  };
+
+  const items = recommendations[userType] || recommendations.student;
+  
+  return `
+    <section class="panel flow-card" style="padding: 24px;">
+      <div class="table-header-block" style="margin-bottom: 20px; padding: 0; border: none;">
+        <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--text); margin: 0;">Recommended Topics</h3>
+        <p style="color: var(--muted); font-size: 0.85rem; margin: 4px 0 0;">Curated for your ${displayRole} profile.</p>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        ${items.map(item => `
+          <a href="./generate.html?topic=${encodeURIComponent(item.title)}&mode=focus&auto=flashcards" class="lb-row fade-in glass-card glow-hover" style="padding: 12px 16px; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; text-decoration: none;">
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+              <strong style="font-size: 0.95rem; color: var(--text);">${escapeHtml(item.title)}</strong>
+              <span style="font-size: 0.75rem; color: var(--muted);">Click to instantly generate flashcards</span>
+            </div>
+            <div class="meta-chip" style="background: var(--panel-soft); border: 1px solid var(--line); color: var(--muted); padding: 4px 8px; font-weight: 600;">
+              ${escapeHtml(item.hint)}
+            </div>
+          </a>
+        `).join('')}
+      </div>
+    </section>
+  `;
+}
+
 function renderBoard() {
   const entries = getHistory();
   if (!scoreboardContent) return;
@@ -672,6 +723,11 @@ function renderBoard() {
   const p1 = cloudLeaderboard[0] || {};
   const p2 = cloudLeaderboard[1] || {};
   const p3 = cloudLeaderboard[2] || {};
+
+  // Adaptive Flashcard Count Calculation
+  const overallAvg = entries.length ? Math.round(entries.reduce((sum, e) => sum + (e.percentage || 0), 0) / entries.length) : 0;
+  const hasHistory = entries.length > 0;
+  const smartCount = hasHistory && overallAvg < 60 ? 5 : hasHistory && overallAvg > 85 ? 15 : 10;
 
   const leaderboardMarkup = cloudLeaderboard.length
     ? `
@@ -771,6 +827,7 @@ function renderBoard() {
         </div>
         <div style="display: grid; gap: 24px; align-content: start;">
           ${renderProgressExtras(entries)}
+          ${renderRecommendedTopics()}
         </div>
       </div>
     `;
@@ -870,6 +927,7 @@ function renderBoard() {
       <div style="display: grid; gap: var(--space-4); align-content: start;">
         ${leaderboardMarkup}
         ${renderProgressExtras(entries)}
+        ${renderRecommendedTopics()}
       </div>
     </div>
   `;

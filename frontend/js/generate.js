@@ -76,6 +76,7 @@ const params = new URLSearchParams(window.location.search);
 const prefillTopic = params.get("topic");
 const prefillMode = params.get("mode");
 const prefillCount = params.get("count");
+const autoGenerate = params.get("auto");
 
 if (prefillTopic && topicInput) {
   topicInput.value = prefillTopic;
@@ -101,6 +102,10 @@ if (prefillCount && countSelect) {
 sourceCards.forEach((card) => {
   card.addEventListener("click", () => setSource(card.dataset.source));
 });
+
+if (autoGenerate === "flashcards" && flashcardsBtn && prefillTopic) {
+  setTimeout(() => flashcardsBtn.click(), 100);
+}
 
 form?.addEventListener("submit", async (event) => {
   event.preventDefault();

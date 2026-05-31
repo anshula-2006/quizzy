@@ -52,8 +52,8 @@ function init() {
     root.innerHTML = `
       <div class="flashcards-shell">
         ${deckRail}
-        <div class="flash-shell-head">
-          <div class="flash-head">
+        <div class="flash-shell-head" style="align-items: flex-start;">
+          <div class="flash-head" style="flex: 1;">
             <span class="eyebrow">Study Deck</span>
             <h1 class="section-title">${escapeHtml(activeDeck.title || "Flashcards")}</h1>
             <p class="section-copy">Review saved cards and return to any deck from this workspace.</p>

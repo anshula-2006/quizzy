@@ -20,7 +20,8 @@ const badgeAssets = {
   "comeback-kid": ["silver", "comeback_kid.png"],
   "night-owl": ["bronze", "night_owl.png"],
   "brain-blaster": ["gold", "brain_blaster.png"],
-  "study-ninja": ["special", "study_ninja.png"]
+  "study-ninja": ["special", "study_ninja.png"],
+  "blank-master": ["silver", "blank_master.png"]
 };
 
 const serverAchievementMap = {
@@ -162,6 +163,7 @@ export function getBadgeCatalog(entries = getSavedQuizHistory(), profile = null)
     { id: "flash-fan", label: "Flash Fan", rarity: "bronze", unlocked: getFlashDecks().length >= 1, hint: "Generate one flashcard deck.", progress: Math.min(1, getFlashDecks().length), target: 1 },
     { id: "memory-master", label: "Memory Master", rarity: "gold", unlocked: Number(gameStats.memoryWins || 0) >= 1, hint: "Win one Memory Match game.", progress: Math.min(1, Number(gameStats.memoryWins || 0)), target: 1 },
     { id: "speedster", label: "Speedster", rarity: "silver", unlocked: Number(gameStats.reactionBest || 0) > 0 && Number(gameStats.reactionBest || 0) <= 350, hint: "Hit 350 ms or faster in Reaction Tap.", progress: Number(gameStats.reactionBest || 0) ? Math.max(0, 350 - Number(gameStats.reactionBest || 0)) : 0, target: 350 },
+    { id: "blank-master", label: "Blank Master", rarity: "silver", unlocked: Number(gameStats.fillInBlanksBest || 0) >= 3, hint: "Get 3 right in Fill in the Blanks.", progress: Math.min(3, Number(gameStats.fillInBlanksBest || 0)), target: 3 },
     { id: "xp-hunter", label: "XP Hunter", rarity: "silver", unlocked: totalXp >= 500 || bonusXp >= 300, hint: "Earn 500 total XP or 300 bonus XP.", progress: Math.min(500, totalXp), target: 500 },
     { id: "challenge-crusher", label: "Challenge Crusher", rarity: "gold", unlocked: completedChallenges >= 3, hint: "Complete 3 XP missions.", progress: Math.min(3, completedChallenges), target: 3 },
     { id: "comeback-kid", label: "Comeback Kid", rarity: "silver", unlocked: hasComeback(list), hint: "Improve by 20% from one quiz to the next.", progress: hasComeback(list) ? 1 : 0, target: 1 },

@@ -342,6 +342,7 @@ export function getMiniGameStats() {
     memoryBestTime: Math.max(0, Number(parsed?.memoryBestTime || 0)),
     reactionBest: Math.max(0, Number(parsed?.reactionBest || 0)),
     reactionRuns: Math.max(0, Number(parsed?.reactionRuns || 0)),
+    fillInBlanksBest: Math.max(0, Number(parsed?.fillInBlanksBest || 0)),
     recallBestLevel: Math.max(0, Number(parsed?.recallBestLevel || 0)),
     recallRuns: Math.max(0, Number(parsed?.recallRuns || 0))
   };
@@ -361,6 +362,7 @@ export function setMiniGameStats(stats) {
     memoryBestTime: Math.max(0, Number(stats?.memoryBestTime || 0)),
     reactionBest: Math.max(0, Number(stats?.reactionBest || 0)),
     reactionRuns: Math.max(0, Number(stats?.reactionRuns || 0)),
+    fillInBlanksBest: Math.max(0, Number(stats?.fillInBlanksBest || 0)),
     recallBestLevel: Math.max(0, Number(stats?.recallBestLevel || 0)),
     recallRuns: Math.max(0, Number(stats?.recallRuns || 0))
   });

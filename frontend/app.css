@@ -2109,6 +2109,217 @@ select:focus,
   margin-top: 16px;
 }
 
+/* Compact page density: keep primary content visible with minimal scrolling */
+.page-shell {
+  padding: 12px !important;
+}
+
+.page-container,
+.container {
+  padding: 12px !important;
+}
+
+.top-nav {
+  height: 64px !important;
+  margin-bottom: 12px !important;
+  padding-inline: 18px !important;
+}
+
+.nav-link {
+  padding: 0.5rem 0.7rem !important;
+}
+
+.panel,
+.card,
+.flow-card,
+.quiz-card,
+.game-card,
+.result-card,
+.glass-card,
+.auth-card,
+.dashboard-main-card,
+.dashboard-side-card,
+.saas-stat-card,
+.chart-card,
+.stat-card,
+.source-card,
+.setting-card,
+.challenge-card,
+.mini-game-panel,
+.lb-row,
+.profile-metric,
+.badge-card,
+.timeline-item {
+  padding: 18px !important;
+}
+
+.section-gap {
+  margin-top: 14px !important;
+}
+
+.page-title {
+  font-size: clamp(1.8rem, 3vw, 2.4rem) !important;
+  line-height: 1.08 !important;
+}
+
+.section-title {
+  font-size: clamp(1.1rem, 1.55vw, 1.35rem) !important;
+  line-height: 1.15 !important;
+}
+
+.page-subtitle,
+.section-copy,
+.helper-text,
+.meta-copy {
+  font-size: 0.95rem !important;
+  line-height: 1.5 !important;
+}
+
+.hero-home {
+  min-height: auto !important;
+  gap: 16px !important;
+  padding: clamp(18px, 2.4vw, 28px) !important;
+}
+
+.hero-home .hero-copy-block {
+  gap: 12px !important;
+}
+
+.hero-home .page-title {
+  font-size: clamp(2.35rem, 4.4vw, 4.4rem) !important;
+  line-height: 1 !important;
+}
+
+.hero-home .page-subtitle {
+  max-width: 680px;
+  font-size: clamp(0.98rem, 1.2vw, 1.1rem) !important;
+}
+
+.hero-home .landing-pill-row {
+  gap: 8px !important;
+}
+
+.hero-home .landing-pill-row span,
+.hero-home .landing-metric-strip span {
+  padding: 0.55rem 0.75rem !important;
+}
+
+.hero-home .landing-preview-panel {
+  min-height: 0 !important;
+  gap: 12px !important;
+  padding: 18px !important;
+}
+
+.hero-home .preview-topline strong {
+  font-size: clamp(1.45rem, 2.2vw, 2.1rem) !important;
+}
+
+.preview-source-grid a {
+  min-height: 86px !important;
+  padding: 14px !important;
+}
+
+.preview-source-grid strong {
+  font-size: clamp(1rem, 1.2vw, 1.15rem) !important;
+}
+
+.hero-home .preview-chart {
+  min-height: 54px !important;
+}
+
+.hero-home .preview-grid {
+  gap: 10px !important;
+}
+
+.hero-home .preview-grid div,
+.landing-feature-grid article {
+  padding: 14px !important;
+  min-height: auto !important;
+}
+
+.landing-feature-grid {
+  gap: 12px !important;
+  margin-top: 12px !important;
+}
+
+.split-grid.two-col,
+.dashboard-content-grid,
+.scoreboard-support-grid,
+.profile-header,
+.generate-workspace,
+.settings-grid,
+.result-stats,
+.dashboard-stat-grid,
+.dashboard-side-grid,
+.dashboard-list,
+.flashcards-shell,
+.flash-viewer,
+.challenge-grid,
+.mini-games-grid {
+  gap: 12px !important;
+}
+
+.generate-form {
+  gap: 12px !important;
+}
+
+.generate-form .generate-step,
+.generate-form .step-header,
+.field-stack {
+  gap: 10px !important;
+}
+
+.source-grid,
+.settings-grid,
+.result-stats,
+.profile-metrics,
+.dashboard-stat-grid {
+  gap: 10px !important;
+}
+
+.text-input,
+.answer-input {
+  min-height: 68px !important;
+}
+
+.dashboard-activity-item,
+.dashboard-flashcard-item,
+.profile-category-item {
+  padding: 12px !important;
+}
+
+.profile-header {
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.8fr) !important;
+}
+
+.profile-avatar-large {
+  width: 76px !important;
+  height: 76px !important;
+}
+
+.flash-scene {
+  min-height: 320px !important;
+}
+
+.flash-card-3d {
+  min-height: 300px !important;
+}
+
+.scoreboard-support-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.5fr) !important;
+}
+
+.auth-grid {
+  min-height: calc(100vh - 88px) !important;
+  gap: 18px !important;
+  align-items: center !important;
+}
+
+.auth-hero-grid {
+  margin-top: 12px !important;
+  gap: 10px !important;
+}
+
 .page-fade {
   animation: quizzyPageIn 250ms ease both !important;
 }
@@ -2193,6 +2404,50 @@ select:focus,
 
   .hero-home {
     min-height: auto;
+  }
+
+  .page-shell,
+  .page-container,
+  .container {
+    padding: 10px !important;
+  }
+
+  .top-nav {
+    height: auto !important;
+    min-height: 60px !important;
+  }
+
+  .panel,
+  .card,
+  .flow-card,
+  .quiz-card,
+  .game-card,
+  .result-card,
+  .glass-card,
+  .auth-card,
+  .dashboard-main-card,
+  .dashboard-side-card,
+  .saas-stat-card,
+  .chart-card,
+  .stat-card,
+  .source-card,
+  .setting-card,
+  .challenge-card,
+  .mini-game-panel,
+  .lb-row,
+  .profile-metric,
+  .badge-card,
+  .timeline-item {
+    padding: 14px !important;
+  }
+
+  .hero-home .page-title {
+    font-size: clamp(2rem, 9vw, 3rem) !important;
+  }
+
+  .flash-scene,
+  .flash-card-3d {
+    min-height: 260px !important;
   }
 
   #quizRoot .quiz-focus-head {

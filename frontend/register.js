@@ -46,7 +46,7 @@ if (togglePasswordBtn && passwordInput) {
   togglePasswordBtn.addEventListener("click", () => {
     const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
     passwordInput.setAttribute("type", type);
-    togglePasswordBtn.textContent = type === "password" ? "👁" : "🙈";
+    togglePasswordBtn.textContent = type === "password" ? "Show" : "Hide";
   });
 }
 
@@ -54,7 +54,7 @@ if (toggleConfirmPasswordBtn && confirmPasswordInput) {
   toggleConfirmPasswordBtn.addEventListener("click", () => {
     const type = confirmPasswordInput.getAttribute("type") === "password" ? "text" : "password";
     confirmPasswordInput.setAttribute("type", type);
-    toggleConfirmPasswordBtn.textContent = type === "password" ? "👁" : "🙈";
+    toggleConfirmPasswordBtn.textContent = type === "password" ? "Show" : "Hide";
   });
 }
 

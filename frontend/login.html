@@ -11,10 +11,10 @@
   <link rel="stylesheet" href="./app.css" />
   <link rel="stylesheet" href="./auth.css" />
 </head>
-<body>
+<body class="auth-body login-auth-body">
   <div class="auth-page">
     <div class="auth-grid two-col">
-      <aside class="auth-hero-panel">
+      <aside class="auth-hero-panel auth-hero-compact">
         <a class="brand-row" href="./index.html" aria-label="Quizzy home">
           <div class="brand-badge-hero">Q</div>
           <div class="brand-copy">
@@ -24,16 +24,23 @@
         </a>
 
         <div class="hero-copy">
-          <h1 class="hero-title">Generate quizzes from Topics, PDFs and URLs.</h1>
-          <p class="hero-sub">Create practice sets, study efficiently, and keep track of progress with personalized insights.</p>
+          <h1 class="hero-title">Welcome to your AI learning workspace.</h1>
+          <p class="hero-sub">Generate quizzes, review flashcards, track progress, and monitor classroom learning with one account.</p>
+        </div>
+
+        <div class="auth-feature-grid">
+          <span>Topic, PDF and URL quizzes</span>
+          <span>Adaptive practice</span>
+          <span>Teacher insights</span>
+          <span>Brain Lab drills</span>
         </div>
       </aside>
 
-      <main class="auth-card" role="main">
+      <main class="auth-card login-card" role="main">
         <div class="auth-card-head">
           <p class="auth-eyebrow">Sign in</p>
           <h2 class="auth-title">Welcome back</h2>
-          <p class="section-copy">Sign in to access your dashboard, history, and leaderboards.</p>
+          <p class="section-copy">Use the same email, parent phone, or roll number used during registration.</p>
         </div>
 
         <form id="loginForm" class="auth-form" aria-labelledby="loginForm">
@@ -44,7 +51,7 @@
               <option value="teacher">Teacher</option>
               <option value="self_learner">Self Learner</option>
             </select>
-            <p id="loginUserTypeHint" class="section-copy" style="margin: 0;"></p>
+            <p id="loginUserTypeHint" class="auth-note"></p>
           </div>
 
           <div class="field-stack">
@@ -56,7 +63,7 @@
             <label class="field-label" for="password">Password</label>
             <div class="input-action-group">
               <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required class="auth-input" />
-              <button type="button" id="togglePasswordBtn" class="input-action-btn" aria-label="Toggle password visibility">👁</button>
+              <button type="button" id="togglePasswordBtn" class="input-action-btn" aria-label="Toggle password visibility">Show</button>
             </div>
           </div>
 

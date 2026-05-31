@@ -131,6 +131,16 @@
                 <button id="generateBtn" class="btn btn-primary" type="submit"><i data-lucide="play" style="width: 16px; height: 16px; margin-right: 8px;"></i> Generate Quiz</button>
                 <button id="flashcardsBtn" class="btn btn-secondary" type="button"><i data-lucide="plus" style="width: 16px; height: 16px; margin-right: 8px;"></i> Flashcards</button>
               </div>
+              <div id="generationStatus" class="generation-status" hidden aria-live="polite">
+                <div class="generation-status-head">
+                  <strong id="generationStatusTitle">Preparing...</strong>
+                  <span id="generationElapsed">0s</span>
+                </div>
+                <div class="progress-track">
+                  <div id="generationProgress" class="progress-fill"></div>
+                </div>
+                <p id="generationEta" class="helper-text">Estimated wait: calculating...</p>
+              </div>
             </div>
 
           </form>

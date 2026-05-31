@@ -19,8 +19,14 @@ const form = document.getElementById("generateForm");
 const flashcardsBtn = document.getElementById("flashcardsBtn");
 const generateBtn = document.getElementById("generateBtn");
 const errorNode = document.getElementById("generateError");
+const generationStatus = document.getElementById("generationStatus");
+const generationStatusTitle = document.getElementById("generationStatusTitle");
+const generationElapsed = document.getElementById("generationElapsed");
+const generationEta = document.getElementById("generationEta");
+const generationProgress = document.getElementById("generationProgress");
 
 let activeSource = "text";
+let generationTimerId = null;
 
 const modeDescriptions = {
   focus: "Deep, distraction-free learning. Best for mastering new topics at your own pace.",
@@ -28,6 +34,56 @@ const modeDescriptions = {
   exam: "Strict timer and realistic exam conditions. Tests your readiness under pressure.",
   revision: "Focus on weak topics with detailed explanations and common pitfalls."
 };
+
+function estimateQuizWaitSeconds(questionCount, source) {
+  const count = Math.max(5, Number(questionCount) || 5);
+  const extractionExtra = source === "pdf" ? 10 : source === "url" ? 6 : 0;
+  if (count <= 10) return extractionExtra + 15;
+  if (count <= 25) return extractionExtra + 35;
+  if (count <= 50) return extractionExtra + 60;
+  return extractionExtra + 105;
+}
+
+function formatDuration(seconds) {
+  const value = Math.max(0, Math.floor(Number(seconds) || 0));
+  if (value < 60) return `${value}s`;
+  const minutes = Math.floor(value / 60);
+  const remainder = value % 60;
+  return remainder ? `${minutes}m ${remainder}s` : `${minutes}m`;
+}
+
+function startGenerationStatus({ title, estimateSeconds }) {
+  clearInterval(generationTimerId);
+  const startedAt = Date.now();
+  const estimate = Math.max(10, Number(estimateSeconds) || 20);
+
+  if (generationStatus) generationStatus.hidden = false;
+  if (generationStatusTitle) generationStatusTitle.textContent = title;
+
+  const update = () => {
+    const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+    const remaining = Math.max(0, estimate - elapsed);
+    const progress = Math.min(94, Math.max(6, Math.round((elapsed / estimate) * 100)));
+
+    if (generationElapsed) generationElapsed.textContent = formatDuration(elapsed);
+    if (generationEta) {
+      generationEta.textContent = remaining
+        ? `Estimated wait: about ${formatDuration(remaining)} remaining`
+        : "Finishing up... almost there.";
+    }
+    if (generationProgress) generationProgress.style.width = `${progress}%`;
+  };
+
+  update();
+  generationTimerId = window.setInterval(update, 1000);
+}
+
+function stopGenerationStatus({ complete = false } = {}) {
+  clearInterval(generationTimerId);
+  generationTimerId = null;
+  if (complete && generationProgress) generationProgress.style.width = "100%";
+  if (!complete && generationStatus) generationStatus.hidden = true;
+}
 
 requestAnimationFrame(() => {
   createIcons({
@@ -305,6 +361,10 @@ form?.addEventListener("submit", async (event) => {
     generateBtn.innerHTML = `<i data-lucide="play" style="width: 16px; height: 16px; margin-right: 4px;"></i> Preparing...`;
   }
   if (flashcardsBtn) flashcardsBtn.disabled = true;
+  startGenerationStatus({
+    title: `Generating ${questionCount} question${questionCount === 1 ? "" : "s"}`,
+    estimateSeconds: estimateQuizWaitSeconds(questionCount, activeSource)
+  });
 
   try {
     const settings = {
@@ -345,8 +405,10 @@ form?.addEventListener("submit", async (event) => {
       }
     });
     setResultState(null);
+    stopGenerationStatus({ complete: true });
     window.location.href = "./quiz.html";
   } catch (error) {
+    stopGenerationStatus();
     errorNode.hidden = false;
     errorNode.textContent = error.message || "An error occurred during generation.";
     if (generateBtn) {
@@ -366,6 +428,11 @@ flashcardsBtn?.addEventListener("click", async (event) => {
   const originalHTML = flashcardsBtn.innerHTML;
   flashcardsBtn.innerHTML = `<i data-lucide="plus" style="width: 16px; height: 16px; margin-right: 4px;"></i> Generating...`;
   flashcardsBtn.disabled = true;
+  if (generateBtn) generateBtn.disabled = true;
+  startGenerationStatus({
+    title: "Generating flashcards",
+    estimateSeconds: activeSource === "pdf" ? 30 : activeSource === "url" ? 24 : 18
+  });
 
   try {
     const settings = {
@@ -399,13 +466,16 @@ flashcardsBtn?.addEventListener("click", async (event) => {
 
     await addFlashDeck(deck);
     localStorage.setItem('quizzy-active-deck', JSON.stringify(deck));
+    stopGenerationStatus({ complete: true });
     window.location.href = "./flashcards.html";
 
   } catch (error) {
+    stopGenerationStatus();
     errorNode.hidden = false;
     errorNode.textContent = error.message || "Failed to generate flashcards.";
     flashcardsBtn.innerHTML = originalHTML;
     flashcardsBtn.disabled = false;
+    if (generateBtn) generateBtn.disabled = false;
   }
   createIcons({ icons: { FileText, FileUp, Link, Plus, Play } });
 });

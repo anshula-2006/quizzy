@@ -519,6 +519,29 @@
 .generate-form .step-header .section-title {
   margin: 0;
 }
+.generation-status {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.generation-status-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+.generation-status .helper-text {
+  margin: 0;
+  font-size: 0.86rem !important;
+}
+.generation-status .progress-track {
+  height: 7px;
+}
 .workflow-sidebar .dashboard-activity-item {
   padding: var(--space-3);
   background: var(--color-surface-2);

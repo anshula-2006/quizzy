@@ -283,9 +283,9 @@ form?.addEventListener("submit", async (event) => {
     countInput?.focus();
     return;
   }
-  if (questionCount > 20) {
+  if (questionCount > 100) {
     errorNode.hidden = false;
-    errorNode.textContent = "Maximum 20 questions allowed.";
+    errorNode.textContent = "Maximum 100 questions allowed.";
     countInput?.focus();
     return;
   }

@@ -43,11 +43,6 @@
           </div>
 
           <div class="field-stack">
-            <label class="field-label" for="email">Email</label>
-            <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required class="auth-input" />
-          </div>
-
-          <div class="field-stack">
             <label class="field-label" for="password">Password</label>
             <div class="input-action-group">
               <input id="password" name="password" type="password" autocomplete="new-password" placeholder="At least 6 characters" required class="auth-input" />
@@ -67,9 +62,37 @@
             </div>
           </div>
 
-          <!-- Keep optional hidden fields to avoid breaking existing registration logic -->
-          <input type="hidden" id="userId" name="userId" value="" />
-          <input type="hidden" id="userType" name="userType" value="student" />
+          <div class="field-stack">
+            <label class="field-label" for="userType">Account type</label>
+            <select id="userType" name="userType" class="auth-input">
+              <option value="student">Student</option>
+              <option value="teacher">Teacher</option>
+              <option value="self_learner">Self Learner</option>
+            </select>
+            <p id="userTypeHint" class="section-copy" style="margin: 0;"></p>
+          </div>
+
+          <p class="section-copy" style="margin: 0;">Use any one login identifier below. Phone number and roll number are optional.</p>
+
+          <div class="field-stack">
+            <label class="field-label" for="userId">Unique ID / Roll number</label>
+            <input id="userId" name="userId" type="text" autocomplete="username" placeholder="Optional, e.g. 24BD1A05C1" class="auth-input" />
+          </div>
+
+          <div class="field-stack">
+            <label class="field-label" for="parentPhone">Parent phone number</label>
+            <input id="parentPhone" name="parentPhone" type="tel" autocomplete="tel" placeholder="Optional" class="auth-input" />
+          </div>
+
+          <div class="field-stack">
+            <label class="field-label" for="email">Email</label>
+            <input id="email" name="email" type="email" autocomplete="email" placeholder="Optional" class="auth-input" />
+          </div>
+
+          <div class="field-stack">
+            <label class="field-label" for="grade">Class / section</label>
+            <input id="grade" name="grade" type="text" autocomplete="organization-title" placeholder="Optional, e.g. Class 10 A" class="auth-input" />
+          </div>
 
           <div class="auth-actions">
             <button id="registerSubmitBtn" class="btn primary auth-btn" type="submit">Create account</button>

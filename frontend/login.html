@@ -38,8 +38,18 @@
 
         <form id="loginForm" class="auth-form" aria-labelledby="loginForm">
           <div class="field-stack">
-            <label class="field-label" for="email">Email</label>
-            <input id="email" name="email" type="email" autocomplete="username" placeholder="you@example.com" required class="auth-input" />
+            <label class="field-label" for="loginUserType">Login type</label>
+            <select id="loginUserType" name="loginUserType" class="auth-input">
+              <option value="student">Student</option>
+              <option value="teacher">Teacher</option>
+              <option value="self_learner">Self Learner</option>
+            </select>
+            <p id="loginUserTypeHint" class="section-copy" style="margin: 0;"></p>
+          </div>
+
+          <div class="field-stack">
+            <label class="field-label" for="identifier">Email / Parent phone / Roll number</label>
+            <input id="identifier" name="identifier" type="text" autocomplete="username" placeholder="Email, parent phone, or roll number" required class="auth-input" />
           </div>
 
           <div class="field-stack">

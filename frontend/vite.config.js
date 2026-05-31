@@ -16,6 +16,7 @@ export default defineConfig({
         flashcards: resolve(rootDir, "flashcards.html"),
         arcade: resolve(rootDir, "arcade.html"),
         dashboard: resolve(rootDir, "dashboard.html"),
+        teacherDashboard: resolve(rootDir, "teacher-dashboard.html"),
         memory: resolve(rootDir, "games/memory.html"),
         reaction: resolve(rootDir, "games/reaction.html"),
         recall: resolve(rootDir, "games/recall.html"),

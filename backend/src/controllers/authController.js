@@ -12,7 +12,9 @@ function buildAuthPayload(user) {
     user: {
       id: user._id.toString(),
       name: user.name,
-      email: user.email,
+      email: user.email || "",
+      parentPhone: user.parentPhone || "",
+      userId: user.userId || "",
       userType: user.userType || "student",
       grade: user.grade || "",
       stats: user.stats || {}
@@ -28,35 +30,56 @@ function cleanUserType(value) {
 export async function register(req, res) {
   const name = String(req.body?.name || "").trim();
   const email = String(req.body?.email || "").trim().toLowerCase();
+  const parentPhone = String(req.body?.parentPhone || req.body?.phone || "").replace(/[^\d+]/g, "").trim();
+  const userId = String(req.body?.userId || "").trim();
   const password = String(req.body?.password || "").trim();
   const userType = cleanUserType(req.body?.userType);
   const grade = String(req.body?.grade || "").trim().slice(0, 80);
 
-  if (!name || !email || !password) throw new AppError("Name, email, and password are required", 400);
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new AppError("Enter a valid email address", 400);
+  if (!name || !password) throw new AppError("Name and password are required", 400);
+  if (!email && !parentPhone && !userId) throw new AppError("Enter at least one login identifier: email, parent phone number, or roll number", 400);
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new AppError("Enter a valid email address", 400);
+  if (parentPhone && parentPhone.length < 10) throw new AppError("Enter a valid parent phone number", 400);
+  if (userId && userId.length < 2) throw new AppError("Unique ID must be at least 2 characters", 400);
   if (name.length < 2 || name.length > 80) throw new AppError("Name must be between 2 and 80 characters", 400);
   if (password.length < 6) throw new AppError("Password must be at least 6 characters", 400);
 
-  const existingUser = await User.findOne({ email });
-  if (existingUser) throw new AppError("Email already registered", 409);
+  const checks = [];
+  if (email) checks.push({ email });
+  if (parentPhone) checks.push({ parentPhone });
+  if (userId) checks.push({ userId });
+  const existingUser = checks.length ? await User.findOne({ $or: checks }) : null;
+  if (existingUser) throw new AppError("Account identifier already registered", 409);
 
   const passwordHash = await bcrypt.hash(password, 10);
-  const user = await User.create({ name, email, passwordHash, userType, grade });
+  const payload = { name, passwordHash, userType, grade };
+  if (email) payload.email = email;
+  if (parentPhone) payload.parentPhone = parentPhone;
+  if (userId) payload.userId = userId;
+  const user = await User.create(payload);
   res.status(201).json(buildAuthPayload(user));
 }
 
 export async function login(req, res) {
-  const email = String(req.body?.email || "").trim().toLowerCase();
+  const identifier = String(req.body?.identifier || req.body?.email || req.body?.phone || req.body?.userId || "").trim();
+  const email = identifier.toLowerCase();
+  const phone = identifier.replace(/[^\d+]/g, "").trim();
   const password = String(req.body?.password || "").trim();
 
-  if (!email || !password) throw new AppError("Email and password are required", 400);
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new AppError("Enter a valid email address", 400);
+  if (!identifier || !password) throw new AppError("Login ID and password are required", 400);
 
-  const user = await User.findOne({ email });
-  if (!user) throw new AppError("Invalid email or password", 401);
+  const query = {
+    $or: [
+      { email },
+      { parentPhone: phone || identifier },
+      { userId: identifier }
+    ]
+  };
+  const user = await User.findOne(query);
+  if (!user) throw new AppError("Invalid login ID or password", 401);
 
   const isMatch = await bcrypt.compare(password, user.passwordHash);
-  if (!isMatch) throw new AppError("Invalid email or password", 401);
+  if (!isMatch) throw new AppError("Invalid login ID or password", 401);
 
   res.json(buildAuthPayload(user));
 }
@@ -66,7 +89,9 @@ export async function me(req, res) {
     user: {
       id: req.user._id.toString(),
       name: req.user.name,
-      email: req.user.email,
+      email: req.user.email || "",
+      parentPhone: req.user.parentPhone || "",
+      userId: req.user.userId || "",
       userType: req.user.userType || "student",
       grade: req.user.grade || "",
       stats: req.user.stats || {}

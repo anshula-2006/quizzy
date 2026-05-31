@@ -78,12 +78,23 @@ form?.addEventListener("submit", async (e) => {
   }
 
   const name = form.name.value;
-  const email = form.email.value;
-  const userId = form.userId?.value;
-  const phone = form.phone?.value;
+  const email = form.email?.value || "";
+  const userId = form.userId?.value || "";
+  const parentPhone = form.parentPhone?.value || "";
   const userType = form.userType?.value || "student";
   const grade = form.grade?.value;
-  const result = await auth.register({ name, email, userId, phone, userType, grade, password });
+
+  if (!email.trim() && !userId.trim() && !parentPhone.trim()) {
+    message.textContent = "Enter at least one login identifier: email, parent phone number, or roll number.";
+    message.classList.add("error");
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Create account";
+    }
+    return;
+  }
+
+  const result = await auth.register({ name, email, userId, parentPhone, userType, grade, password });
 
   if (!result.ok) {
     message.textContent = result.error;

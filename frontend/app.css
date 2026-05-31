@@ -2755,6 +2755,90 @@ select:focus,
   background: var(--color-surface-1);
 }
 
+.teacher-page .teacher-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  border-color: rgba(34, 197, 94, 0.3) !important;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.14), transparent 46%), var(--color-surface-1) !important;
+}
+
+.teacher-stat-grid {
+  grid-template-columns: repeat(4, minmax(150px, 1fr));
+}
+
+.teacher-stat-card {
+  border-left: 4px solid rgba(34, 197, 94, 0.62);
+}
+
+.teacher-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.75fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.teacher-table-wrap {
+  overflow-x: auto;
+}
+
+.teacher-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+
+.teacher-table th,
+.teacher-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--color-border-default);
+  text-align: left;
+  color: var(--color-text-primary);
+  vertical-align: top;
+}
+
+.teacher-table th {
+  color: var(--color-text-secondary);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.teacher-table td span {
+  display: block;
+  margin-top: 4px;
+  color: var(--color-text-secondary);
+  font-size: 0.82rem;
+}
+
+.teacher-topic-list {
+  display: grid;
+  gap: 10px;
+}
+
+.teacher-topic-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 14px;
+  background: var(--color-surface-1);
+}
+
+.teacher-topic-row strong,
+.teacher-topic-row span {
+  display: block;
+}
+
+.teacher-topic-row span {
+  margin-top: 4px;
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+}
+
 .page-fade {
   animation: quizzyPageIn 250ms ease both !important;
 }
@@ -2836,7 +2920,10 @@ select:focus,
   .profile-header,
   .flash-study-hero,
   .flash-study-grid,
-  .flash-study-stats {
+  .flash-study-stats,
+  .teacher-page .teacher-hero,
+  .teacher-stat-grid,
+  .teacher-grid {
     grid-template-columns: 1fr !important;
   }
 

@@ -53,11 +53,12 @@ const QuizzyAuth = {
     return { ok: true, user: result.data.user };
   },
 
-  async login({ identifier, email, phone, userId, password, rememberMe }) {
+  async login({ identifier, email, phone, parentPhone, userId, password, rememberMe }) {
     const payload = { password };
     if (identifier) payload.email = identifier; // Fallback mapping for existing APIs
     if (email) payload.email = email;
     if (phone) payload.phone = phone;
+    if (parentPhone) payload.phone = parentPhone;
     if (userId) payload.userId = userId;
 
     const result = await request("/auth/login", {

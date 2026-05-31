@@ -51,7 +51,7 @@ form?.addEventListener("submit", async (e) => {
     submitBtn.textContent = "Logging in...";
   }
 
-  const identifier = form.email.value;
+  const identifier = form.identifier.value;
   const password = form.password.value;
   const rememberMe = form.rememberMe?.checked ?? true;
   localStorage.setItem("quizzy-userType", userTypeSelect?.value || "student");

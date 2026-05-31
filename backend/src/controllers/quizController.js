@@ -162,6 +162,110 @@ export async function bootstrapUserData(req, res) {
   });
 }
 
+export async function teacherDashboardData(req, res) {
+  if ((req.user?.userType || "student") !== "teacher") {
+    throw new AppError("Teacher account required", 403);
+  }
+
+  const [users, attempts] = await Promise.all([
+    User.find({
+      userType: { $ne: "teacher" },
+      name: { $not: /dummy|fake/i },
+      email: { $not: /dummy|fake/i }
+    })
+      .sort({ "stats.lastAttemptAt": -1, createdAt: -1 })
+      .limit(100)
+      .select("name email userType grade stats createdAt")
+      .lean(),
+    QuizAttempt.find({})
+      .populate({ path: "user", select: "name email userType grade" })
+      .sort({ createdAt: -1 })
+      .limit(150)
+      .lean()
+  ]);
+
+  const studentAttempts = attempts.filter((attempt) => {
+    const user = attempt?.user && typeof attempt.user === "object" ? attempt.user : null;
+    if (!user || user.userType === "teacher") return false;
+    const name = String(user.name || "").toLowerCase();
+    const email = String(user.email || "").toLowerCase();
+    return !name.includes("dummy") && !name.includes("fake") && !email.includes("dummy") && !email.includes("fake");
+  });
+
+  const totalQuestions = studentAttempts.reduce((sum, attempt) => sum + Number(attempt.total || 0), 0);
+  const totalCorrect = studentAttempts.reduce((sum, attempt) => sum + Number(attempt.score || 0), 0);
+  const averageAccuracy = totalQuestions ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
+  const activeStudents = users.filter((user) => Number(user?.stats?.totalQuizzes || 0) > 0).length;
+
+  const topicBuckets = new Map();
+  studentAttempts.forEach((attempt) => {
+    const label = String(
+      attempt?.settings?.topic
+      || attempt?.sourceTopic
+      || attempt?.sourceInput
+      || attempt?.sourceType
+      || "General Practice"
+    ).trim().slice(0, 80);
+    const current = topicBuckets.get(label) || { topic: label, attempts: 0, correct: 0, total: 0 };
+    current.attempts += 1;
+    current.correct += Number(attempt.score || 0);
+    current.total += Number(attempt.total || 0);
+    topicBuckets.set(label, current);
+  });
+
+  const topicStats = [...topicBuckets.values()]
+    .map((item) => ({
+      ...item,
+      accuracy: item.total ? Math.round((item.correct / item.total) * 100) : 0
+    }))
+    .sort((a, b) => b.attempts - a.attempts || a.accuracy - b.accuracy)
+    .slice(0, 8);
+
+  res.json({
+    teacher: {
+      name: req.user.name,
+      email: req.user.email
+    },
+    summary: {
+      totalStudents: users.length,
+      activeStudents,
+      totalAttempts: studentAttempts.length,
+      totalQuestions,
+      averageAccuracy
+    },
+    students: users.map((user) => {
+      const stats = user.stats || {};
+      const questions = Number(stats.totalQuestions || 0);
+      return {
+        id: user._id?.toString(),
+        name: String(user.name || "Learner"),
+        email: String(user.email || ""),
+        userType: String(user.userType || "student"),
+        grade: String(user.grade || ""),
+        totalQuizzes: Number(stats.totalQuizzes || 0),
+        totalXp: Number(stats.totalXp || 0),
+        accuracy: questions ? Math.round((Number(stats.totalCorrectAnswers || 0) / questions) * 100) : 0,
+        bestPercentage: Number(stats.bestPercentage || 0),
+        currentStreak: Number(stats.currentStreak || 0),
+        lastAttemptAt: stats.lastAttemptAt || null
+      };
+    }),
+    recentAttempts: studentAttempts.slice(0, 12).map((attempt) => ({
+      id: attempt._id?.toString(),
+      studentName: String(attempt.user?.name || "Learner"),
+      studentEmail: String(attempt.user?.email || ""),
+      topic: String(attempt?.settings?.topic || attempt?.sourceTopic || attempt?.sourceInput || "Practice session").slice(0, 100),
+      sourceType: String(attempt.sourceType || "topic"),
+      difficulty: String(attempt?.settings?.difficulty || "mixed"),
+      score: Number(attempt.score || 0),
+      total: Number(attempt.total || 0),
+      percentage: Number(attempt.percentage || 0),
+      createdAt: attempt.createdAt
+    })),
+    topicStats
+  });
+}
+
 export async function createSavedQuestion(req, res) {
   const question = String(req.body?.question || "").trim();
   if (!question) throw new AppError("Question is required", 400);

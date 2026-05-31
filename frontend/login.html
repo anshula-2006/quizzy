@@ -9,87 +9,59 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./design-system.css" />
   <link rel="stylesheet" href="./app.css" />
+  <link rel="stylesheet" href="./auth.css" />
 </head>
 <body>
-  <div class="auth-shell">
-    <div class="auth-grid">
-      <div class="auth-hero">
-        <div class="auth-hero-inner">
-          <a class="auth-brand" href="./index.html">
-            <span class="auth-brand-icon" aria-hidden="true">Q</span>
-            <span>Quizzy</span>
-          </a>
-          
-          <div>
-            <span class="auth-pill">Role-aware workspace</span>
-            <h1 style="margin-top: var(--space-4);">Welcome back</h1>
-            <p class="section-copy" style="margin-top: var(--space-3);">Get started quickly—generate quizzes, study flashcards, track progress, and compete on leaderboards.</p>
+  <div class="auth-page">
+    <div class="auth-grid two-col">
+      <aside class="auth-hero-panel">
+        <a class="brand-row" href="./index.html" aria-label="Quizzy home">
+          <div class="brand-badge-hero">Q</div>
+          <div class="brand-copy">
+            <strong class="brand-name">Quizzy</strong>
+            <span class="brand-tag">Learn Smarter. Practice Better.</span>
           </div>
+        </a>
 
-          <ul class="auth-feature-list">
-            <li class="auth-feature-item"><strong>Generate Quizzes</strong> — Create practice sets from topics, URLs, or PDFs.</li>
-            <li class="auth-feature-item"><strong>Study Flashcards</strong> — Turn quiz content into quick review sessions.</li>
-            <li class="auth-feature-item"><strong>Track Progress</strong> — Monitor XP, streaks, and accuracy.</li>
-          </ul>
-
-          <div class="auth-hero-grid">
-            <article class="auth-feature-card">
-              <strong>Students</strong>
-              <span>Practice, revise, and keep progress visible</span>
-            </article>
-            <article class="auth-feature-card">
-              <strong>Teachers</strong>
-              <span>Create assessments and use class analytics</span>
-            </article>
-          </div>
+        <div class="hero-copy">
+          <h1 class="hero-title">Generate quizzes from Topics, PDFs and URLs.</h1>
+          <p class="hero-sub">Create practice sets, study efficiently, and keep track of progress with personalized insights.</p>
         </div>
-      </div>
+      </aside>
 
-      <div class="auth-card-wrap">
-        <main class="auth-card">
-          <div class="auth-card-head">
-            <p class="auth-eyebrow">Login</p>
-            <h2>Sign in to Quizzy</h2>
-            <p>Access your dashboard, history, and leaderboard profile.</p>
+      <main class="auth-card" role="main">
+        <div class="auth-card-head">
+          <p class="auth-eyebrow">Sign in</p>
+          <h2 class="auth-title">Welcome back</h2>
+          <p class="section-copy">Sign in to access your dashboard, history, and leaderboards.</p>
+        </div>
+
+        <form id="loginForm" class="auth-form" aria-labelledby="loginForm">
+          <div class="field-stack">
+            <label class="field-label" for="email">Email</label>
+            <input id="email" name="email" type="email" autocomplete="username" placeholder="you@example.com" required class="auth-input" />
           </div>
 
-          <form id="loginForm" class="auth-form">
-            <div class="auth-field">
-              <label for="loginUserType">Workspace</label>
-              <select id="loginUserType" name="userType" class="auth-select">
-                <option value="student" selected>Student</option>
-                <option value="teacher">Teacher</option>
-                <option value="self_learner">Self Learner</option>
-              </select>
-              <p id="loginUserTypeHint" class="auth-field-hint">Practice quizzes, flashcards, streaks, and progress insights.</p>
+          <div class="field-stack">
+            <label class="field-label" for="password">Password</label>
+            <div class="input-action-group">
+              <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required class="auth-input" />
+              <button type="button" id="togglePasswordBtn" class="input-action-btn" aria-label="Toggle password visibility">👁</button>
             </div>
-            <div class="auth-field">
-              <label for="email">Email</label>
-              <input id="email" name="email" type="email" autocomplete="username" placeholder="you@example.com" required class="text-input" />
-            </div>
-            <div class="auth-field">
-              <label for="password">Password</label>
-              <div class="input-action-group">
-                <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required class="text-input" />
-                <button type="button" id="togglePasswordBtn" class="input-action-btn" aria-label="Toggle password visibility">👁</button>
-              </div>
-            </div>
-            <div class="checkbox-row">
-              <label class="checkbox-label">
-                <input type="checkbox" id="rememberMe" name="rememberMe" class="checkbox-input" checked />
-                Remember me
-              </label>
-              <a href="#" id="forgotPasswordLink" class="helper-link">Forgot password?</a>
-            </div>
-            <button id="loginSubmitBtn" class="auth-btn" type="submit">Log In</button>
-            <p id="message" class="auth-msg"></p>
-          </form>
+          </div>
 
-          <p class="auth-footer">
-            New user? <a href="./register.html">Create an account</a>
-          </p>
-        </main>
-      </div>
+          <div class="auth-actions">
+            <button id="loginSubmitBtn" class="btn primary auth-btn" type="submit">Sign In</button>
+          </div>
+
+          <div class="auth-links">
+            <a href="#" id="forgotPasswordLink" class="helper-link">Forgot password?</a>
+            <a href="./register.html" class="helper-link">Create account</a>
+          </div>
+
+          <p id="message" class="auth-msg" aria-live="polite"></p>
+        </form>
+      </main>
     </div>
   </div>
 

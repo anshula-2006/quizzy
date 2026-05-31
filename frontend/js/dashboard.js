@@ -1,5 +1,5 @@
 import auth from "../auth.js";
-import { apiRequest, escapeHtml } from "./shared.js";
+import { apiRequest, buildStudyPlan, escapeHtml, getAdaptiveLearningSummary, getPerformancePrediction } from "./shared.js";
 import Chart from 'chart.js/auto';
 import { createIcons, Trophy, Star, Target, Flame, FileText, Medal, Activity, Play, Layers, Download } from 'lucide';
 
@@ -264,6 +264,9 @@ function renderDashboard(data) {
   const recentActivity = recent.slice(0, 4);
   const lastAttempt = attempts[0] || null;
   const reviewTopic = lastAttempt?.settings?.topic || lastAttempt?.sourceInput || lastAttempt?.sourceTopic || 'your next review';
+  const prediction = getPerformancePrediction(attempts);
+  const studyPlan = buildStudyPlan({ attempts });
+  const adaptiveSummary = getAdaptiveLearningSummary(lastAttempt || {});
   const weakestTopic = categoryStats.length ? [...categoryStats].sort((a, b) => a.average - b.average)[0] : null;
   const mostStudiedTopic = categoryStats.length ? [...categoryStats].sort((a, b) => b.count - a.count)[0] : null;
   const personalizedFocus = weakestTopic ? `Review ${escapeHtml(weakestTopic.label)}` : `Practice ${escapeHtml(reviewTopic)}`;
@@ -439,7 +442,15 @@ function renderDashboard(data) {
             </div>
             <div style="display: flex; justify-content: space-between; gap: 12px;">
               <span class="text-xs" style="color: var(--color-text-secondary);">Next Step</span>
-              <strong style="font-size: 0.95rem; text-align: right;">${personalizedNextStep}</strong>
+              <strong style="font-size: 0.95rem; text-align: right;">${escapeHtml(studyPlan[0] || personalizedNextStep)}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; gap: 12px;">
+              <span class="text-xs" style="color: var(--color-text-secondary);">Prediction</span>
+              <strong style="font-size: 0.95rem; text-align: right;">${escapeHtml(prediction.value)}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; gap: 12px;">
+              <span class="text-xs" style="color: var(--color-text-secondary);">Adaptive</span>
+              <strong style="font-size: 0.95rem; text-align: right;">${escapeHtml(adaptiveSummary.value)}</strong>
             </div>
             <div style="display: flex; justify-content: space-between; gap: 12px;">
               <span class="text-xs" style="color: var(--color-text-secondary);">Top Topic</span>

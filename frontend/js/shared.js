@@ -627,6 +627,135 @@ export function feedbackText(percentage) {
   return "You've got this. Try again and level up.";
 }
 
+function clampPercent(value) {
+  return Math.max(0, Math.min(100, Math.round(Number(value || 0))));
+}
+
+function getAttemptPercentages(attempts = [], latest = null) {
+  const rows = [];
+  if (latest && Number.isFinite(Number(latest.percentage))) rows.push(latest);
+  rows.push(...(Array.isArray(attempts) ? attempts : []));
+
+  return rows
+    .map((entry) => Number(entry?.percentage))
+    .filter((value) => Number.isFinite(value));
+}
+
+export function getPerformancePrediction(attempts = [], latest = null) {
+  const scores = getAttemptPercentages(attempts, latest).slice(0, 6);
+  if (!scores.length) {
+    return {
+      label: "Prediction",
+      value: "Needs baseline",
+      score: 0,
+      tone: "neutral",
+      message: "Complete one quiz to unlock a progress prediction."
+    };
+  }
+
+  const recent = scores.slice(0, 3);
+  const previous = scores.slice(3, 6);
+  const recentAverage = recent.reduce((sum, value) => sum + value, 0) / recent.length;
+  const previousAverage = previous.length
+    ? previous.reduce((sum, value) => sum + value, 0) / previous.length
+    : recentAverage;
+  const trend = recentAverage - previousAverage;
+  const predicted = clampPercent(recentAverage + trend * 0.35);
+
+  if (predicted >= 85) {
+    return {
+      label: "Prediction",
+      value: `${predicted}% next target`,
+      score: predicted,
+      tone: "strong",
+      message: "Strong progress. Try hard or adaptive mode to stretch your understanding."
+    };
+  }
+  if (predicted >= 65) {
+    return {
+      label: "Prediction",
+      value: `${predicted}% next target`,
+      score: predicted,
+      tone: "steady",
+      message: "You are close. Review missed concepts, then take one focused practice quiz."
+    };
+  }
+  return {
+    label: "Prediction",
+    value: `${predicted}% next target`,
+    score: predicted,
+    tone: "risk",
+    message: "Revision recommended. Start with easier questions and flashcards before retrying."
+  };
+}
+
+export function buildStudyPlan({ resultState = null, quizState = null, attempts = [] } = {}) {
+  const percentage = Number(resultState?.percentage ?? attempts?.[0]?.percentage ?? 0);
+  const answers = Array.isArray(resultState?.answers) ? resultState.answers : [];
+  const missed = answers.filter((answer) => !answer?.isCorrect).length;
+  const topic = quizState?.settings?.topic
+    || resultState?.settings?.topic
+    || quizState?.meta?.sourceInput
+    || resultState?.meta?.sourceInput
+    || attempts?.[0]?.settings?.topic
+    || attempts?.[0]?.meta?.sourceInput
+    || "this topic";
+
+  if (!resultState && !attempts.length) {
+    return [
+      "Generate one quiz from a topic, PDF, or URL.",
+      "Review the explanations after submitting.",
+      "Create flashcards for the concepts you miss."
+    ];
+  }
+
+  if (percentage < 60) {
+    return [
+      `Revise the basics of ${topic}.`,
+      missed ? `Retry the ${missed} missed question${missed === 1 ? "" : "s"} first.` : "Take a 5-question easy practice quiz.",
+      "Create flashcards for definitions, formulas, and common mistakes."
+    ];
+  }
+
+  if (percentage < 80) {
+    return [
+      `Practice ${topic} again in medium difficulty.`,
+      missed ? "Read every wrong-answer explanation before retrying." : "Use mixed question mode for deeper recall.",
+      "Take one timed quiz after reviewing flashcards."
+    ];
+  }
+
+  return [
+    `Move ${topic} to hard or adaptive mode.`,
+    "Use timer mode to improve exam speed.",
+    "Review explanations once, then try a higher-level quiz."
+  ];
+}
+
+export function getAdaptiveLearningSummary(source = {}) {
+  const settings = source?.settings || {};
+  const meta = source?.meta || {};
+  const isAdaptive = String(settings.difficulty || "").toLowerCase() === "adaptive";
+  const adaptive = meta.adaptive || {};
+
+  if (!isAdaptive) {
+    return {
+      label: "Adaptive Learning",
+      value: "Not used",
+      message: "Use Adaptive difficulty when you want the quiz to react to your answer streaks."
+    };
+  }
+
+  const current = adaptive.currentDifficulty
+    ? String(adaptive.currentDifficulty).charAt(0).toUpperCase() + String(adaptive.currentDifficulty).slice(1)
+    : "Medium";
+  return {
+    label: "Adaptive Learning",
+    value: `${current} level`,
+    message: "During this session, Quizzy adjusted difficulty using your correct and wrong answer streaks."
+  };
+}
+
 export async function syncGuestDataToCloud() {
   const session = getSession();
   if (!session?.token) return;

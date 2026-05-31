@@ -166,8 +166,8 @@ Format:
       "correct": "A for MCQ, or short factual answer for short type",
       "shortAnswer": "Required for short type, otherwise null",
       "acceptableAnswers": ["Optional synonyms for short type"],
-      "explanation": "2-3 sentence clear explanation",
-      "wrongExplanation": "1-2 sentence explanation of a likely wrong answer",
+      "explanation": "Clear teaching explanation with step-by-step reasoning when useful",
+      "wrongExplanation": "Explanation of why a likely wrong answer or misconception is incorrect",
       "image": "Direct Wikimedia Commons image URL ending with .jpg or .png, or null"
     }
   ]
@@ -182,8 +182,10 @@ Rules:
 ${topicOnlyRule}
 - Avoid ambiguity and avoid opinion-based prompts.
 - Explanation must clearly justify the correct answer.
-- The "explanation" MUST provide a detailed, factual justification for why the correct answer is right.
-- The "wrongExplanation" MUST explicitly address common misconceptions or clarify exactly why a specific distractor is wrong.
+- The "explanation" MUST act like a tutor: give a clear, factual justification for why the correct answer is right.
+- For mathematics, science, coding, grammar, and other skill-based subjects, the "explanation" MUST include concise step-by-step reasoning, not just the final answer.
+- The "wrongExplanation" MUST explicitly address a common misconception or clarify exactly why a specific distractor is wrong.
+- Avoid generic explanations such as "this is correct because it is the right answer"; explain the concept, rule, or calculation.
 - Focus on highly specific, varied, and insightful facts. Do NOT generate generic, repetitive, or obvious questions.
 - For topics involving future dates (e.g., 2026), rely strictly on established structural rules, schedules, term limits, and current contexts rather than substituting past events.
 - If the topic involves dates around or after ${today}, rely on established schedules, laws, and the most current data available.

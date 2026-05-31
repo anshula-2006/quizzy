@@ -1,4 +1,16 @@
-import { clearQuizFlow, feedbackText, getQuizState, getResultState, setQuizState, setResultState, escapeHtml } from "./shared.js";
+import {
+  buildStudyPlan,
+  clearQuizFlow,
+  feedbackText,
+  getAdaptiveLearningSummary,
+  getPerformancePrediction,
+  getQuizState,
+  getResultState,
+  getSavedQuizHistory,
+  setQuizState,
+  setResultState,
+  escapeHtml
+} from "./shared.js";
 
 const resultRoot = document.getElementById("resultRoot");
 const resultState = getResultState();
@@ -11,6 +23,10 @@ if (!resultState) {
 if (resultState) {
   const isWiki = quizState?.meta?.sourceType === "wikipedia";
   const wikiLink = isWiki ? `<p class="meta-copy" style="margin-top:12px;"><a href="${escapeHtml(quizState.meta.sourceInput)}" target="_blank" style="color: #3b82f6; text-decoration: underline;">Read Wikipedia Article</a></p>` : "";
+  const savedHistory = getSavedQuizHistory();
+  const prediction = getPerformancePrediction(savedHistory, resultState);
+  const studyPlan = buildStudyPlan({ resultState, quizState, attempts: savedHistory });
+  const adaptiveSummary = getAdaptiveLearningSummary(resultState);
 
   resultRoot.innerHTML = `
     <section class="panel result-card page-fade result-summary-card glass-card">
@@ -35,12 +51,35 @@ if (resultState) {
           <span>Confidence</span>
           <strong>${resultState.confidence || 0}%</strong>
         </article>
+        <article class="stat-card">
+          <span>${escapeHtml(prediction.label)}</span>
+          <strong>${escapeHtml(prediction.value)}</strong>
+        </article>
+      </div>
+
+      <div class="result-insight-grid">
+        <article class="stat-card result-insight-card">
+          <span>Study Plan</span>
+          <ul class="compact-list">
+            ${studyPlan.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+          </ul>
+        </article>
+        <article class="stat-card result-insight-card">
+          <span>Performance Prediction</span>
+          <strong>${escapeHtml(prediction.value)}</strong>
+          <p class="section-copy">${escapeHtml(prediction.message)}</p>
+        </article>
+        <article class="stat-card result-insight-card">
+          <span>${escapeHtml(adaptiveSummary.label)}</span>
+          <strong>${escapeHtml(adaptiveSummary.value)}</strong>
+          <p class="section-copy">${escapeHtml(adaptiveSummary.message)}</p>
+        </article>
       </div>
 
       <div class="button-row landing-actions" style="flex-wrap: wrap;">
         <button class="btn" id="retryBtn">Retry Full Quiz</button>
         ${resultState.score < resultState.total ? `<button class="btn-outline" id="retryIncorrectBtn" style="border-color: var(--warning); color: var(--warning);">Retry Incorrect</button>` : ""}
-        <button class="btn-outline" id="downloadQuizBtn">Download Report ⬇</button>
+        <button class="btn-outline" id="downloadQuizBtn">Download Report</button>
         <button class="btn-outline" id="newQuizBtn">New Quiz</button>
         <a class="btn-outline" href="./dashboard.html">Dashboard</a>
       </div>

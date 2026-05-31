@@ -2109,6 +2109,32 @@ select:focus,
   margin-top: 16px;
 }
 
+.result-insight-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.result-insight-card {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+
+.result-insight-card .section-copy {
+  margin: 0;
+}
+
+.compact-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
 /* Compact page density: keep primary content visible with minimal scrolling */
 .page-shell {
   padding: 12px !important;
@@ -2448,6 +2474,10 @@ select:focus,
   .flash-scene,
   .flash-card-3d {
     min-height: 260px !important;
+  }
+
+  .result-insight-grid {
+    grid-template-columns: 1fr !important;
   }
 
   #quizRoot .quiz-focus-head {

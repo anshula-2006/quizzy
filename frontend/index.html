@@ -31,41 +31,47 @@
         <div class="hero-copy-block">
           <p class="eyebrow">AI quiz workspace</p>
           <h1 class="page-title">Quizzy</h1>
-          <p class="page-subtitle">Generate quizzes from topics, PDFs, and URLs, then track accuracy, XP, badges, streaks, and leaderboard progress in one compact SaaS dashboard.</p>
+          <p class="page-subtitle" id="heroSubtitle">Generate quizzes from a topic, PDF, or web page, then track accuracy, XP, badges, streaks, and leaderboard progress from a single learning dashboard.</p>
+          <div class="landing-pill-row">
+            <span>Topic quizzes</span>
+            <span>PDF extraction</span>
+            <span>URL-based practice</span>
+          </div>
           <div class="button-row landing-actions">
             <a class="btn" href="./generate.html">Create quiz</a>
             <a class="btn-outline" href="./dashboard.html">View dashboard</a>
           </div>
           <div class="landing-metric-strip">
             <span><strong>3</strong> input modes</span>
-            <span><strong>10</strong> question sets</span>
-            <span><strong>Live</strong> analytics</span>
+            <span><strong>Real</strong> quiz results</span>
+            <span><strong>Progress</strong> insights</span>
           </div>
         </div>
         <div class="landing-preview-panel" aria-label="Dashboard preview">
           <div class="preview-topline">
-            <span>Performance</span>
-            <strong>--%</strong>
+            <span id="heroWelcome">Performance</span>
+            <strong id="heroPerformanceValue">--%</strong>
           </div>
           <div class="preview-chart">
             <i></i><i></i><i></i><i></i><i></i><i></i>
           </div>
           <div class="preview-grid">
-            <div><span>Total XP</span><strong>0</strong></div>
-            <div><span>Streak</span><strong>0 days</strong></div>
-            <div><span>Rank</span><strong>--</strong></div>
-            <div><span>Badges</span><strong>0</strong></div>
+            <div><span>Total XP</span><strong id="heroTotalXpValue">0</strong></div>
+            <div><span>Streak</span><strong id="heroStreakValue">0 days</strong></div>
+            <div><span>Rank</span><strong id="heroRankValue">--</strong></div>
+            <div><span>Badges</span><strong id="heroBadgesValue">0</strong></div>
           </div>
         </div>
       </section>
 
       <section class="landing-feature-grid">
-        <article class="panel"><span>01</span><strong>Generate</strong><p>Convert notes, files, and articles into focused assessments.</p></article>
-        <article class="panel"><span>02</span><strong>Practice</strong><p>Answer in a distraction-free quiz workspace with clear progress.</p></article>
-        <article class="panel"><span>03</span><strong>Analyze</strong><p>Review trends, streaks, badges, XP, and leaderboard position.</p></article>
+        <article class="panel"><span>01</span><strong>Topic, PDF, URL</strong><p>Start from your own prompt, upload a PDF, or paste a web address to build a quiz instantly.</p></article>
+        <article class="panel"><span>02</span><strong>Practice fast</strong><p>Answer questions in a clean quiz view with instant scoring and retry support.</p></article>
+        <article class="panel"><span>03</span><strong>Track progress</strong><p>Monitor XP, streaks, badges, and leaderboard standing without leaving the page.</p></article>
       </section>
     </main>
   </div>
   <script type="module" src="./js/page-auth.js"></script>
+  <script type="module" src="./js/index-hero.js"></script>
 </body>
 </html>

@@ -1,5 +1,7 @@
 import auth from "../auth.js";
 import { apiRequest, escapeHtml } from "./shared.js";
+import Chart from 'chart.js/auto';
+import { createIcons, Trophy, Star, Target, Flame, FileText, Medal, Activity, Play, Layers, Download } from 'lucide';
 
 function getScopeId() {
   const session = auth?.getSession?.();
@@ -174,7 +176,7 @@ function getWeeklyData(attempts) {
 function renderSkeleton() {
   root.className = "page-fade";
   root.innerHTML = `
-page    <div class="hero-stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 24px;">${Array.from({ length: 4 }, () => `<div class="analytics-card skeleton-panel" style="height: 100px; border-radius: 12px;"></div>`).join("")}</div>
+    <div class="hero-stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 24px;">${Array.from({ length: 4 }, () => `<div class="analytics-card skeleton-panel" style="height: 100px; border-radius: 12px;"></div>`).join("")}</div>
     <div class="dashboard-content-grid" style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 24px;">
        <div class="chart-card panel skeleton-panel" style="height: 300px; border-radius: 16px;"></div>
        <div class="chart-card panel skeleton-panel" style="height: 300px; border-radius: 16px;"></div>
@@ -183,15 +185,15 @@ page    <div class="hero-stats-grid" style="display: grid; grid-template-columns
 }
 
 function getCompactIcon(type) {
-  const icons = {
-    xp: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>`,
-    rank: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5aa2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>`,
-    accuracy: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M22 12h-4"></path><path d="M6 12H2"></path><path d="M12 6V2"></path><path d="M12 22v-4"></path><circle cx="12" cy="12" r="2"></circle></svg>`,
-    streak: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>`,
-    quizzes: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>`,
-    badges: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15l-3 3-1-4-4-1 3-3-1-4 4 1 3-3 3 3 4-1-1 4 3 3-4 1-1 4-3-3z"></path></svg>`
+  const iconMap = {
+    xp: `<i data-lucide="star" style="width: 20px; height: 20px;"></i>`,
+    rank: `<i data-lucide="trophy" style="width: 20px; height: 20px;"></i>`,
+    accuracy: `<i data-lucide="target" style="width: 20px; height: 20px;"></i>`,
+    streak: `<i data-lucide="flame" style="width: 20px; height: 20px;"></i>`,
+    quizzes: `<i data-lucide="file-text" style="width: 20px; height: 20px;"></i>`,
+    badges: `<i data-lucide="medal" style="width: 20px; height: 20px;"></i>`
   };
-  return icons[type] || "";
+  return iconMap[type] || `<i data-lucide="activity" style="width: 20px; height: 20px;"></i>`;
 }
 
 function compactStatCard(label, value, helper, iconType) {
@@ -206,38 +208,8 @@ function compactStatCard(label, value, helper, iconType) {
           <div class="saas-stat-value">${value}</div>
         </div>
       </div>
-      ${helper ? `<p class="section-copy" style="margin: 0;">${helper}</p>` : ''}
+      ${helper ? `<p class="section-copy" style="margin: 0; font-size: 0.8rem;">${helper}</p>` : ''}
     </article>
-  `;
-}
-
-function renderLineChart(data) {
-  if (!data || !data.length) return `<div class="empty-state-mini" style="height: 160px; display: grid; place-items: center; border: 1px dashed var(--line); border-radius: var(--radius-md);"><span>No data to chart</span></div>`;
-  const maxScore = Math.max(...data.map(d => d.score), 10);
-  const points = data.map((item, index) => {
-    const x = data.length === 1 ? 50 : (index / (data.length - 1)) * 100;
-    const y = 92 - ((item.score / maxScore) * 84);
-    return `${x},${y}`;
-  }).join(" ");
-  
-  return `
-    <div style="position: relative; height: 160px; margin-top: 16px;">
-      <svg class="line-chart" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Weekly performance line graph" style="position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; filter: none; margin: 0;">
-      <defs>
-        <linearGradient id="lineGlow" x1="0" x2="1">
-          <stop offset="0%" stop-color="#888" />
-          <stop offset="100%" stop-color="#ededed" />
-        </linearGradient>
-      </defs>
-        <polyline points="${points}" fill="none" stroke="url(#lineGlow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-      ${data.map((item, index) => {
-        const x = data.length === 1 ? 50 : (index / (data.length - 1)) * 100;
-          const y = 92 - ((item.score / maxScore) * 84);
-          return `<circle cx="${x}" cy="${y}" r="1.5" fill="#000" stroke="#ededed" stroke-width="1.5" />`;
-      }).join("")}
-    </svg>
-    </div>
-    <div class="chart-axis" style="margin-top: 12px; display: flex; justify-content: space-between;">${data.map((item) => `<span>${item.label}</span>`).join("")}</div>
   `;
 }
 
@@ -269,8 +241,8 @@ function renderDashboard(data) {
   let welcomeSub = "Here's what's happening with your learning progress.";
   let actionButtons = `
     <div style="display: flex; gap: 8px;">
-      <a href="./generate.html" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;">Start Quiz</a>
-      <a href="./flashcards.html" class="btn-outline" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;">Study Flashcards</a>
+      <a href="./generate.html" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;"><i data-lucide="play" style="width: 14px; height: 14px; margin-right: 4px;"></i> Start Quiz</a>
+      <a href="./flashcards.html" class="btn-outline" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;"><i data-lucide="layers" style="width: 14px; height: 14px; margin-right: 4px;"></i> Study Flashcards</a>
     </div>
   `;
   let statsRow = `
@@ -286,8 +258,8 @@ function renderDashboard(data) {
     welcomeSub = "Overview of your classroom analytics and quizzes.";
     actionButtons = `
       <div style="display: flex; gap: 8px;">
-        <a href="./generate.html?mode=exam" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;">Create Assessment</a>
-        <button id="downloadClassReportBtn" class="btn-outline" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;">Class Report ⬇</button>
+        <a href="./generate.html?mode=exam" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;"><i data-lucide="play" style="width: 14px; height: 14px; margin-right: 4px;"></i> Create Assessment</a>
+        <button id="downloadClassReportBtn" class="btn-outline" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;"><i data-lucide="download" style="width: 14px; height: 14px; margin-right: 4px;"></i> Class Report</button>
       </div>
     `;
     statsRow = `
@@ -300,9 +272,9 @@ function renderDashboard(data) {
     welcomeSub = "Pick up where you left off and keep your learning streak moving.";
     actionButtons = `
       <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-        <a href="./generate.html?topic=Daily%20Trivia%20Challenge&mode=arcade" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem; background: var(--success); color: #fff; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4); border: none;">Daily Challenge</a>
-        <a href="./arcade.html" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;">Learning Games</a>
-        <a href="./generate.html" class="btn-outline" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;">Take a Quiz</a>
+        <a href="./generate.html?topic=Daily%20Trivia%20Challenge&mode=arcade" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem; background: var(--color-success); color: #fff; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); border: none;"><i data-lucide="flame" style="width: 14px; height: 14px; margin-right: 4px;"></i> Daily Challenge</a>
+        <a href="./arcade.html" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;"><i data-lucide="activity" style="width: 14px; height: 14px; margin-right: 4px;"></i> Learning Games</a>
+        <a href="./generate.html" class="btn-outline" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;"><i data-lucide="play" style="width: 14px; height: 14px; margin-right: 4px;"></i> Take a Quiz</a>
       </div>
     `;
     statsRow = `
@@ -315,9 +287,9 @@ function renderDashboard(data) {
     welcomeSub = "Track your mastery, revise weak topics, and build habits.";
     actionButtons = `
       <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-        <a href="./generate.html?topic=Daily%20Revision%20Challenge&mode=exam" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem; background: var(--success); color: #fff; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4); border: none;">Daily Challenge</a>
-        <a href="./generate.html?mode=focus" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;">Focus Study</a>
-        <a href="./generate.html?mode=revision" class="btn-outline" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;">Revision Mode</a>
+        <a href="./generate.html?topic=Daily%20Revision%20Challenge&mode=exam" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem; background: var(--color-success); color: #fff; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); border: none;"><i data-lucide="flame" style="width: 14px; height: 14px; margin-right: 4px;"></i> Daily Challenge</a>
+        <a href="./generate.html?mode=focus" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;"><i data-lucide="target" style="width: 14px; height: 14px; margin-right: 4px;"></i> Focus Study</a>
+        <a href="./generate.html?mode=revision" class="btn-outline" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;"><i data-lucide="layers" style="width: 14px; height: 14px; margin-right: 4px;"></i> Revision Mode</a>
       </div>
     `;
     statsRow = `
@@ -335,6 +307,8 @@ function renderDashboard(data) {
   const recentActivity = recent.slice(0, 4);
   const lastAttempt = attempts[0] || null;
   const reviewTopic = lastAttempt?.settings?.topic || lastAttempt?.sourceType || 'your next review';
+  
+  const isNewUser = attempts.length === 0 && flashDecks.length === 0;
 
   // Leaderboard Preview Component
   const top3 = leaderboard.slice(0, 3);
@@ -352,9 +326,9 @@ function renderDashboard(data) {
 
   root.className = "page-fade";
   root.innerHTML = `
-    <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: var(--space-4); margin-bottom: var(--space-5);">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-4);">
       <div>
-        <h1 class="section-title" style="font-size: 2rem;">Welcome back, ${currentName}</h1>
+        <h1 class="section-title" style="font-size: 1.5rem;">Welcome back, ${currentName}</h1>
         <p class="section-copy" style="max-width: 600px; margin-top: var(--space-2);">${welcomeSub}</p>
       </div>
       <div style="display: flex; align-items: center;">
@@ -362,42 +336,71 @@ function renderDashboard(data) {
       </div>
     </div>
 
-    <div class="dashboard-stat-grid" style="margin-bottom: var(--space-5);">
+    <div class="dashboard-stat-grid" style="margin-bottom: var(--space-4);">
       ${statsRow}
     </div>
 
     <div class="dashboard-content-grid">
       <!-- Left Column: Primary Learning Workflows -->
-      <div style="display: grid; gap: var(--space-5); align-content: start;">
+      <div style="display: grid; gap: var(--space-4); align-content: start;">
         
         <!-- Continue Learning / Hero -->
-        <section class="panel flow-card" style="padding: var(--space-5); background: linear-gradient(145deg, var(--color-surface-2), var(--color-surface-1));">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-4);">
-            <div style="flex: 1; min-width: 200px;">
-              <p class="eyebrow">Continue Learning</p>
-              <h2 style="margin: var(--space-1) 0; font-size: 1.25rem; font-weight: 700;">
-                ${lastAttempt ? escapeHtml(reviewTopic) : 'Start your first quiz'}
-              </h2>
-              <p class="section-copy" style="margin: 0; font-size: 0.9rem;">
-                ${lastAttempt ? 'Resume practice to improve your accuracy and earn more XP.' : 'Generate a quiz from any topic or document to begin.'}
-              </p>
+        <section class="panel flow-card" style="background: linear-gradient(145deg, var(--color-surface-2), var(--color-surface-1));">
+          ${isNewUser 
+            ? `
+            <div style="display: flex; flex-direction: column; gap: var(--space-3); align-items: start;">
+              <div>
+                <p class="eyebrow">Get Started</p>
+                <h2 style="margin: var(--space-1) 0; font-size: 1.25rem; font-weight: 700;">
+                  Ready to start learning?
+                </h2>
+                <p class="section-copy" style="margin: 0; font-size: 0.9rem;">
+                  Generate your first quiz from a topic, PDF, or web page.
+                </p>
+              </div>
+              <a href="./generate.html" class="btn">Create Your First Quiz</a>
             </div>
-            <div style="display: flex; align-items: center; gap: var(--space-4);">
-              ${lastAttempt ? `
-                <div style="text-align: right;">
-                  <span style="font-size: 0.75rem; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Last Score</span>
-                  <strong style="display: block; font-size: 1.5rem; color: var(--color-text-primary); line-height: 1;">${lastAttempt.percentage}%</strong>
-                </div>
-              ` : ''}
-              <a href="./generate.html${lastAttempt ? `?topic=${encodeURIComponent(reviewTopic)}&mode=revision` : ''}" class="btn" style="white-space: nowrap;">
-                ${lastAttempt ? 'Practice Again' : 'Create Quiz'}
-              </a>
+            ` 
+            : `
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-3);">
+              <div style="flex: 1; min-width: 200px;">
+                <p class="eyebrow">Continue Learning</p>
+                <h2 style="margin: var(--space-1) 0; font-size: 1.25rem; font-weight: 700;">
+                  ${lastAttempt ? escapeHtml(reviewTopic) : 'Start your first quiz'}
+                </h2>
+                <p class="section-copy" style="margin: 0; font-size: 0.9rem;">
+                  ${lastAttempt ? 'Resume practice to improve your accuracy and earn more XP.' : 'Generate a quiz from any topic or document to begin.'}
+                </p>
+              </div>
+              <div style="display: flex; align-items: center; gap: var(--space-3);">
+                ${lastAttempt ? `
+                  <div style="text-align: right;">
+                    <span style="font-size: 0.75rem; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Last Score</span>
+                    <strong style="display: block; font-size: 1.5rem; color: var(--color-text-primary); line-height: 1;">${lastAttempt.percentage}%</strong>
+                  </div>
+                ` : ''}
+                <a href="./generate.html${lastAttempt ? `?topic=${encodeURIComponent(reviewTopic)}&mode=revision` : ''}" class="btn" style="white-space: nowrap;">
+                  ${lastAttempt ? 'Practice Again' : 'Create Quiz'}
+                </a>
+              </div>
             </div>
-          </div>
+            `
+          }
         </section>
 
         <!-- Nested Grid for Quizzes and Flashcards -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-5);">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-4);">
+
+          <!-- Performance Chart -->
+          <section class="panel flow-card" style="grid-column: 1 / -1;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-3);">
+              <strong style="font-size: 1.1rem;">Performance Trend</strong>
+            </div>
+            <div style="height: 200px; width: 100%;">
+              <canvas id="performanceChart"></canvas>
+            </div>
+          </section>
+
           <!-- Recent Quizzes -->
           <section class="panel flow-card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-3);">
@@ -415,7 +418,12 @@ function renderDashboard(data) {
                     <strong style="font-size: 1.1rem; color: ${a.percentage >= 70 ? 'var(--color-success-light)' : 'var(--color-text-primary)'};">${a.percentage}%</strong>
                   </div>
                 `).join('')
-                : `<div class="empty-state-mini">No recent activity. Start a quiz to see history.</div>`
+                : `
+                <div style="padding: var(--space-4); text-align: center; background: var(--color-surface-2); border-radius: var(--radius-lg); border: 1px dashed var(--color-border-default);">
+                  <p class="section-copy" style="margin: 0 0 var(--space-2); font-size: 0.9rem;">No quizzes yet</p>
+                  <a href="./generate.html" class="btn-outline" style="display: inline-block; padding: 0.5rem 1rem; font-size: 0.85rem; white-space: nowrap;">Take your first quiz</a>
+                </div>
+              `
               }
             </div>
           </section>
@@ -434,7 +442,12 @@ function renderDashboard(data) {
                     <span class="text-secondary text-xs" style="white-space: nowrap;">${Array.isArray(deck.flashcards) ? deck.flashcards.length : 0} terms</span>
                   </a>
                 `).join('')
-                : `<div class="empty-state-mini">No flashcard decks yet. Create one from Generate.</div>`
+                : `
+                <div style="padding: var(--space-4); text-align: center; background: var(--color-surface-2); border-radius: var(--radius-lg); border: 1px dashed var(--color-border-default);">
+                  <p class="section-copy" style="margin: 0 0 var(--space-2); font-size: 0.9rem;">No flashcards yet</p>
+                  <a href="./generate.html" class="btn-outline" style="display: inline-block; padding: 0.5rem 1rem; font-size: 0.85rem; white-space: nowrap;">Create a deck</a>
+                </div>
+              `
               }
             </div>
           </section>
@@ -442,7 +455,7 @@ function renderDashboard(data) {
       </div>
 
       <!-- Right Column: Leaderboard & Insights -->
-      <div style="display: grid; gap: var(--space-5); align-content: start;">
+      <div style="display: grid; gap: var(--space-4); align-content: start;">
 
         <!-- Leaderboard Preview -->
         <section class="panel flow-card">
@@ -471,6 +484,43 @@ function renderDashboard(data) {
       </div>
     </div>
 `;
+
+  requestAnimationFrame(() => {
+    if (window.lucide) {
+      window.lucide.createIcons();
+    } else {
+      createIcons({
+        icons: { Trophy, Star, Target, Flame, FileText, Medal, Activity, Play, Layers, Download }
+      });
+    }
+
+    const ctx = document.getElementById('performanceChart');
+    if (ctx && weekly.length > 0) {
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: weekly.map(w => w.label),
+          datasets: [{
+            label: 'Score',
+            data: weekly.map(w => w.score),
+            borderColor: '#6366F1',
+            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, max: 100, grid: { color: '#374151' } },
+            x: { grid: { display: false } }
+          }
+        }
+      });
+    }
+  });
 
   const downloadBtn = document.getElementById("downloadClassReportBtn");
   if (downloadBtn) {

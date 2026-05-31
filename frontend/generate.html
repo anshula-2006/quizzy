@@ -25,118 +25,108 @@
         </nav>
       </header>
 
-      <main class="dashboard-content-grid generate-workspace">
-        <section class="panel flow-card page-fade generate-composer">
-          <div class="dashboard-block">
-            <div class="card-title-row">
+      <main class="generate-workspace">
+        <section class="panel flow-card page-fade">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-4);">
+            <div>
+              <p class="eyebrow">Generate</p>
+              <h1 class="section-title" style="font-size: 1.5rem; margin-top: 0.25rem;">Create your quiz</h1>
+              <p class="section-copy" style="margin-top: var(--space-1);">Choose a source, tune settings, and launch.</p>
+            </div>
+          </div>
+
+          <form id="generateForm" class="field-stack generate-form">
+            
+            <!-- Column 1: Source & Content -->
+            <div style="display: flex; flex-direction: column; gap: var(--space-4);">
               <div>
-                <p class="eyebrow">Generate</p>
-                <h1 class="section-title">Create your quiz</h1>
-                <p class="section-copy">Choose a source, tune the assessment, and launch a focused quiz without leaving the workflow.</p>
+                <div class="step-header">
+                  <h3 style="font-size: 1rem; margin: 0 0 var(--space-3); font-weight: 600;">Source</h3>
+                </div>
+                <div class="source-grid" style="display: grid; gap: var(--space-2);">
+                  <button type="button" class="source-card is-active" data-source="text" style="padding: var(--space-2); text-align: left;">
+                    <i data-lucide="file-text" style="width: 16px; height: 16px; margin-bottom: 4px; color: var(--color-accent);"></i>
+                    <strong>Topic</strong><span style="font-size: 0.8rem; display: block;">Prompt</span>
+                  </button>
+                  <button type="button" class="source-card" data-source="pdf" style="padding: var(--space-2); text-align: left;">
+                    <i data-lucide="file-up" style="width: 16px; height: 16px; margin-bottom: 4px; color: var(--color-accent);"></i>
+                    <strong>PDF</strong><span style="font-size: 0.8rem; display: block;">Upload</span>
+                  </button>
+                  <button type="button" class="source-card" data-source="url" style="padding: var(--space-2); text-align: left;">
+                    <i data-lucide="link" style="width: 16px; height: 16px; margin-bottom: 4px; color: var(--color-accent);"></i>
+                    <strong>URL</strong><span style="font-size: 0.8rem; display: block;">Web page</span>
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label class="field-label">Content</label>
+                <textarea id="topicInput" class="text-input" placeholder="Your topic or notes..." style="min-height: 100px;"></textarea>
+                <input id="urlInput" class="text-input" type="url" placeholder="https://example.com/article" hidden />
+                <div class="file-wrap" hidden>
+                  <input id="pdfInput" class="file-input" type="file" accept=".pdf,application/pdf" />
+                </div>
+                <p id="sourceHint" class="helper-text" style="margin-top: 0.5rem; font-size: 0.8rem;">Type a topic or paste your notes.</p>
               </div>
             </div>
 
-            <form id="generateForm" class="field-stack generate-form">
-              <div class="generate-step">
-                <div class="step-header">
-                  <p class="eyebrow">Step 1</p>
-                  <h2 class="section-title" style="font-size: 1.1rem; margin-top: 0.25rem;">Choose source</h2>
-                </div>
-                <div class="source-grid">
-                  <button type="button" class="source-card is-active" data-source="text"><strong>Topic</strong><span>Prompt or pasted notes.</span></button>
-                  <button type="button" class="source-card" data-source="pdf"><strong>PDF</strong><span>Upload source material.</span></button>
-                  <button type="button" class="source-card" data-source="url"><strong>URL</strong><span>Parse a public article.</span></button>
-                </div>
+            <!-- Column 2: Quiz Settings -->
+            <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+              <div>
+                <label class="field-label" for="difficultySelect">Difficulty</label>
+                <select id="difficultySelect" class="select-input">
+                  <option value="easy">Easy</option>
+                  <option value="moderate" selected>Moderate</option>
+                  <option value="tough">Tough</option>
+                  <option value="super">Super</option>
+                </select>
               </div>
+              <div>
+                <label class="field-label" for="modeSelect">Question Type</label>
+                <select id="modeSelect" class="select-input">
+                  <option value="mcq" selected>MCQ</option>
+                  <option value="mixed">Mixed</option>
+                  <option value="short">Short</option>
+                </select>
+              </div>
+              <div>
+                <label class="field-label" for="languageSelect">Language</label>
+                <select id="languageSelect" class="select-input">
+                  <option value="English" selected>English</option>
+                  <option value="Hindi">Hindi</option>
+                  <option value="Bengali">Bengali</option>
+                  <option value="Tamil">Tamil</option>
+                </select>
+              </div>
+              <div>
+                <label class="field-label" for="countSelect">Questions</label>
+                <select id="countSelect" class="select-input">
+                  <option value="5">5 Questions</option>
+                  <option value="10" selected>10 Questions</option>
+                </select>
+              </div>
+            </div>
 
-              <div class="generate-step">
-                <div class="step-header">
-                  <p class="eyebrow">Step 2</p>
-                  <h2 class="section-title" style="font-size: 1.1rem; margin-top: 0.25rem;">Add content</h2>
-                </div>
-                <div class="field-stack">
-                  <textarea id="topicInput" class="text-input" placeholder="Photosynthesis, recursion, Indian constitution, your own notes..."></textarea>
-                  <input id="urlInput" class="text-input" type="url" placeholder="https://example.com/article" hidden />
-                  <div class="file-wrap" hidden>
-                    <input id="pdfInput" class="file-input" type="file" accept=".pdf,application/pdf" />
-                  </div>
-                  <p id="sourceHint" class="helper-text">Type a topic or paste your notes.</p>
-                </div>
+            <!-- Column 3: Learn Mode & Actions -->
+            <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+              <div>
+                <label class="field-label" for="learnerMode">Mode</label>
+                <select id="learnerMode" class="select-input">
+                  <option value="focus" selected>Focus Mode</option>
+                  <option value="arcade">Arcade Mode</option>
+                  <option value="exam">Exam Mode</option>
+                  <option value="revision">Revision Mode</option>
+                </select>
+                <p id="modeDesc" class="helper-text" style="margin-top: 0.5rem; font-size: 0.75rem;">Deep, distraction-free learning.</p>
               </div>
+              <div id="generateError" class="error-message" hidden style="padding: var(--space-2); border-radius: var(--radius-md); background: rgba(220, 38, 38, 0.1); border: 1px solid rgba(220, 38, 38, 0.3); color: var(--color-error);"></div>
+              <div style="display: flex; flex-direction: column; gap: var(--space-2); margin-top: auto;">
+                <button id="generateBtn" class="btn" type="submit" style="min-height: 40px;"><i data-lucide="play" style="width: 16px; height: 16px; margin-right: 4px;"></i> Generate Quiz</button>
+                <button id="flashcardsBtn" class="btn-outline" type="button" style="min-height: 40px;"><i data-lucide="plus" style="width: 16px; height: 16px; margin-right: 4px;"></i> Flashcards</button>
+              </div>
+            </div>
 
-              <div class="generate-step">
-                <div class="step-header">
-                  <p class="eyebrow">Step 3</p>
-                  <h2 class="section-title" style="font-size: 1.1rem; margin-top: 0.25rem;">Tune quiz</h2>
-                </div>
-                <div class="settings-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-3);">
-                  <div class="setting-card">
-                    <label class="field-label" for="difficultySelect">Difficulty</label>
-                    <select id="difficultySelect" class="select-input">
-                      <option value="easy">Easy</option>
-                      <option value="moderate" selected>Moderate</option>
-                      <option value="tough">Tough</option>
-                      <option value="super">Super</option>
-                    </select>
-                  </div>
-                  <div class="setting-card">
-                    <label class="field-label" for="modeSelect">Question Type</label>
-                    <select id="modeSelect" class="select-input">
-                      <option value="mcq" selected>MCQ</option>
-                      <option value="mixed">Mixed</option>
-                      <option value="short">Short</option>
-                    </select>
-                  </div>
-                  <div class="setting-card">
-                    <label class="field-label" for="languageSelect">Language</label>
-                    <select id="languageSelect" class="select-input">
-                      <option value="English" selected>English</option>
-                      <option value="Hindi">Hindi</option>
-                      <option value="Bengali">Bengali</option>
-                      <option value="Tamil">Tamil</option>
-                      <option value="Telugu">Telugu</option>
-                      <option value="Marathi">Marathi</option>
-                    </select>
-                  </div>
-                  <div class="setting-card">
-                    <label class="field-label" for="countSelect">Questions</label>
-                    <select id="countSelect" class="select-input">
-                      <option value="5">5 Questions</option>
-                      <option value="10" selected>10 Questions</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <div id="generateError" class="error-message" hidden></div>
-              <div class="button-row" style="margin-top: var(--space-2);">
-                <button id="generateBtn" class="btn" type="submit">Generate Quiz</button>
-                <button id="flashcardsBtn" class="btn-outline" type="button">Generate Flashcards</button>
-              </div>
-            </form>
-          </div>
+          </form>
         </section>
-
-        <aside class="panel game-card page-fade workflow-sidebar">
-          <div class="dashboard-block">
-            <p class="eyebrow">Workspace</p>
-            <h2 class="section-title">Assessment setup</h2>
-            <div class="dashboard-list section-gap">
-              <article class="dashboard-activity-item">
-                <strong>Input</strong>
-                <span class="section-copy">Topic, PDF, or URL source.</span>
-              </article>
-              <article class="dashboard-activity-item">
-                <strong>Generation</strong>
-                <span class="section-copy">Backend call starts only on command.</span>
-              </article>
-              <article class="dashboard-activity-item">
-                <strong>Analytics</strong>
-                <span class="section-copy">Results feed XP, badges, and history.</span>
-              </article>
-            </div>
-          </div>
-        </aside>
       </main>
     </div>
   </div>

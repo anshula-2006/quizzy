@@ -26,14 +26,14 @@
 :root {
   /* --- PRIMARY COLORS --- */
   /* Dark theme - premium SaaS aesthetic */
-  --color-bg-base: #0F1117;
-  --color-bg-muted: #161B22;
-  --color-bg-subtle: #1C2128;
-  --color-surface-1: #161B22;
-  --color-surface-2: #1C2128;
-  --color-surface-3: #21262D;
-  --color-surface-hover: #30363D;
-  --color-surface-active: #39414A;
+  --color-bg-base: #0B1220;
+  --color-bg-muted: #111827;
+  --color-bg-subtle: #1F2937;
+  --color-surface-1: #111827;
+  --color-surface-2: #1F2937;
+  --color-surface-3: #374151;
+  --color-surface-hover: #374151;
+  --color-surface-active: #4B5563;
 
   /* Indigo accent - primary brand color */
   --color-accent: #6366F1;
@@ -43,29 +43,29 @@
   --color-accent-dark: #4F46E5;
 
   /* Text colors - optimized for dark backgrounds */
-  --color-text-primary: #F8FAFC;
-  --color-text-secondary: #94A3B8;
-  --color-text-tertiary: #64748B;
-  --color-text-muted: #475569;
-  --color-text-inverse: #0F1117;
+  --color-text-primary: #F9FAFB;
+  --color-text-secondary: #9CA3AF;
+  --color-text-tertiary: #6B7280;
+  --color-text-muted: #4B5563;
+  --color-text-inverse: #0B1220;
 
   /* Borders - matches design spec */
-  --color-border-default: #2D333B;
-  --color-border-strong: #39414A;
-  --color-border-muted: #21262D;
+  --color-border-default: #374151;
+  --color-border-strong: #4B5563;
+  --color-border-muted: #1F2937;
 
   /* Semantic colors - minimal use */
-  --color-success: #16A34A;
-  --color-success-bg: #1F2937;
-  --color-success-light: #86EFAC;
+  --color-success: #10B981;
+  --color-success-bg: #064E3B;
+  --color-success-light: #34D399;
   
-  --color-warning: #EA580C;
-  --color-warning-bg: #2D1F0F;
-  --color-warning-light: #FDBA74;
+  --color-warning: #F59E0B;
+  --color-warning-bg: #78350F;
+  --color-warning-light: #FBBF24;
   
-  --color-error: #DC2626;
-  --color-error-bg: #1F1010;
-  --color-error-light: #FCA5A5;
+  --color-error: #EF4444;
+  --color-error-bg: #7F1D1D;
+  --color-error-light: #F87171;
   
   --color-info: #0EA5E9;
   --color-info-bg: #0F2847;
@@ -91,17 +91,17 @@
 
   /* --- SPACING --- */
   --space-0: 0;
-  --space-1: 0.25rem;    /* 4px */
-  --space-2: 0.5rem;     /* 8px */
-  --space-3: 0.75rem;    /* 12px */
-  --space-4: 1rem;       /* 16px */
-  --space-5: 1.25rem;    /* 20px */
-  --space-6: 1.5rem;     /* 24px */
-  --space-7: 1.75rem;    /* 28px */
-  --space-8: 2rem;       /* 32px */
-  --space-10: 2.5rem;    /* 40px */
-  --space-12: 3rem;      /* 48px */
-  --space-16: 4rem;      /* 64px */
+  --space-1: 0.125rem;   /* 2px */
+  --space-2: 0.25rem;    /* 4px */
+  --space-3: 0.5rem;     /* 8px */
+  --space-4: 0.75rem;    /* 12px */
+  --space-5: 1rem;       /* 16px */
+  --space-6: 1.25rem;    /* 20px */
+  --space-7: 1.5rem;     /* 24px */
+  --space-8: 1.75rem;    /* 28px */
+  --space-10: 2rem;      /* 32px */
+  --space-12: 2.5rem;    /* 40px */
+  --space-16: 3rem;      /* 48px */
 
   /* --- BORDER RADIUS --- */
   --radius-none: 0;

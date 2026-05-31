@@ -123,6 +123,8 @@ async function init() {
   const rank = rankEntry?.rank || profile?.rank || "--";
   const name = session?.name || profile?.name || "Player";
   const avatarInitial = escapeHtml(name.slice(0, 1).toUpperCase());
+  
+  const isNewUser = attempts.length === 0 && flashDecks.length === 0;
 
   root.innerHTML = `
     <section class="panel flow-card dashboard-hero">
@@ -172,7 +174,12 @@ async function init() {
                   <span class="section-copy">${a.settings?.topic ? escapeHtml(a.settings.topic) : "Practice session"}</span>
                 </div>
               </article>
-            `).join("") : `<div class="empty-state-mini"><span>No recent activity yet. Take a quiz to begin your streak.</span></div>`}
+            `).join("") : `
+            <div style="padding: var(--space-5); text-align: center; background: var(--color-surface-2); border-radius: var(--radius-lg); border: 1px dashed var(--color-border-default);">
+              <p class="section-copy" style="margin: 0 0 var(--space-2); font-size: 0.9rem;">No quiz activity yet</p>
+              <a href="./generate.html" class="btn-outline" style="display: inline-block; padding: 0.5rem 1rem; font-size: 0.85rem; white-space: nowrap;">Take your first quiz</a>
+            </div>
+            `}
           </div>
         </div>
       </section>
@@ -215,7 +222,12 @@ async function init() {
                     <span>${badge.rarity}</span>
                   </div>
                 </article>
-              `).join("") : `<div class="empty-state-mini"><span>No badges earned yet. Keep quizzing to unlock new rewards.</span></div>`}
+              `).join("") : `
+              <div style="padding: var(--space-4); text-align: center; background: var(--color-surface-2); border-radius: var(--radius-lg); border: 1px dashed var(--color-border-default); grid-column: 1 / -1;">
+                <p class="section-copy" style="margin: 0 0 var(--space-2); font-size: 0.9rem;">No badges earned yet</p>
+                <p class="section-copy" style="margin: 0; font-size: 0.8rem; color: var(--color-text-secondary);">Complete quizzes to unlock rewards</p>
+              </div>
+              `}
             </div>
             ${unlocked.length > 6 ? `<p class="section-copy" style="margin-top: var(--space-3);">+${unlocked.length - 6} more badges earned</p>` : ""}
           </div>

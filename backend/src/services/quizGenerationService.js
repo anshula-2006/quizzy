@@ -128,11 +128,11 @@ function hasGenerationMismatch(questions, questionMode, questionCount) {
 }
 
 function buildQuestionBatches(questionCount) {
-  if (questionCount <= 20) return [questionCount];
+  if (questionCount <= 10) return [questionCount];
 
   const batches = [];
   let remaining = questionCount;
-  const preferredBatchSize = 15;
+  const preferredBatchSize = 10;
 
   while (remaining > 0) {
     if (remaining <= preferredBatchSize) {
@@ -164,6 +164,14 @@ async function runLimited(items, limit, worker) {
 
   await Promise.all(Array.from({ length: Math.min(limit, items.length) }, runWorker));
   return results;
+}
+
+function compactContentForPrompt(value, maxChars = 3500) {
+  const text = String(value || "").trim();
+  if (text.length <= maxChars) return text;
+  const head = text.slice(0, Math.floor(maxChars * 0.65));
+  const tail = text.slice(-Math.floor(maxChars * 0.25));
+  return `${head}\n\n[Content shortened for generation speed]\n\n${tail}`;
 }
 
 function buildQuizPrompt({ topic, text, sourceType, difficulty, learnerMode, questionMode, outputLanguage, questionCount, totalQuestionCount = questionCount, timerEnabled, timerSeconds, variation, userLocalTime, userTimezone }) {
@@ -250,7 +258,7 @@ ${topicOnlyRule}
 Current Date: ${today}
 Variation ID: ${variation}
 Topic: "${topic || "General knowledge"}"
-Content: ${text || "Use general knowledge"}
+Content: ${compactContentForPrompt(text) || "Use general knowledge"}
 `;
 }
 
@@ -350,7 +358,7 @@ export async function generateQuizSession({ userId = null, topic = "", text = ""
   }
 
   const batches = buildQuestionBatches(resolvedCount);
-  const batchResults = await runLimited(batches, 3, async (batchCount, batchIndex) => {
+  const batchResults = await runLimited(batches, 1, async (batchCount, batchIndex) => {
     const prompt = buildQuizPrompt({
       topic,
       text: effectiveText,

@@ -4,6 +4,7 @@ import { Leaderboard } from "../models/Leaderboard.js";
 import { QuizHistory } from "../models/QuizHistory.js";
 import { UserStats } from "../models/UserStats.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { requireAuth } from "../middleware/auth.js";
 
 const router = Router();
 
@@ -30,10 +31,11 @@ function validateUsername(req, res) {
   return username;
 }
 
-router.post("/save-score", asyncHandler(async (req, res) => {
-  const username = validateUsername(req, res);
+router.post("/save-score", requireAuth, asyncHandler(async (req, res) => {
+  // Use authenticated user identity to prevent impersonation
+  const username = String(req.user?.email || req.user?.name || "guest").trim().slice(0, 80);
   const score = cleanScore(req.body.score);
-  if (!username) return;
+  if (!username) return res.status(400).json({ error: "username is required" });
   if (score === null) return res.status(400).json({ error: "score must be a non-negative number" });
 
   const entry = await Leaderboard.create({ username, score });
@@ -75,9 +77,9 @@ router.get("/leaderboard", asyncHandler(async (req, res) => {
   })));
 }));
 
-router.post("/save-stats", asyncHandler(async (req, res) => {
-  const username = validateUsername(req, res);
-  if (!username) return;
+router.post("/save-stats", requireAuth, asyncHandler(async (req, res) => {
+  const username = String(req.user?.email || req.user?.name || "guest").trim().slice(0, 80);
+  if (!username) return res.status(400).json({ error: "username is required" });
 
   const payload = {
     totalScore: cleanScore(req.body.totalScore) ?? 0,
@@ -95,17 +97,17 @@ router.post("/save-stats", asyncHandler(async (req, res) => {
   return res.json({ ok: true, stats });
 }));
 
-router.get("/stats/:username", asyncHandler(async (req, res) => {
-  const username = validateUsername(req, res);
-  if (!username) return;
+router.get("/stats/:username", requireAuth, asyncHandler(async (req, res) => {
+  // Always return stats for the authenticated user only
+  const username = String(req.user?.email || req.user?.name || "guest").trim().slice(0, 80);
   const stats = await UserStats.findOne({ username }).lean();
   return res.json(stats || { username, totalScore: 0, totalQuizzes: 0, streak: 0, accuracy: 0 });
 }));
 
-router.post("/save-quiz", asyncHandler(async (req, res) => {
-  const username = validateUsername(req, res);
+router.post("/save-quiz", requireAuth, asyncHandler(async (req, res) => {
+  const username = String(req.user?.email || req.user?.name || "guest").trim().slice(0, 80);
   const score = cleanScore(req.body.score);
-  if (!username) return;
+  if (!username) return res.status(400).json({ error: "username is required" });
   if (score === null) return res.status(400).json({ error: "score must be a non-negative number" });
 
   const item = await QuizHistory.create({
@@ -118,16 +120,16 @@ router.post("/save-quiz", asyncHandler(async (req, res) => {
   return res.status(201).json({ ok: true, quiz: item });
 }));
 
-router.get("/quiz-history/:username", asyncHandler(async (req, res) => {
-  const username = validateUsername(req, res);
-  if (!username) return;
+router.get("/quiz-history/:username", requireAuth, asyncHandler(async (req, res) => {
+  // Return history only for authenticated user
+  const username = String(req.user?.email || req.user?.name || "guest").trim().slice(0, 80);
   const items = await QuizHistory.find({ username }).sort({ date: -1 }).limit(100).lean();
   return res.json(items);
 }));
 
-router.post("/flashcards", asyncHandler(async (req, res) => {
-  const username = validateUsername(req, res);
-  if (!username) return;
+router.post("/flashcards", requireAuth, asyncHandler(async (req, res) => {
+  const username = String(req.user?.email || req.user?.name || "guest").trim().slice(0, 80);
+  if (!username) return res.status(400).json({ error: "username is required" });
 
   const cards = Array.isArray(req.body.flashcards)
     ? req.body.flashcards
@@ -142,20 +144,20 @@ router.post("/flashcards", asyncHandler(async (req, res) => {
     .filter((card) => card.question && card.answer);
 
   if (!docs.length) return res.status(400).json({ error: "at least one flashcard question and answer is required" });
-  const saved = await Flashcard.insertMany(docs);
+  const saved = await Flashcard.insertMany(docs.map(d => ({ ...d, username })));
   return res.status(201).json({ ok: true, flashcards: saved });
 }));
 
-router.get("/flashcards/:username", asyncHandler(async (req, res) => {
-  const username = validateUsername(req, res);
-  if (!username) return;
+router.get("/flashcards/:username", requireAuth, asyncHandler(async (req, res) => {
+  // Return flashcards only for authenticated user
+  const username = String(req.user?.email || req.user?.name || "guest").trim().slice(0, 80);
   const items = await Flashcard.find({ username }).sort({ createdAt: -1 }).limit(200).lean();
   return res.json(items);
 }));
 
-router.delete("/reset/:username", asyncHandler(async (req, res) => {
-  const username = validateUsername(req, res);
-  if (!username) return;
+router.delete("/reset/:username", requireAuth, asyncHandler(async (req, res) => {
+  // Reset only the authenticated user's data regardless of supplied username
+  const username = String(req.user?.email || req.user?.name || "guest").trim().slice(0, 80);
   await Promise.all([
     UserStats.deleteOne({ username }),
     Leaderboard.deleteMany({ username }),

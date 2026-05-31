@@ -41,7 +41,8 @@ export async function createJsonCompletion(prompt, temperature = 0.4) {
   const completion = await provider.client.chat.completions.create({
     model: provider.model,
     messages: [{ role: "user", content: prompt }],
-    temperature
+    temperature,
+    response_format: { type: "json_object" }
   });
 
   return completion?.choices?.[0]?.message?.content || "";

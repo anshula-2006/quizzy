@@ -1,4 +1,4 @@
-import { extractContent, requestQuiz, requestFlashcards, setQuizState, setResultState, addFlashDeck, getSession, getSavedQuizHistory, getFlashDecks, escapeHtml } from "./shared.js";
+import { extractContent, requestQuiz, requestFlashcards, setQuizState, setResultState, addFlashDeck, getSession, getSavedQuizHistory, getFlashDecks, escapeHtml, clearQuizFlow } from "./shared.js";
 import { createIcons, FileText, FileUp, Link, Plus, Play } from 'lucide';
 
 const sourceCards = document.querySelectorAll("[data-source]");
@@ -8,7 +8,10 @@ const pdfInput = document.getElementById("pdfInput");
 const difficultySelect = document.getElementById("difficultySelect");
 const modeSelect = document.getElementById("modeSelect");
 const languageSelect = document.getElementById("languageSelect");
-const countSelect = document.getElementById("countSelect");
+const countInput = document.getElementById("countInput") || document.getElementById("countSelect");
+const timerMode = document.getElementById("timerMode");
+const timerSecondsInput = document.getElementById("timerSecondsInput");
+const timerSecondsWrap = document.getElementById("timerSecondsWrap");
 const learnerModeSelect = document.getElementById("learnerMode");
 const modeDescNode = document.getElementById("modeDesc");
 const sourceHint = document.getElementById("sourceHint");
@@ -230,13 +233,6 @@ if (learnerModeSelect) {
   modeDescNode.textContent = modeDescriptions[learnerModeSelect.value];
 }
 
-if (difficultySelect && !Array.from(difficultySelect.options).some(o => o.value === 'current_events')) {
-  const opt = document.createElement('option');
-  opt.value = 'current_events';
-  opt.textContent = 'Current Events';
-  difficultySelect.appendChild(opt);
-}
-
 const params = new URLSearchParams(window.location.search);
 const prefillTopic = params.get("topic");
 const prefillMode = params.get("mode");
@@ -253,20 +249,23 @@ if (prefillMode && learnerModeSelect) {
   learnerModeSelect.dispatchEvent(new Event("change"));
 }
 
-if (prefillCount && countSelect) {
-  let opt = Array.from(countSelect.options).find(o => o.value === prefillCount);
-  if (!opt) {
-    opt = document.createElement("option");
-    opt.value = prefillCount;
-    opt.textContent = `${prefillCount} Questions`;
-    countSelect.appendChild(opt);
-  }
-  countSelect.value = prefillCount;
+if (prefillCount && countInput) {
+  countInput.value = prefillCount;
 }
 
 sourceCards.forEach((card) => {
   card.addEventListener("click", () => setSource(card.dataset.source));
 });
+
+timerMode?.addEventListener("change", () => {
+  const timerOn = timerMode.value === "on";
+  if (timerSecondsWrap) {
+    timerSecondsWrap.hidden = !timerOn;
+    timerSecondsWrap.style.display = timerOn ? "" : "none";
+  }
+});
+
+timerMode?.dispatchEvent(new Event("change"));
 
 if (autoGenerate === "flashcards" && flashcardsBtn && prefillTopic) {
   setTimeout(() => flashcardsBtn.click(), 100);
@@ -274,7 +273,26 @@ if (autoGenerate === "flashcards" && flashcardsBtn && prefillTopic) {
 
 form?.addEventListener("submit", async (event) => {
   event.preventDefault();
+  clearQuizFlow();
   errorNode.hidden = true;
+
+  const questionCount = Math.floor(Number(countInput?.value || 0));
+  if (!Number.isFinite(questionCount) || questionCount < 5) {
+    errorNode.hidden = false;
+    errorNode.textContent = "Minimum 5 questions required.";
+    countInput?.focus();
+    return;
+  }
+
+  const timerEnabled = timerMode?.value === "on";
+  const timerSeconds = Math.floor(Number(timerSecondsInput?.value || 0));
+  if (timerEnabled && (!Number.isFinite(timerSeconds) || timerSeconds < 15)) {
+    errorNode.hidden = false;
+    errorNode.textContent = "Timer must be at least 15 seconds.";
+    timerSecondsInput?.focus();
+    return;
+  }
+
   const originalText = generateBtn?.textContent || "Generate Quiz";
   if (generateBtn) {
     generateBtn.disabled = true;
@@ -288,6 +306,9 @@ form?.addEventListener("submit", async (event) => {
       questionMode: modeSelect.value,
       outputLanguage: languageSelect.value,
       learnerMode: learnerModeSelect ? learnerModeSelect.value : "focus",
+      customTimer: timerEnabled ? timerSeconds : "off",
+      timerEnabled,
+      timerSeconds: timerEnabled ? timerSeconds : null,
       userTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       userLocalTime: new Date().toLocaleString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZoneName: 'short' })
     };
@@ -301,7 +322,7 @@ form?.addEventListener("submit", async (event) => {
     const quizPayload = await requestQuiz({
       ...contentPayload,
       ...settings,
-      questionCount: Number(countSelect?.value || 10),
+      questionCount,
       variation: Date.now()
     });
 

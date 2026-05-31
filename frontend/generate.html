@@ -75,9 +75,9 @@
                 <label class="field-label" for="difficultySelect">Difficulty</label>
                 <select id="difficultySelect" class="input">
                   <option value="easy">Easy</option>
-                  <option value="moderate" selected>Moderate</option>
-                  <option value="tough">Tough</option>
-                  <option value="super">Super</option>
+                  <option value="medium" selected>Medium</option>
+                  <option value="hard">Hard</option>
+                  <option value="adaptive">Adaptive</option>
                 </select>
               </div>
               <div>
@@ -98,11 +98,19 @@
                 </select>
               </div>
               <div>
-                <label class="field-label" for="countSelect">Questions</label>
-                <select id="countSelect" class="input">
-                  <option value="5">5 Questions</option>
-                  <option value="10" selected>10 Questions</option>
+                <label class="field-label" for="countInput">Questions</label>
+                <input id="countInput" class="input" type="number" min="5" step="1" value="10" />
+              </div>
+              <div>
+                <label class="field-label" for="timerMode">Timer</label>
+                <select id="timerMode" class="input">
+                  <option value="off" selected>Off</option>
+                  <option value="on">On</option>
                 </select>
+              </div>
+              <div id="timerSecondsWrap" hidden>
+                <label class="field-label" for="timerSecondsInput">Seconds per question</label>
+                <input id="timerSecondsInput" class="input" type="number" min="15" step="1" value="30" />
               </div>
             </div>
 

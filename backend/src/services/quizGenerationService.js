@@ -40,6 +40,7 @@ function normalizeJsonCandidate(jsonText) {
     .replace(/[â€˜â€™]/g, "'")
     .replace(/[“”]/g, "\"")
     .replace(/[‘’]/g, "'")
+    .replace(/\\(?!["\\/bfnrtu])/g, "\\\\")
     .replace(/,\s*([}\]])/g, "$1")
     .replace(/}\s*{/g, "},{")
     .trim();
@@ -122,10 +123,14 @@ function hasModeMismatch(questions, questionMode) {
   return false;
 }
 
-function buildQuizPrompt({ topic, text, difficulty, learnerMode, questionMode, outputLanguage, questionCount, variation, userLocalTime, userTimezone }) {
+function buildQuizPrompt({ topic, text, sourceType, difficulty, learnerMode, questionMode, outputLanguage, questionCount, timerEnabled, timerSeconds, variation, userLocalTime, userTimezone }) {
   const today = userLocalTime || new Date().toLocaleString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   const locationContext = userTimezone ? ` in the ${userTimezone} timezone` : "";
   const difficultyRule = difficulty === "current_events" ? 'Difficulty: "Current Events". Focus heavily on recent news, dynamic updates, and the latest established context for the topic.' : `Difficulty: "${difficulty}".`;
+  const isTopicOnly = String(sourceType || "").trim().toLowerCase() === "topic" && !String(text || "").trim();
+  const topicOnlyRule = isTopicOnly
+    ? '- Topic Mode: Use ONLY the requested Topic as the scope. Do not infer or fetch source articles, boards, institutions, history, or general knowledge adjacent to the words in the topic.\n- If the Topic is "10th class mathematics" or similar, generate Class 10 mathematics questions only, covering age-appropriate algebra, geometry, trigonometry, probability, statistics, and mensuration. Do not ask about education boards, school history, unrelated general knowledge, or college-level mathematics.'
+    : '';
 
   const roleGuide = learnerMode === "focus"
     ? "Focus Mode: Generate highly clear, direct questions with minimal distractions. Emphasize deep understanding, core concepts, and provide extremely detailed step-by-step explanations."
@@ -170,6 +175,7 @@ Rules:
 - Strict Scope: Stay STRICTLY within the boundaries of the requested topic. Do not generate random, generic trivia or unrelated questions under any circumstances.
 - Academic Context & Normalization: If the topic implies a specific educational grade, class, or syllabus (e.g., "10th class mathematics", "biology class 12"), strictly interpret it as the standard academic syllabus for that subject and level (e.g., secondary school mathematics, higher secondary biology). Match the concepts and difficulty appropriately to the academic context.
 - Context Override: If the provided Content appears completely unrelated to the requested Topic (e.g., due to an automated search mismatch), IGNORE the Content and rely entirely on your internal expert knowledge of the Topic.
+${topicOnlyRule}
 - Avoid ambiguity and avoid opinion-based prompts.
 - Explanation must clearly justify the correct answer.
 - The "explanation" MUST provide a detailed, factual justification for why the correct answer is right.
@@ -181,8 +187,12 @@ Rules:
 - ${difficultyRule}
 - Learner mode: "${learnerMode}". ${roleGuide}
 - Question mode: "${questionMode}". ${strictModeNote}
+- Requested question count: ${questionCount}. Return exactly ${questionCount} questions.
+- Timer setting: ${timerEnabled ? `ON, ${timerSeconds} seconds per question` : "OFF"}.
 - Output language: "${outputLanguage}".
 - Keep JSON keys in English.
+- Use plain text math notation only. Do not use LaTeX commands or backslashes in any JSON string.
+- Avoid quotation marks inside question, option, answer, and explanation text.
 - Vary the questions every time.
 - Image URL must start with https://upload.wikimedia.org/ and end with .jpg or .png, otherwise use null.
 
@@ -231,11 +241,11 @@ Content: ${text || "Use general knowledge"}
 `;
 }
 
-async function parseJsonCompletion(prompt, sanitizer, retries = 2) {
+async function parseJsonCompletion(prompt, sanitizer, retries = 3) {
   let lastError = null;
   for (let attempt = 0; attempt < retries; attempt += 1) {
     try {
-      const output = await createJsonCompletion(prompt, attempt === 0 ? 0.8 : 0.3);
+      const output = await createJsonCompletion(prompt, attempt === 0 ? 0.35 : 0.15);
       const rawJson = extractJsonBlock(output);
       const parsed = JSON.parse(normalizeJsonCandidate(rawJson));
       return sanitizer(parsed);
@@ -246,12 +256,18 @@ async function parseJsonCompletion(prompt, sanitizer, retries = 2) {
   throw new AppError(lastError?.message || "AI generation failed", 502);
 }
 
-export async function generateQuizSession({ userId = null, topic = "", text = "", difficulty = "moderate", learnerMode = "student", questionMode = "mcq", outputLanguage = "English", extractionId = "", preferFull = false, sourceType = "topic", sourceInput = "", questionCount = 5, variation = null, userLocalTime = "", userTimezone = "" }) {
-  const resolvedCount = Math.max(1, Math.min(30, Math.floor(Number(questionCount) || 5)));
+export async function generateQuizSession({ userId = null, topic = "", text = "", difficulty = "medium", learnerMode = "student", questionMode = "mcq", outputLanguage = "English", extractionId = "", preferFull = false, sourceType = "topic", sourceInput = "", questionCount = 5, timerEnabled = false, timerSeconds = null, variation = null, userLocalTime = "", userTimezone = "" }) {
+  const resolvedCount = Math.max(5, Math.min(30, Math.floor(Number(questionCount) || 5)));
+  const resolvedTimerSeconds = timerEnabled ? Math.max(15, Math.floor(Number(timerSeconds) || 15)) : null;
   let effectiveText = resolveFullExtractedText(extractionId, text, preferFull);
+  const isTopicMode = String(sourceType || "").trim().toLowerCase() === "topic";
+  if (isTopicMode) {
+    sourceType = "topic";
+    sourceInput = sourceInput || topic;
+  }
 
-  // Automatically fetch Wikipedia context for bare topics
-  if (!effectiveText && topic) {
+  // Automatically fetch Wikipedia context only for legacy non-topic requests.
+  if (!effectiveText && topic && !isTopicMode) {
     const wikiData = await extractFromWikipedia(topic);
     if (wikiData && wikiData.text) {
       effectiveText = wikiData.text;
@@ -267,11 +283,14 @@ export async function generateQuizSession({ userId = null, topic = "", text = ""
   const prompt = buildQuizPrompt({
     topic,
     text: effectiveText,
+    sourceType,
     difficulty,
     learnerMode,
     questionMode,
     outputLanguage,
     questionCount: resolvedCount,
+    timerEnabled: Boolean(timerEnabled),
+    timerSeconds: resolvedTimerSeconds,
     variation: Number.isFinite(Number(variation)) ? Number(variation) : Math.floor(Math.random() * 100000),
     userLocalTime,
     userTimezone
@@ -301,7 +320,9 @@ export async function generateQuizSession({ userId = null, topic = "", text = ""
       learnerMode,
       questionMode,
       outputLanguage,
-      questionCount: questions.length
+      questionCount: questions.length,
+      timerEnabled: Boolean(timerEnabled),
+      timerSeconds: resolvedTimerSeconds
     },
     questions
   });

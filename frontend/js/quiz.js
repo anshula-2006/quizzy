@@ -26,15 +26,48 @@ function getCurrentAnswer() {
   return quizState.answers[quizState.currentIndex] || null;
 }
 
+const difficultyOrder = ["easy", "medium", "hard"];
+
+function normalizeDifficulty(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  if (normalized === "moderate") return "medium";
+  if (normalized === "tough" || normalized === "super") return "hard";
+  if (difficultyOrder.includes(normalized)) return normalized;
+  return "medium";
+}
+
+function formatDifficulty(value) {
+  const normalized = normalizeDifficulty(value);
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+}
+
+function isAdaptiveMode() {
+  return String(quizState.settings?.difficulty || "").trim().toLowerCase() === "adaptive";
+}
+
+function ensureAdaptiveState() {
+  quizState.meta = quizState.meta || {};
+  quizState.meta.adaptive = quizState.meta.adaptive || {
+    consecutiveCorrect: 0,
+    consecutiveWrong: 0,
+    currentDifficulty: "medium",
+    nextDifficulty: null
+  };
+  quizState.meta.adaptive.currentDifficulty = normalizeDifficulty(quizState.meta.adaptive.currentDifficulty);
+  return quizState.meta.adaptive;
+}
+
 function timerForQuestion(question) {
   const customTimer = quizState.settings?.customTimer;
   if (customTimer === "off") return null;
   if (customTimer && customTimer !== "auto") return Number(customTimer);
 
   let base = 30;
-  if (quizState.settings?.difficulty === "easy") base = 36;
-  if (quizState.settings?.difficulty === "tough") base = 24;
-  if (quizState.settings?.difficulty === "super") base = 20;
+  const effectiveDifficulty = isAdaptiveMode()
+    ? ensureAdaptiveState().currentDifficulty
+    : normalizeDifficulty(quizState.settings?.difficulty);
+  if (effectiveDifficulty === "easy") base = 36;
+  if (effectiveDifficulty === "hard") base = 24;
 
   // Personalize based on historical accuracy
   try {
@@ -53,7 +86,7 @@ function timerForQuestion(question) {
 
   // Apply adaptive difficulty adjustment for this question if present in session meta
   try {
-    const adaptive = quizState.meta && quizState.meta.adaptive;
+    const adaptive = isAdaptiveMode() ? quizState.meta && quizState.meta.adaptive : null;
     if (adaptive && adaptive.nextDifficulty) {
       if (adaptive.nextDifficulty === "easier") {
         base = base + 12; // give more time for easier mode
@@ -90,9 +123,11 @@ function saveAnswer(selected) {
   persist();
   // Adaptive difficulty tracking (session-scoped, lightweight)
   try {
-    quizState.meta = quizState.meta || {};
-    quizState.meta.adaptive = quizState.meta.adaptive || { consecutiveCorrect: 0, consecutiveWrong: 0, nextDifficulty: null };
-    const adaptive = quizState.meta.adaptive;
+    if (!isAdaptiveMode()) {
+      render();
+      return;
+    }
+    const adaptive = ensureAdaptiveState();
     if (isCorrect) {
       adaptive.consecutiveCorrect = (adaptive.consecutiveCorrect || 0) + 1;
       adaptive.consecutiveWrong = 0;
@@ -103,10 +138,14 @@ function saveAnswer(selected) {
 
     // Rules: 2 wrong -> easier next; 3 correct -> harder next
     if (adaptive.consecutiveWrong >= 2) {
-      adaptive.nextDifficulty = "easier";
+      const nextIndex = Math.max(0, difficultyOrder.indexOf(adaptive.currentDifficulty) - 1);
+      adaptive.currentDifficulty = difficultyOrder[nextIndex];
+      adaptive.nextDifficulty = `easier (${formatDifficulty(adaptive.currentDifficulty)})`;
       adaptive.consecutiveWrong = 0; // avoid immediate re-trigger
     } else if (adaptive.consecutiveCorrect >= 3) {
-      adaptive.nextDifficulty = "harder";
+      const nextIndex = Math.min(difficultyOrder.length - 1, difficultyOrder.indexOf(adaptive.currentDifficulty) + 1);
+      adaptive.currentDifficulty = difficultyOrder[nextIndex];
+      adaptive.nextDifficulty = `harder (${formatDifficulty(adaptive.currentDifficulty)})`;
       adaptive.consecutiveCorrect = 0;
     }
     quizState.meta.adaptive = adaptive;

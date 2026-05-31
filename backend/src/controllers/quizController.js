@@ -65,7 +65,7 @@ export async function generateQuiz(req, res) {
     userId: req.user?._id || null,
     topic: req.body?.topic || "",
     text: req.body?.text || "",
-    difficulty: req.body?.difficulty || "moderate",
+    difficulty: req.body?.difficulty || "medium",
     learnerMode: req.body?.learnerMode || "student",
     questionMode: req.body?.questionMode || "mcq",
     outputLanguage: req.body?.outputLanguage || "English",
@@ -74,6 +74,8 @@ export async function generateQuiz(req, res) {
     sourceType: req.body?.sourceType || (req.body?.topic ? "topic" : "text"),
     sourceInput: req.body?.sourceInput || req.body?.topic || "",
     questionCount: req.body?.questionCount || 5,
+    timerEnabled: Boolean(req.body?.timerEnabled),
+    timerSeconds: req.body?.timerSeconds || null,
     variation: req.body?.variation
   });
   res.json(payload);

@@ -130,7 +130,7 @@ function getRank(profile, leaderboard) {
 function getCategoryStats(attempts) {
   const buckets = new Map();
   attempts.forEach((entry) => {
-    const label = entry?.settings?.difficulty || entry?.sourceType || "general";
+    const label = entry?.settings?.topic || entry?.sourceInput || entry?.sourceTopic || "General Topic";
     const current = buckets.get(label) || { label, count: 0, total: 0 };
     current.count += 1;
     current.total += Number(entry.percentage || 0);
@@ -143,15 +143,13 @@ function getInsights(attempts, badges, profile) {
   const categoryStats = getCategoryStats(attempts);
   const strongest = categoryStats.length ? [...categoryStats].sort((a, b) => b.average - a.average)[0] : null;
   const weakest = categoryStats.length ? [...categoryStats].sort((a, b) => a.average - b.average)[0] : null;
-  const streak = Math.max(getStreak(attempts), Number(profile?.currentStreak || 0));
-  const avg = averageScore(attempts);
+  const mostStudied = categoryStats.length ? [...categoryStats].sort((a, b) => b.count - a.count)[0] : null;
 
   return [
-    { label: "Strongest lane", value: strongest ? `${strongest.label} at ${strongest.average}%` : "Play one quiz to calibrate", tone: "good" },
-    { label: "Improve next", value: weakest && weakest.average < 80 ? `Replay ${weakest.label} for fast gains` : "Increase question count or difficulty", tone: "warn" },
-    { label: "Consistency", value: streak ? `${streak} scoring run${streak === 1 ? "" : "s"} at 70%+` : "Build your first streak", tone: "info" },
-    { label: "Badge chase", value: badges.find((badge) => !badge.unlocked)?.hint || "Collection complete for now", tone: "rare" },
-    { label: "Performance read", value: avg >= 85 ? "High accuracy. Push Super mode." : avg >= 70 ? "Solid base. Review misses." : "Start with shorter sets.", tone: "info" }
+    { label: "Strongest Topic", value: strongest ? `${escapeHtml(strongest.label)} (${strongest.average}%)` : "Play a quiz to calibrate" },
+    { label: "Weakest Topic", value: weakest ? `${escapeHtml(weakest.label)} (${weakest.average}%)` : "Play a quiz to calibrate" },
+    { label: "Most Studied", value: mostStudied ? `${escapeHtml(mostStudied.label)} (${mostStudied.count} times)` : "Play a quiz to calibrate" },
+    { label: "Improvement Needed", value: weakest && weakest.average < 70 ? `Review ${escapeHtml(weakest.label)}` : "Keep up the good work!" }
   ];
 }
 
@@ -191,7 +189,8 @@ function getCompactIcon(type) {
     accuracy: `<i data-lucide="target" style="width: 20px; height: 20px;"></i>`,
     streak: `<i data-lucide="flame" style="width: 20px; height: 20px;"></i>`,
     quizzes: `<i data-lucide="file-text" style="width: 20px; height: 20px;"></i>`,
-    badges: `<i data-lucide="medal" style="width: 20px; height: 20px;"></i>`
+    badges: `<i data-lucide="medal" style="width: 20px; height: 20px;"></i>`,
+    layers: `<i data-lucide="layers" style="width: 20px; height: 20px;"></i>`
   };
   return iconMap[type] || `<i data-lucide="activity" style="width: 20px; height: 20px;"></i>`;
 }
@@ -231,14 +230,21 @@ function renderDashboard(data) {
   const avg = averageScore(attempts);
   const best = attempts.length ? Math.max(...attempts.map((entry) => Number(entry.percentage || 0))) : Number(profile?.bestPercentage || 0);
   const rank = getRank(profile, leaderboard);
+  // Default stats row shown on the dashboard; overwritten for specific user types when needed
+  let statsRow = `
+    ${compactStatCard("Total XP", game.totalXp, "Level " + game.level, "xp")}
+    ${compactStatCard("Global Rank", rank === "--" ? "--" : "#" + rank, "Leaderboard", "rank")}
+    ${compactStatCard("Accuracy", avg + "%", "Best: " + best + "%", "accuracy")}
+    ${compactStatCard("Streak", game.streak, "Consecutive >70%", "streak")}
+    ${compactStatCard("Quizzes", attempts.length, "Total completions", "quizzes")}
+    ${compactStatCard("Badges", unlockedBadges.length, "Out of " + badges.length, "badges")}
+  `;
   const recent = attempts.slice(0, 6);
   const insights = getInsights(attempts, badges, profile);
   const categoryStats = getCategoryStats(attempts);
-  const topPlayers = leaderboard.slice(0, 5);
   const session = auth?.getSession?.();
-  const userType = profile?.userType || session?.userType || localStorage.getItem('quizzy-userType') || 'student';
 
-  let welcomeSub = "Here's what's happening with your learning progress.";
+  const welcomeSub = "Here's your learning progress and personalized recommendations.";
 
   // Personalized Smart Count logic
   const hasHistory = attempts.length > 0;
@@ -250,60 +256,6 @@ function renderDashboard(data) {
       <a href="./flashcards.html" class="btn-outline" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;"><i data-lucide="layers" style="width: 14px; height: 14px; margin-right: 4px;"></i> Study Flashcards</a>
     </div>
   `;
-  let statsRow = `
-    ${compactStatCard("Total XP", game.totalXp, "Level " + game.level, "xp")}
-    ${compactStatCard("Global Rank", rank === "--" ? "--" : "#" + rank, "Leaderboard", "rank")}
-    ${compactStatCard("Accuracy", avg + "%", "Best: " + best + "%", "accuracy")}
-    ${compactStatCard("Streak", game.streak, "Consecutive >70%", "streak")}
-    ${compactStatCard("Quizzes", attempts.length, "Total completions", "quizzes")}
-    ${compactStatCard("Badges", unlockedBadges.length, "Out of " + badges.length, "badges")}
-  `;
-
-  if (userType === 'teacher') {
-    welcomeSub = "Overview of your classroom analytics and quizzes.";
-    actionButtons = `
-      <div style="display: flex; gap: 8px;">
-        <a href="./generate.html?mode=exam" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;"><i data-lucide="play" style="width: 14px; height: 14px; margin-right: 4px;"></i> Create Assessment</a>
-        <button id="downloadClassReportBtn" class="btn-outline" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;"><i data-lucide="download" style="width: 14px; height: 14px; margin-right: 4px;"></i> Class Report</button>
-      </div>
-    `;
-    statsRow = `
-      ${compactStatCard("Created", attempts.length, "Total Quizzes", "quizzes")}
-      ${compactStatCard("Avg Score", avg + "%", "Cohort Accuracy", "accuracy")}
-      ${compactStatCard("Students", leaderboard.length, "Active Learners", "rank")}
-      ${compactStatCard("Flashcards", flashDecks.length, "Decks created", "badges")}
-    `;
-  } else if (userType === 'student') {
-    welcomeSub = "Pick up where you left off and keep your learning streak moving.";
-    actionButtons = `
-      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-        <a href="./generate.html?topic=Daily%20Trivia%20Challenge&mode=arcade" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem; background: var(--color-success); color: #fff; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); border: none;"><i data-lucide="flame" style="width: 14px; height: 14px; margin-right: 4px;"></i> Daily Challenge</a>
-        <a href="./arcade.html" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;"><i data-lucide="activity" style="width: 14px; height: 14px; margin-right: 4px;"></i> Learning Games</a>
-        <a href="./generate.html?count=${smartCount}" class="btn-outline" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;"><i data-lucide="play" style="width: 14px; height: 14px; margin-right: 4px;"></i> Start Smart Quiz</a>
-      </div>
-    `;
-    statsRow = `
-      ${compactStatCard("XP", game.totalXp, "Points!", "xp")}
-      ${compactStatCard("Level", game.level, "Keep going!", "streak")}
-      ${compactStatCard("Badges", unlockedBadges.length, "Collected", "badges")}
-      ${compactStatCard("Streak", game.streak, "Current run", "streak")}
-    `;
-  } else if (userType === 'self_learner') {
-    welcomeSub = "Track your mastery, revise weak topics, and build habits.";
-    actionButtons = `
-      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-        <a href="./generate.html?topic=Daily%20Revision%20Challenge&mode=exam" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem; background: var(--color-success); color: #fff; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); border: none;"><i data-lucide="flame" style="width: 14px; height: 14px; margin-right: 4px;"></i> Daily Challenge</a>
-        <a href="./generate.html?mode=focus" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;"><i data-lucide="target" style="width: 14px; height: 14px; margin-right: 4px;"></i> Focus Study</a>
-        <a href="./generate.html?mode=revision" class="btn-outline" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;"><i data-lucide="layers" style="width: 14px; height: 14px; margin-right: 4px;"></i> Revision Mode</a>
-      </div>
-    `;
-    statsRow = `
-      ${compactStatCard("Mastery", game.level, "Current Level", "xp")}
-      ${compactStatCard("Accuracy", avg + "%", "Overall Rate", "accuracy")}
-      ${compactStatCard("Flashcards", flashDecks.length, "Decks Active", "quizzes")}
-      ${compactStatCard("Streak", game.streak, "Consistent Study", "streak")}
-    `;
-  }
 
   const quizzesCompleted = attempts.length;
   const currentName = escapeHtml(auth?.getSession?.()?.name || auth?.getSession?.()?.email || 'Player');
@@ -311,7 +263,8 @@ function renderDashboard(data) {
   const totalFlashcards = Array.isArray(flashDecks) ? flashDecks.length : 0;
   const recentActivity = recent.slice(0, 4);
   const lastAttempt = attempts[0] || null;
-  const reviewTopic = lastAttempt?.settings?.topic || lastAttempt?.sourceType || 'your next review';
+  const reviewTopic = lastAttempt?.settings?.topic || lastAttempt?.sourceInput || lastAttempt?.sourceTopic || 'your next review';
+  const weakestTopic = categoryStats.length ? [...categoryStats].sort((a, b) => a.average - b.average)[0] : null;
   
   const isNewUser = attempts.length === 0 && flashDecks.length === 0;
 
@@ -506,10 +459,17 @@ function renderDashboard(data) {
         data: {
           labels: weekly.map(w => w.label),
           datasets: [{
-            label: 'Score',
+            label: 'Avg Accuracy',
             data: weekly.map(w => w.score),
             borderColor: '#6366F1',
             backgroundColor: 'rgba(99, 102, 241, 0.1)',
+            fill: true,
+            tension: 0.4
+          }, {
+            label: 'XP Gained',
+            data: weekly.map(w => w.xp),
+            borderColor: '#BE185D',
+            backgroundColor: 'rgba(190, 24, 93, 0.1)',
             fill: true,
             tension: 0.4
           }]
@@ -517,7 +477,6 @@ function renderDashboard(data) {
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
           scales: {
             y: { beginAtZero: true, max: 100, grid: { color: '#374151' } },
             x: { grid: { display: false } }

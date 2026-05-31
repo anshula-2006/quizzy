@@ -51,6 +51,20 @@ function timerForQuestion(question) {
     // Ignore errors and default to base
   }
 
+  // Apply adaptive difficulty adjustment for this question if present in session meta
+  try {
+    const adaptive = quizState.meta && quizState.meta.adaptive;
+    if (adaptive && adaptive.nextDifficulty) {
+      if (adaptive.nextDifficulty === "easier") {
+        base = base + 12; // give more time for easier mode
+      } else if (adaptive.nextDifficulty === "harder") {
+        base = Math.max(6, base - 8); // reduce time for harder mode, keep floor
+      }
+    }
+  } catch (e) {
+    // ignore
+  }
+
   return base;
 }
 
@@ -74,6 +88,32 @@ function saveAnswer(selected) {
     wrongExplanation: question.wrongExplanation || ""
   };
   persist();
+  // Adaptive difficulty tracking (session-scoped, lightweight)
+  try {
+    quizState.meta = quizState.meta || {};
+    quizState.meta.adaptive = quizState.meta.adaptive || { consecutiveCorrect: 0, consecutiveWrong: 0, nextDifficulty: null };
+    const adaptive = quizState.meta.adaptive;
+    if (isCorrect) {
+      adaptive.consecutiveCorrect = (adaptive.consecutiveCorrect || 0) + 1;
+      adaptive.consecutiveWrong = 0;
+    } else {
+      adaptive.consecutiveWrong = (adaptive.consecutiveWrong || 0) + 1;
+      adaptive.consecutiveCorrect = 0;
+    }
+
+    // Rules: 2 wrong -> easier next; 3 correct -> harder next
+    if (adaptive.consecutiveWrong >= 2) {
+      adaptive.nextDifficulty = "easier";
+      adaptive.consecutiveWrong = 0; // avoid immediate re-trigger
+    } else if (adaptive.consecutiveCorrect >= 3) {
+      adaptive.nextDifficulty = "harder";
+      adaptive.consecutiveCorrect = 0;
+    }
+    quizState.meta.adaptive = adaptive;
+    persist();
+  } catch (e) {
+    // ignore adaptive tracking errors
+  }
   render();
 }
 
@@ -125,6 +165,15 @@ function startTimer() {
   const question = getCurrentQuestion();
   const existing = getCurrentAnswer();
   const seconds = timerForQuestion(question);
+  // Consume adaptive.nextDifficulty so it applies only once
+  try {
+    if (quizState.meta && quizState.meta.adaptive && quizState.meta.adaptive.nextDifficulty) {
+      quizState.meta.adaptive.nextDifficulty = null;
+      persist();
+    }
+  } catch (e) {
+    // ignore
+  }
   if (existing || seconds == null) return;
   timerLeft = seconds;
 
@@ -191,6 +240,20 @@ function render() {
 
   const isWiki = quizState.meta?.sourceType === "wikipedia";
   const wikiLink = isWiki ? `<a href="${escapeHtml(quizState.meta.sourceInput)}" target="_blank" class="pill" style="text-decoration:none; background:rgba(59,130,246,0.15); color:#3b82f6;">Wikipedia</a>` : "";
+  // Compute adaptive badge if adaptive.nextDifficulty is set in session meta
+  let adaptiveBadge = "";
+  try {
+    const adaptive = quizState.meta && quizState.meta.adaptive;
+    if (adaptive && adaptive.nextDifficulty) {
+      if (adaptive.nextDifficulty === "easier") {
+        adaptiveBadge = `<span class="pill" style="background: rgba(239,68,68,0.06); color: var(--error); border-color: rgba(239,68,68,0.12);">Easier next question</span>`;
+      } else if (adaptive.nextDifficulty === "harder") {
+        adaptiveBadge = `<span class="pill" style="background: rgba(34,197,94,0.06); color: var(--success); border-color: rgba(34,197,94,0.12);">Harder next question</span>`;
+      }
+    }
+  } catch (e) {
+    adaptiveBadge = "";
+  }
 
   quizRoot.innerHTML = `
     <section class="panel quiz-card page-fade quiz-focus-shell glass-card">
@@ -203,6 +266,7 @@ function render() {
           <span class="pill">${question.type.toUpperCase()}</span>
           ${wikiLink}
           ${streakPill}
+          ${adaptiveBadge}
           <span class="pill" id="timerPill">${answer ? "Answered" : timerLabel}</span>
         </div>
       </div>

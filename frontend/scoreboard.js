@@ -158,7 +158,7 @@ function sessionActivityKey() {
 
 function getAuthToken() {
   try {
-    const raw = localStorage.getItem("quizzy-session-v2");
+    const raw = localStorage.getItem("quizzy-session-v2") || sessionStorage.getItem("quizzy-session-v2");
     const parsed = raw ? JSON.parse(raw) : null;
     return parsed?.token || "";
   } catch {
@@ -658,6 +658,7 @@ function renderProgressExtras(entries) {
 
 function renderBoard() {
   const entries = getHistory();
+  if (!scoreboardContent) return;
   activeReviewAttemptIndex = Math.max(0, Math.min(activeReviewAttemptIndex, Math.max(0, entries.length - 1)));
   const reviewEntry = entries[activeReviewAttemptIndex] || entries[0] || null;
   const reviewAnswers = Array.isArray(reviewEntry?.answers) ? reviewEntry.answers : [];
@@ -840,9 +841,6 @@ function renderBoard() {
               <button class="btn-outline attempt-review-btn ${index === activeReviewAttemptIndex ? "active" : ""}" data-attempt-index="${index}" type="button" style="min-width: 100px; flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-start; padding: 8px 12px; height: auto; border-radius: var(--radius-sm); ${index === activeReviewAttemptIndex ? 'background: var(--color-text-primary); color: var(--color-bg-base); border-color: var(--color-text-primary);' : 'background: var(--color-surface-2); border-color: var(--color-border-default); color: var(--color-text-primary);'}">
                 <span style="font-size: 0.7rem; font-weight: normal; opacity: 0.8;">${formatShortDate(entry.createdAt).split(",")[0]}</span>
                 <strong style="font-size: 1rem; margin-top: 2px;">${entry.percentage || 0}%</strong>
-              <button class="btn-outline attempt-review-btn ${index === activeReviewAttemptIndex ? "active" : ""}" data-attempt-index="${index}" type="button" style="min-width: 80px; flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-start; padding: 6px 10px; height: auto; border-radius: var(--radius-sm); ${index === activeReviewAttemptIndex ? 'background: var(--color-text-primary); color: var(--color-bg-base); border-color: var(--color-text-primary);' : 'background: var(--color-surface-2); border-color: var(--color-border-default); color: var(--color-text-primary);'}">
-                <span style="font-size: 0.65rem; font-weight: normal; opacity: 0.8;">${formatShortDate(entry.createdAt).split(",")[0]}</span>
-                <strong style="font-size: 0.9rem; margin-top: 2px;">${entry.percentage || 0}%</strong>
               </button>
             `).join("")}
           </div>
@@ -850,15 +848,12 @@ function renderBoard() {
           <div class="review-rail" style="display: flex; gap: var(--space-2); margin-top: var(--space-3); flex-wrap: wrap;">
             ${reviewAnswers.length
               ? reviewAnswers.map((answer, index) => `
-                <button class="review-q-btn btn-outline" data-review-index="${index}" type="button" style="min-height: 28px; padding: 0 10px; font-size: 0.75rem; border-radius: var(--radius-sm); ${answer.isCorrect ? 'border-color: var(--color-success); background: var(--color-success-bg); color: var(--color-success-light);' : 'border-color: var(--color-error); background: var(--color-error-bg); color: var(--color-error-light);'}">
                 <button class="review-q-btn btn-outline" data-review-index="${index}" type="button" style="min-height: 24px; padding: 0 8px; font-size: 0.7rem; border-radius: var(--radius-sm); ${answer.isCorrect ? 'border-color: var(--color-success); background: var(--color-success-bg); color: var(--color-success-light);' : 'border-color: var(--color-error); background: var(--color-error-bg); color: var(--color-error-light);'}">
                   Q${index + 1}
                 </button>
               `).join("")
-              : `<p class="cabinet-note" style="color: var(--color-text-secondary); font-size: 0.85rem;">No question review is available for this attempt yet.</p>`}
               : `<p class="cabinet-note" style="color: var(--color-text-secondary); font-size: 0.8rem;">No question review is available for this attempt yet.</p>`}
           </div>
-          <div id="reviewDetail" class="review-detail" style="margin-top: var(--space-3); padding: var(--space-3) var(--space-4); background: var(--color-surface-3); border-radius: var(--radius-md); border: 1px solid var(--color-border-default); font-size: 0.85rem; color: var(--color-text-secondary); line-height: 1.5;">
           <div id="reviewDetail" class="review-detail" style="margin-top: var(--space-3); padding: var(--space-3); background: var(--color-surface-3); border-radius: var(--radius-md); border: 1px solid var(--color-border-default); font-size: 0.8rem; color: var(--color-text-secondary); line-height: 1.5;">
             ${reviewAnswers.length ? "Select a question to view the explanation." : "Question explanations will appear here after you complete a quiz."}
           </div>
@@ -866,9 +861,6 @@ function renderBoard() {
           <div class="scoreboard-tool-actions" style="display: flex; gap: var(--space-3); margin-top: var(--space-4);">
             <button id="saveAttemptQuestionsBtn" class="btn-outline" type="button" ${reviewAnswers.length ? "" : "disabled"} style="flex:1; min-height: 36px; font-size: 0.85rem;">Save Questions</button>
             <button id="generateAttemptFlashcardsBtn" class="btn-outline" type="button" ${reviewEntry ? "" : "disabled"} style="flex:1; min-height: 36px; font-size: 0.85rem;">Generate Flashcards</button>
-          <div class="scoreboard-tool-actions" style="display: flex; gap: var(--space-2); margin-top: var(--space-3);">
-            <button id="saveAttemptQuestionsBtn" class="btn-outline" type="button" ${reviewAnswers.length ? "" : "disabled"} style="flex:1; min-height: 32px; font-size: 0.8rem;">Save Questions</button>
-            <button id="generateAttemptFlashcardsBtn" class="btn-outline" type="button" ${reviewEntry ? "" : "disabled"} style="flex:1; min-height: 32px; font-size: 0.8rem;">Generate Flashcards</button>
           </div>
         </div>
       </div>
@@ -899,10 +891,6 @@ function renderBoard() {
       <p style="margin-bottom: 4px;">Your answer: <span style="color: var(--color-text-primary);">${selectedText}</span></p>
       <p style="margin-bottom: var(--space-2);">Correct answer: <span style="color: var(--color-text-primary);">${correctText}</span></p>
       <p style="margin: 0;">${explanation}</p>
-      <p><strong>${questionText}</strong></p>
-      <p>Your answer: ${selectedText}</p>
-      <p>Correct answer: ${correctText}</p>
-      <p>${explanation}</p>
       ${imageBlock}
     `;
   };

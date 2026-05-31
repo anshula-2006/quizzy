@@ -75,6 +75,7 @@ if (difficultySelect && !Array.from(difficultySelect.options).some(o => o.value 
 const params = new URLSearchParams(window.location.search);
 const prefillTopic = params.get("topic");
 const prefillMode = params.get("mode");
+const prefillCount = params.get("count");
 
 if (prefillTopic && topicInput) {
   topicInput.value = prefillTopic;
@@ -84,6 +85,17 @@ if (prefillTopic && topicInput) {
 if (prefillMode && learnerModeSelect) {
   learnerModeSelect.value = prefillMode;
   learnerModeSelect.dispatchEvent(new Event("change"));
+}
+
+if (prefillCount && countSelect) {
+  let opt = Array.from(countSelect.options).find(o => o.value === prefillCount);
+  if (!opt) {
+    opt = document.createElement("option");
+    opt.value = prefillCount;
+    opt.textContent = `${prefillCount} Questions`;
+    countSelect.appendChild(opt);
+  }
+  countSelect.value = prefillCount;
 }
 
 sourceCards.forEach((card) => {

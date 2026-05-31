@@ -81,6 +81,8 @@ let badgePopupQueue = [];
 let activeBadgePopup = null;
 let cloudProfile = null;
 let cloudLeaderboard = [];
+let consecutiveRight = 0;
+let consecutiveWrong = 0;
 
 const DEFAULT_SPEED_ROUND_POOL = [
   {
@@ -312,7 +314,22 @@ function getTimerSeconds() {
   if (difficulty === "easy") base = 36;
   if (difficulty === "tough") base = 24;
   if (difficulty === "super") base = 20;
-  return Math.max(6, base + (roleProfile?.timerBias || 0));
+
+  let personalizedTime = base + (roleProfile?.timerBias || 0);
+
+  // Personalize based on historical accuracy
+  try {
+    const history = getHistory();
+    if (history.length > 0) {
+      const avg = history.reduce((sum, e) => sum + (e.percentage || 0), 0) / history.length;
+      if (avg < 60) personalizedTime += 10; // Give struggling learners more time
+      else if (avg > 85) personalizedTime -= 5; // Challenge high performers
+    }
+  } catch (e) {
+    // Ignore errors and default to base
+  }
+
+  return Math.max(6, personalizedTime);
 }
 
 function setGroupValue(targetId, value) {
@@ -2180,6 +2197,8 @@ if (btn) {
       score = 0;
       answered = {};
       choices = {};
+      consecutiveRight = 0;
+      consecutiveWrong = 0;
       attemptAnswers = Array.from({ length: questions.length }, () => null);
       currentAttemptMeta = {
         createdAt: new Date().toISOString(),
@@ -2563,10 +2582,32 @@ function reveal(q, choice, isReview) {
   const isCorrect = attemptAnswers[index]?.isCorrect;
   if (isCorrect && !isReview) {
     score++;
+    consecutiveRight++;
+    consecutiveWrong = 0;
   } else if (!isCorrect && !isReview) {
+    consecutiveRight = 0;
+    consecutiveWrong++;
     if (!isShort && choice) {
       const chosen = document.querySelector(`.option[data-o="${choice}"]`);
       chosen?.classList.add("wrong");
+    }
+  }
+
+  if (consecutiveRight >= 3 && lastQuizRequestBase && lastQuizRequestBase.difficulty !== 'super') {
+    const diffs = ['easy', 'moderate', 'tough', 'super'];
+    const currIdx = diffs.indexOf(lastQuizRequestBase.difficulty);
+    if (currIdx >= 0 && currIdx < diffs.length - 1) {
+      lastQuizRequestBase.difficulty = diffs[currIdx + 1];
+      showToast("You're on fire! Upcoming questions will be harder.", "info");
+      consecutiveRight = 0;
+    }
+  } else if (consecutiveWrong >= 2 && lastQuizRequestBase && lastQuizRequestBase.difficulty !== 'easy') {
+    const diffs = ['easy', 'moderate', 'tough', 'super'];
+    const currIdx = diffs.indexOf(lastQuizRequestBase.difficulty);
+    if (currIdx > 0) {
+      lastQuizRequestBase.difficulty = diffs[currIdx - 1];
+      showToast("Let's scale it back. Upcoming questions will be easier.", "info");
+      consecutiveWrong = 0;
     }
   }
 

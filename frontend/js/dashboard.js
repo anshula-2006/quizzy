@@ -239,9 +239,14 @@ function renderDashboard(data) {
   const userType = profile?.userType || session?.userType || localStorage.getItem('quizzy-userType') || 'student';
 
   let welcomeSub = "Here's what's happening with your learning progress.";
+
+  // Personalized Smart Count logic
+  const hasHistory = attempts.length > 0;
+  const smartCount = hasHistory && avg < 60 ? 5 : hasHistory && avg > 85 ? 15 : 10;
+
   let actionButtons = `
     <div style="display: flex; gap: 8px;">
-      <a href="./generate.html" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;"><i data-lucide="play" style="width: 14px; height: 14px; margin-right: 4px;"></i> Start Quiz</a>
+      <a href="./generate.html?count=${smartCount}" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;"><i data-lucide="play" style="width: 14px; height: 14px; margin-right: 4px;"></i> Start Smart Quiz</a>
       <a href="./flashcards.html" class="btn-outline" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;"><i data-lucide="layers" style="width: 14px; height: 14px; margin-right: 4px;"></i> Study Flashcards</a>
     </div>
   `;
@@ -274,7 +279,7 @@ function renderDashboard(data) {
       <div style="display: flex; gap: 8px; flex-wrap: wrap;">
         <a href="./generate.html?topic=Daily%20Trivia%20Challenge&mode=arcade" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem; background: var(--color-success); color: #fff; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); border: none;"><i data-lucide="flame" style="width: 14px; height: 14px; margin-right: 4px;"></i> Daily Challenge</a>
         <a href="./arcade.html" class="btn" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;"><i data-lucide="activity" style="width: 14px; height: 14px; margin-right: 4px;"></i> Learning Games</a>
-        <a href="./generate.html" class="btn-outline" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;"><i data-lucide="play" style="width: 14px; height: 14px; margin-right: 4px;"></i> Take a Quiz</a>
+        <a href="./generate.html?count=${smartCount}" class="btn-outline" style="min-height: 32px; padding: 0 16px; font-size: 0.85rem;"><i data-lucide="play" style="width: 14px; height: 14px; margin-right: 4px;"></i> Start Smart Quiz</a>
       </div>
     `;
     statsRow = `

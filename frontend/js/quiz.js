@@ -31,10 +31,27 @@ function timerForQuestion(question) {
   if (customTimer === "off") return null;
   if (customTimer && customTimer !== "auto") return Number(customTimer);
 
-  if (quizState.settings?.difficulty === "easy") return 36;
-  if (quizState.settings?.difficulty === "tough") return 24;
-  if (quizState.settings?.difficulty === "super") return 20;
-  return 30;
+  let base = 30;
+  if (quizState.settings?.difficulty === "easy") base = 36;
+  if (quizState.settings?.difficulty === "tough") base = 24;
+  if (quizState.settings?.difficulty === "super") base = 20;
+
+  // Personalize based on historical accuracy
+  try {
+    const sessionRaw = localStorage.getItem("quizzy-session-v2") || sessionStorage.getItem("quizzy-session-v2");
+    const email = sessionRaw ? JSON.parse(sessionRaw)?.user?.email || "guest" : "guest";
+    const historyRaw = localStorage.getItem(`quizzy-history-v2-${email}`);
+    const history = historyRaw ? JSON.parse(historyRaw) : [];
+    if (history.length > 0) {
+      const avg = history.reduce((sum, e) => sum + (e.percentage || 0), 0) / history.length;
+      if (avg < 60) base += 10; // Give struggling learners more time
+      else if (avg > 85) base -= 5; // Push high performers to be faster
+    }
+  } catch (e) {
+    // Ignore errors and default to base
+  }
+
+  return base;
 }
 
 function persist() {

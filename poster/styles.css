@@ -29,10 +29,10 @@ body {
 }
 
 .poster {
-  width: 594mm;
-  min-height: 841mm;
+  width: 841mm;
+  min-height: 594mm;
   margin: 0 auto;
-  padding: 30mm;
+  padding: 24mm;
   background:
     linear-gradient(135deg, rgba(49, 87, 215, 0.08), transparent 34%),
     linear-gradient(315deg, rgba(14, 159, 143, 0.1), transparent 30%),
@@ -42,7 +42,7 @@ body {
 
 .hero {
   display: grid;
-  grid-template-columns: 1fr 360px;
+  grid-template-columns: 1fr 460px;
   gap: 28px;
   align-items: stretch;
   padding-bottom: 22px;
@@ -62,7 +62,7 @@ h2 {
 
 h1 {
   margin: 18px 0 0;
-  font-size: 76px;
+  font-size: 72px;
   line-height: 0.95;
   letter-spacing: 0;
 }
@@ -75,7 +75,7 @@ h1 {
 }
 
 .summary {
-  max-width: 1120px;
+  max-width: 1450px;
   margin: 18px 0 0;
   color: #33465c;
   font-size: 27px;
@@ -123,7 +123,7 @@ footer section {
 }
 
 .diagram-grid {
-  grid-template-columns: 1.55fr 0.85fr;
+  grid-template-columns: 1.35fr 0.95fr;
 }
 
 .panel {
@@ -264,7 +264,8 @@ footer h2 {
 
 .workflow ol {
   display: grid;
-  gap: 13px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -318,7 +319,7 @@ footer h2 {
 
 .feature-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 14px;
 }
 
@@ -344,7 +345,7 @@ footer h2 {
 
 .screen-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 16px;
 }
 
@@ -371,7 +372,7 @@ figcaption {
 
 footer {
   display: grid;
-  grid-template-columns: 1.4fr 0.8fr;
+  grid-template-columns: 1.6fr 0.8fr;
   gap: 18px;
   margin-top: 20px;
 }
@@ -404,7 +405,7 @@ footer section {
 }
 
 @page {
-  size: A1 portrait;
+  size: A1 landscape;
   margin: 0;
 }
 
@@ -415,8 +416,8 @@ footer section {
   }
 
   .poster {
-    width: 594mm;
-    min-height: 841mm;
+    width: 841mm;
+    min-height: 594mm;
     box-shadow: none;
   }
 }

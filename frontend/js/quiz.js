@@ -108,7 +108,7 @@ function persist() {
 
 function saveAnswer(selected) {
   const question = getCurrentQuestion();
-  const isOfficialQuiz = quizState.meta?.sourceType === "global";
+  const isOfficialQuiz = quizState.meta?.sourceType === "global" && !quizState.meta?.retryPractice;
   const correctMcq = question.type === "mcq" ? normalizeMcqCorrect(question.correct, question.options) : null;
   const isCorrect = isOfficialQuiz
     ? false
@@ -165,19 +165,21 @@ async function finishQuiz() {
   clearInterval(timerId);
   let evaluation = null;
 
-  try {
-    const response = await submitQuizAttempt(quizState);
-    if (response?.evaluation) {
-      evaluation = {
-        score: Number(response.evaluation.score || 0),
-        total: Number(response.evaluation.total || quizState.questions.length),
-        percentage: Number(response.evaluation.percentage || 0),
-        confidence: Number(response.evaluation.confidence || 0),
-        answers: Array.isArray(response.evaluation.answers) ? response.evaluation.answers : undefined
-      };
+  if (!quizState.meta?.retryPractice) {
+    try {
+      const response = await submitQuizAttempt(quizState);
+      if (response?.evaluation) {
+        evaluation = {
+          score: Number(response.evaluation.score || 0),
+          total: Number(response.evaluation.total || quizState.questions.length),
+          percentage: Number(response.evaluation.percentage || 0),
+          confidence: Number(response.evaluation.confidence || 0),
+          answers: Array.isArray(response.evaluation.answers) ? response.evaluation.answers : undefined
+        };
+      }
+    } catch {
+      evaluation = null;
     }
-  } catch {
-    evaluation = null;
   }
 
   const resultState = buildResultState(quizState, evaluation);
@@ -252,7 +254,7 @@ function render() {
   const questionCountLabel = `Questions: ${quizState.questions.length}`;
 
   const modeLabel = quizState.settings?.learnerMode || "quiz";
-  const isOfficialQuiz = quizState.meta?.sourceType === "global";
+  const isOfficialQuiz = quizState.meta?.sourceType === "global" && !quizState.meta?.retryPractice;
   const isExam = modeLabel === "exam";
   const isArcade = modeLabel === "arcade";
   const isFocus = modeLabel === "focus";

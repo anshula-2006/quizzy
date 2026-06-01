@@ -293,6 +293,7 @@ async function renderGlobalQuizShelf() {
         setQuizState({
           quizId: payload.quizId,
           questions: payload.questions,
+          originalQuestions: payload.questions,
           currentIndex: 0,
           answers: [],
           generatedAt: new Date().toISOString(),
@@ -468,6 +469,7 @@ form?.addEventListener("submit", async (event) => {
     setQuizState({
       quizId: quizPayload.quizId,
       questions: quizPayload.questions,
+      originalQuestions: quizPayload.questions,
       currentIndex: 0,
       answers: [],
       generatedAt: new Date().toISOString(),

@@ -17,6 +17,23 @@ const resultRoot = document.getElementById("resultRoot");
 const resultState = getResultState();
 const quizState = getQuizState();
 
+function cloneQuestions(questions) {
+  return Array.isArray(questions) ? questions.map((question) => ({ ...question })) : [];
+}
+
+function resetRetryState(state, questions, retryPractice = false) {
+  return {
+    ...state,
+    questions,
+    currentIndex: 0,
+    answers: [],
+    meta: {
+      ...(state.meta || {}),
+      retryPractice
+    }
+  };
+}
+
 if (!resultState) {
   window.location.replace("./index.html");
 }
@@ -111,13 +128,12 @@ if (resultState) {
   }
 
   document.getElementById("retryBtn")?.addEventListener("click", () => {
-    if (!quizState?.questions?.length) {
+    const originalQuestions = cloneQuestions(quizState?.originalQuestions?.length ? quizState.originalQuestions : quizState?.questions);
+    if (!originalQuestions.length) {
       window.location.href = "./generate.html";
       return;
     }
-    quizState.currentIndex = 0;
-    quizState.answers = [];
-    setQuizState(quizState);
+    setQuizState(resetRetryState(quizState, originalQuestions, false));
     setResultState(null);
     window.location.href = "./quiz.html";
   });
@@ -156,16 +172,22 @@ if (resultState) {
   });
 
   document.getElementById("retryIncorrectBtn")?.addEventListener("click", () => {
-    const wrongQuestions = quizState.questions.filter((q, i) => {
-      const ans = resultState.answers[i];
-      return ans && !ans.isCorrect;
-    });
+    const currentQuestions = cloneQuestions(quizState?.questions);
+    const wrongQuestions = currentQuestions.reduce((items, question, index) => {
+      const answer = resultState.answers?.[index];
+      if (!answer || answer.isCorrect) return items;
+      items.push({
+        ...question,
+        correct: question.correct || answer.correct || "",
+        shortAnswer: question.shortAnswer || answer.correct || "",
+        explanation: question.explanation || answer.explanation || "",
+        wrongExplanation: question.wrongExplanation || answer.wrongExplanation || ""
+      });
+      return items;
+    }, []);
     if (!wrongQuestions.length) return;
-    
-    quizState.questions = wrongQuestions;
-    quizState.currentIndex = 0;
-    quizState.answers = [];
-    setQuizState(quizState);
+
+    setQuizState(resetRetryState(quizState, wrongQuestions, true));
     setResultState(null);
     window.location.href = "./quiz.html";
   });

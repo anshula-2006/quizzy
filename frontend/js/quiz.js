@@ -356,12 +356,13 @@ function render() {
 
   const answerStack = document.getElementById("answerStack");
   if (question.type === "mcq") {
-    const correctKey = normalizeMcqCorrect(question.correct, question.options);
+    const shouldRevealImmediate = Boolean(answer && !isExam && !isOfficialQuiz);
+    const correctKey = shouldRevealImmediate ? normalizeMcqCorrect(question.correct, question.options) : "";
     answerStack.innerHTML = question.options.map((option, index) => {
       const key = String.fromCharCode(65 + index);
-      const correct = answer && !isExam && correctKey === key;
-      const wrong = answer && !isExam && answer.selected === key && !answer.isCorrect;
-      const selected = answer && isExam && answer.selected === key;
+      const correct = shouldRevealImmediate && correctKey === key;
+      const wrong = shouldRevealImmediate && answer.selected === key && !answer.isCorrect;
+      const selected = answer && (isExam || isOfficialQuiz) && answer.selected === key;
       return `
         <button class="answer-option ${correct ? "correct" : ""} ${wrong ? "wrong" : ""} ${selected ? "selected" : ""}" data-key="${key}" ${answer ? "disabled" : ""} ${selected ? 'style="border-color: var(--primary); background: rgba(139, 92, 246, 0.1);"' : ''}>
           <span class="answer-key">${key}</span>

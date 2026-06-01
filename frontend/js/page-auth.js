@@ -114,9 +114,32 @@ toggleStyles.textContent = `
   }
 
   .nav-link:hover, .side-nav a:hover, .global-auth-link:hover, .side-nav a.active, .nav-link.is-active {
-    color: #ffffff !important;
+    color: var(--primary) !important;
     background: rgba(99, 102, 241, 0.14) !important;
     border-color: rgba(99, 102, 241, 0.28) !important;
+  }
+
+  .navbar-account-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .nav-action-button {
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .theme-toggle-btn {
+    min-width: 78px;
+  }
+
+  body.dark .theme-label-light,
+  body:not(.dark) .theme-label-dark {
+    display: none;
   }
 
   .glass-card {
@@ -550,6 +573,19 @@ toggleStyles.textContent = `
     background: rgba(255, 255, 255, 0.82) !important;
   }
 
+  body:not(.dark) .top-nav,
+  body:not(.dark) .top-nav .brand,
+  body:not(.dark) .top-nav .nav-link {
+    color: #0f172a !important;
+  }
+
+  body.dark .top-nav,
+  body.dark .top-nav .brand,
+  body.dark .top-nav .nav-link,
+  body.dark .top-nav .nav-action-button {
+    color: #f8fafc !important;
+  }
+
   .brand-badge,
   .auth-brand-icon,
   .arcade-icon-tile,
@@ -665,6 +701,10 @@ toggleStyles.textContent = `
     border-color: var(--ds-accent) !important;
     transform: translateY(-1px) !important;
     box-shadow: none !important;
+  }
+
+  body:not(.dark) .top-nav .nav-action-button {
+    color: #0f172a !important;
   }
 
   input,
@@ -850,6 +890,11 @@ toggleStyles.textContent = `
     .global-auth-bar {
       border-radius: var(--ds-radius) !important;
     }
+
+    .navbar-account-actions {
+      width: 100%;
+      justify-content: flex-start;
+    }
   }
 `;
 document.head.appendChild(toggleStyles);
@@ -869,37 +914,30 @@ function toggleTheme() {
 }
 
 function renderAuthBar() {
-  if (document.querySelector(".global-auth-bar")) return;
+  return;
+}
+
+function ensureNavbarActions() {
+  const nav = document.querySelector(".top-nav");
+  if (!nav || nav.querySelector(".navbar-account-actions")) return;
 
   const user = auth?.getSession?.();
-  const dashboardHref = user?.userType === "teacher" ? "teacher-dashboard.html" : "dashboard.html";
-  const dashboardLabel = user?.userType === "teacher" ? "Teacher Dashboard" : "Dashboard";
-  const bar = document.createElement("div");
-  bar.className = "global-auth-bar";
-
-  bar.innerHTML = `
-    <a class="global-auth-home" href="${buildHref("index.html")}">Quizzy</a>
-    <div class="global-auth-actions">
-      ${user ? `<span class="global-auth-user">Hi, ${user.name}</span>` : ""}
-      ${user ? `<a class="global-auth-link" href="${buildHref(dashboardHref)}">${dashboardLabel}</a>` : ""}
-      ${user ? `<a class="global-auth-link" href="${buildHref("profile.html")}">Profile</a>` : ""}
-      ${user ? "" : `<a class="global-auth-link" href="${buildHref("login.html")}">Login</a>`}
-      ${user ? "" : `<a class="global-auth-link global-auth-link-strong" href="${buildHref("register.html")}">Register</a>`}
-      ${user ? `<button class="global-auth-logout" type="button">Logout</button>` : ""}
-      <button class="global-auth-theme-toggle" type="button" aria-label="Toggle Theme">
-        <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-        <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-      </button>
-    </div>
+  const actions = document.createElement("div");
+  actions.className = "navbar-account-actions";
+  actions.innerHTML = `
+    ${user ? `<a class="nav-link" href="${buildHref("profile.html")}">Profile</a>` : ""}
+    ${user ? `<button class="nav-link nav-action-button" type="button" data-nav-logout>Logout</button>` : ""}
+    ${user ? "" : `<a class="nav-link" href="${buildHref("login.html")}">Login</a>`}
+    ${user ? "" : `<a class="nav-link" href="${buildHref("register.html")}">Register</a>`}
+    <button class="nav-link nav-action-button theme-toggle-btn" type="button" aria-label="Toggle theme" title="Toggle theme">
+      <span class="theme-label-light">Light</span>
+      <span class="theme-label-dark">Dark</span>
+    </button>
   `;
 
-  document.body.prepend(bar);
-
-  bar.querySelector(".global-auth-theme-toggle")?.addEventListener("click", toggleTheme);
-
-  bar.querySelector(".global-auth-logout")?.addEventListener("click", () => {
-    auth?.logout?.();
-  });
+  nav.appendChild(actions);
+  actions.querySelector("[data-nav-logout]")?.addEventListener("click", () => auth?.logout?.());
+  actions.querySelector(".theme-toggle-btn")?.addEventListener("click", toggleTheme);
 }
 
 function applyRoleAwareNavigation() {
@@ -931,4 +969,5 @@ document.addEventListener("click", (e) => {
 
 applySavedTheme();
 renderAuthBar();
+ensureNavbarActions();
 applyRoleAwareNavigation();

@@ -902,6 +902,19 @@ function renderAuthBar() {
   });
 }
 
+function applyRoleAwareNavigation() {
+  const user = auth?.getSession?.();
+  const isTeacher = user?.userType === "teacher";
+
+  document.querySelectorAll('a[href$="teacher-dashboard.html"], a[href$="teacher-review.html"]').forEach((link) => {
+    if (!isTeacher) link.remove();
+  });
+
+  if (!isTeacher && window.location.pathname.endsWith("/teacher-dashboard.html")) {
+    window.location.replace(buildHref("login.html"));
+  }
+}
+
 // Global Mobile Sidebar Toggle
 document.addEventListener("click", (e) => {
   const shell = document.querySelector(".dashboard-platform-shell");
@@ -918,3 +931,4 @@ document.addEventListener("click", (e) => {
 
 applySavedTheme();
 renderAuthBar();
+applyRoleAwareNavigation();

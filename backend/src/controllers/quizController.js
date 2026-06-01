@@ -417,7 +417,8 @@ export async function generateTeacherExplanation(req, res) {
   const options = Array.isArray(req.body?.options) ? req.body.options.map((option) => String(option || "").trim()).filter(Boolean) : [];
   if (!question || !correct) throw new AppError("Question and correct answer are required.", 400);
 
-  const output = await createJsonCompletion(`
+  try {
+    const output = await createJsonCompletion(`
 Return ONLY valid JSON in this format:
 {"explanation":"teacher-friendly explanation","wrongExplanation":"short note about a common mistake"}
 
@@ -428,17 +429,25 @@ Correct answer: ${correct}
 Write clear, classroom-ready explanations in 1-3 sentences each.
 `, 0.2);
 
-  const firstBrace = output.indexOf("{");
-  const lastBrace = output.lastIndexOf("}");
-  let parsed = null;
-  if (firstBrace >= 0 && lastBrace > firstBrace) {
-    parsed = JSON.parse(output.slice(firstBrace, lastBrace + 1));
-  }
+    const firstBrace = output.indexOf("{");
+    const lastBrace = output.lastIndexOf("}");
+    let parsed = null;
+    if (firstBrace >= 0 && lastBrace > firstBrace) {
+      parsed = JSON.parse(output.slice(firstBrace, lastBrace + 1));
+    }
 
-  res.json({
-    explanation: String(parsed?.explanation || "").trim(),
-    wrongExplanation: String(parsed?.wrongExplanation || "").trim()
-  });
+    res.json({
+      explanation: String(parsed?.explanation || "").trim(),
+      wrongExplanation: String(parsed?.wrongExplanation || "").trim(),
+      fallbackMode: false
+    });
+  } catch (error) {
+    res.json({
+      explanation: `The correct answer is ${correct}. Teachers can refine this explanation based on the class material and expected learning outcome.`,
+      wrongExplanation: "A wrong answer usually means the learner confused the main concept or selected an option not supported by the question.",
+      fallbackMode: true
+    });
+  }
 }
 
 export async function createSavedQuestion(req, res) {

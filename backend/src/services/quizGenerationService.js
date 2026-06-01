@@ -192,6 +192,90 @@ function compactContentForPrompt(value, maxChars = 3500) {
   return `${head}\n\n[Content shortened for generation speed]\n\n${tail}`;
 }
 
+function topicLabel(topic, sourceInput = "") {
+  return String(topic || sourceInput || "the selected study material").trim().slice(0, 90);
+}
+
+function contentSentences(text, topic, count) {
+  const cleanText = String(text || "")
+    .replace(/\s+/g, " ")
+    .trim();
+  const sentences = cleanText
+    .split(/(?<=[.!?])\s+/)
+    .map((item) => item.trim())
+    .filter((item) => item.length >= 35 && item.length <= 220);
+
+  const fallbackTopic = topicLabel(topic);
+  const base = sentences.length
+    ? sentences
+    : [
+        `${fallbackTopic} is the main topic selected for this quiz.`,
+        `This fallback quiz helps learners revise key ideas from ${fallbackTopic}.`,
+        `Students should read the source material carefully before answering questions about ${fallbackTopic}.`,
+        `Quizzy can still provide a basic practice set when the AI provider is temporarily unavailable.`,
+        `Teacher-reviewed or previously published quizzes remain available even when live AI generation fails.`
+      ];
+
+  return Array.from({ length: count }, (_, index) => base[index % base.length]);
+}
+
+function buildFallbackQuestions({ topic, text, questionMode, questionCount }) {
+  const label = topicLabel(topic);
+  const snippets = contentSentences(text, topic, questionCount);
+  const mcqTarget = questionMode === "mixed" ? Math.max(1, Math.round(questionCount * 0.6)) : questionCount;
+  const questions = Array.from({ length: questionCount }, (_, index) => {
+    const type = questionMode === "short"
+      ? "short"
+      : questionMode === "mixed" && index >= mcqTarget
+        ? "short"
+        : "mcq";
+    const snippet = snippets[index];
+
+    if (type === "short") {
+      return {
+        question: `Fallback review ${index + 1}: in one phrase, what is the main focus of this quiz material?`,
+        type: "short",
+        correct: label,
+        shortAnswer: label,
+        acceptableAnswers: [topic || label],
+        explanation: `The fallback quiz is based on the selected source, so the expected answer is the topic or source focus: ${label}.`,
+        wrongExplanation: "A different answer may be too broad or unrelated to the selected source.",
+        image: null
+      };
+    }
+
+    return {
+      question: `Fallback review ${index + 1}: which statement is most directly related to ${label}?`,
+      type: "mcq",
+      options: [
+        snippet,
+        "A random fact that is not connected to the selected material.",
+        "An unrelated entertainment update.",
+        "A statement about a different subject area."
+      ],
+      correct: "A",
+      shortAnswer: null,
+      acceptableAnswers: [],
+      explanation: "This option is taken from, or directly based on, the selected topic/content.",
+      wrongExplanation: "The other options are generic distractors and are not grounded in the selected material.",
+      image: null
+    };
+  });
+
+  return sanitizeQuestions(questions, questionMode, questionCount);
+}
+
+function buildFallbackFlashcards({ topic, text }) {
+  const label = topicLabel(topic);
+  const snippets = contentSentences(text, topic, 12);
+  return snippets.map((snippet, index) => ({
+    front: index === 0 ? `What is the focus of this deck?` : `Review point ${index + 1}`,
+    back: index === 0 ? label : snippet,
+    hint: index === 0 ? "Look at the topic/source title." : "Review the selected content.",
+    image: null
+  }));
+}
+
 function buildQuizPrompt({ topic, text, sourceType, difficulty, learnerMode, questionMode, outputLanguage, questionCount, totalQuestionCount = questionCount, timerEnabled, timerSeconds, variation, userLocalTime, userTimezone }) {
   const today = userLocalTime || new Date().toLocaleString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   const locationContext = userTimezone ? ` in the ${userTimezone} timezone` : "";
@@ -376,28 +460,36 @@ export async function generateQuizSession({ userId = null, topic = "", text = ""
   }
 
   const batches = buildQuestionBatches(resolvedCount);
-  const batchResults = await runLimited(batches, 1, async (batchCount, batchIndex) => {
-    const prompt = buildQuizPrompt({
-      topic,
-      text: effectiveText,
-      sourceType,
-      difficulty,
-      learnerMode,
-      questionMode,
-      outputLanguage,
-      questionCount: batchCount,
-      totalQuestionCount: resolvedCount,
-      timerEnabled: Boolean(timerEnabled),
-      timerSeconds: resolvedTimerSeconds,
-      variation: `${variationSeed}-batch-${batchIndex + 1}-of-${batches.length}`,
-      userLocalTime,
-      userTimezone
+  let usedFallback = false;
+  let questions = [];
+
+  try {
+    const batchResults = await runLimited(batches, 1, async (batchCount, batchIndex) => {
+      const prompt = buildQuizPrompt({
+        topic,
+        text: effectiveText,
+        sourceType,
+        difficulty,
+        learnerMode,
+        questionMode,
+        outputLanguage,
+        questionCount: batchCount,
+        totalQuestionCount: resolvedCount,
+        timerEnabled: Boolean(timerEnabled),
+        timerSeconds: resolvedTimerSeconds,
+        variation: `${variationSeed}-batch-${batchIndex + 1}-of-${batches.length}`,
+        userLocalTime,
+        userTimezone
+      });
+
+      return generateQuestionBatch(prompt, questionMode, batchCount);
     });
+    questions = batchResults.flat().slice(0, resolvedCount);
+  } catch (error) {
+    usedFallback = true;
+    questions = buildFallbackQuestions({ topic, text: effectiveText, questionMode, questionCount: resolvedCount });
+  }
 
-    return generateQuestionBatch(prompt, questionMode, batchCount);
-  });
-
-  const questions = batchResults.flat().slice(0, resolvedCount);
   if (hasGenerationMismatch(questions, questionMode, resolvedCount)) {
     throw new AppError(`Could not generate exactly ${resolvedCount} valid ${questionMode} questions for this topic. Please try again.`, 502);
   }
@@ -415,7 +507,8 @@ export async function generateQuizSession({ userId = null, topic = "", text = ""
       outputLanguage,
       questionCount: questions.length,
       timerEnabled: Boolean(timerEnabled),
-      timerSeconds: resolvedTimerSeconds
+      timerSeconds: resolvedTimerSeconds,
+      fallbackMode: usedFallback
     },
     questions
   });
@@ -423,7 +516,7 @@ export async function generateQuizSession({ userId = null, topic = "", text = ""
   return {
     quizId: quizSession._id.toString(),
     questions,
-    meta: { sourceType, sourceInput }
+    meta: { sourceType, sourceInput, fallbackMode: usedFallback }
   };
 }
 
@@ -445,11 +538,18 @@ export async function generateFlashcards({ topic = "", text = "", difficulty = "
   }
 
   const prompt = buildFlashcardPrompt({ topic, text: effectiveText, difficulty, learnerMode, outputLanguage, userLocalTime, userTimezone });
-  const response = await parseJsonCompletion(prompt, (parsed) => parsed);
+  let response = null;
+  let usedFallback = false;
+  try {
+    response = await parseJsonCompletion(prompt, (parsed) => parsed);
+  } catch (error) {
+    usedFallback = true;
+    response = { flashcards: buildFallbackFlashcards({ topic, text: effectiveText }) };
+  }
   const flashcards = Array.isArray(response?.flashcards) ? response.flashcards : [];
 
   return {
-    meta,
+    meta: { ...(meta || {}), fallbackMode: usedFallback },
     flashcards: flashcards
       .map((card) => {
         let image = card?.image || null;

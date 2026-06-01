@@ -3,99 +3,76 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Quizzy A1 Project Poster</title>
+    <title>Quizzy Project Expo Poster</title>
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
     <main class="poster">
       <header class="hero">
-        <div class="hero-copy">
+        <div>
           <p class="kicker">Real-Time Research Project</p>
           <h1>AI-Powered Quiz Generator</h1>
           <p class="brand">Quizzy</p>
-          <p class="hero-text">
-            An AI-driven web platform that converts topics, PDF notes, and URLs
-            into interactive quizzes with instant scores, explanations, flashcards,
-            analytics, and teacher insights.
+          <p class="tagline">
+            A web platform that turns topics, PDF notes, and URLs into interactive
+            quizzes with instant feedback, flashcards, analytics, and teacher insights.
           </p>
         </div>
-
-        <aside class="mentor-card">
-          <span>Mentor</span>
-          <strong>Ms. G. Swetha Goud</strong>
-          <p>Assistant Professor, CSE Department</p>
+        <aside class="qr-card">
+          <img src="./assets/Quizzy.png" alt="QR code for Quizzy live demo">
+          <strong>Scan to View Live Demo</strong>
         </aside>
       </header>
 
-      <section class="showcase">
-        <figure class="device main-device">
-          <img src="./assets/homepage.png" alt="Quizzy homepage screenshot">
-          <figcaption>AI quiz generation from topics, PDFs, and URLs</figcaption>
-        </figure>
-        <div class="mini-devices">
-          <figure class="device">
-            <img src="./assets/generate.png" alt="Quiz generation page screenshot">
-            <figcaption>Quiz Setup</figcaption>
-          </figure>
-          <figure class="device">
-            <img src="./assets/results.png" alt="Results page screenshot">
-            <figcaption>Score & Feedback</figcaption>
-          </figure>
-        </div>
+      <section class="meta-strip">
+        <div><span>Mentor</span><strong>Ms. G. Swetha Goud</strong></div>
+        <div><span>Institution</span><strong>Keshav Memorial Institute of Technology</strong></div>
+        <div><span>Project Focus</span><strong>AI-assisted learning and quiz automation</strong></div>
       </section>
 
-      <section class="summary-grid">
+      <section class="overview-grid">
         <article class="panel abstract">
-          <h2>Abstract / Summary</h2>
+          <h2>Abstract</h2>
           <p>
-            Quizzy is an AI-powered learning and assessment platform that
-            automates quiz creation from topics, PDF documents, and web URLs.
-            It helps students practice faster with customizable quizzes,
-            instant evaluation, AI-generated explanations, flashcards, progress
-            analytics, leaderboard ranking, and Brain Lab activities. Teachers
-            can monitor real quiz attempts, topic performance, accuracy, and
-            recent learner activity through a dedicated dashboard. The system
-            makes learning more personalized, measurable, and engaging.
+            Quizzy is an AI-powered learning and assessment platform that automates
+            quiz creation from topics, PDF documents, and web URLs. It reduces manual
+            question preparation and helps students practice through customizable
+            quizzes, instant evaluation, AI-generated explanations, flashcards,
+            progress analytics, leaderboard ranking, and Brain Lab activities.
+            Teachers can monitor quiz attempts, topic performance, accuracy, and
+            learner activity through a dedicated dashboard.
           </p>
         </article>
 
-        <article class="panel qr-panel">
-          <h2>Live Demo</h2>
-          <div class="qr-box">
-            <span>QR</span>
-          </div>
-          <p>Scan to View Live Demo</p>
+        <article class="panel info-card">
+          <h2>Problem</h2>
+          <ul>
+            <li>Manual quiz creation is slow and repetitive.</li>
+            <li>Existing tools give scores but limited learning guidance.</li>
+            <li>Students need practice from notes, topics, and web content.</li>
+          </ul>
+        </article>
+
+        <article class="panel info-card">
+          <h2>Proposed Solution</h2>
+          <ul>
+            <li>Generate quizzes automatically using AI and NLP.</li>
+            <li>Support Topic, PDF, and URL-based quiz creation.</li>
+            <li>Provide feedback, revision tools, and progress tracking.</li>
+          </ul>
         </article>
       </section>
 
-      <section class="panel">
-        <h2>Tech Stack / Domain</h2>
-        <div class="chips">
-          <span>AI in Education</span>
-          <span>NLP</span>
-          <span>HTML</span>
-          <span>CSS</span>
-          <span>JavaScript</span>
-          <span>Vite</span>
-          <span>Node.js</span>
-          <span>Express.js</span>
-          <span>MongoDB</span>
-          <span>AI API</span>
-          <span>PDF Parsing</span>
-          <span>URL Extraction</span>
-        </div>
-      </section>
-
-      <section class="diagram-row">
+      <section class="middle-grid">
         <article class="panel architecture">
           <h2>Architecture Diagram</h2>
-          <div class="arch-flow">
+          <div class="architecture-flow">
             <div>User</div>
-            <div>Frontend</div>
-            <div>Backend / API</div>
-            <div>AI Model / API</div>
-            <div>MongoDB</div>
-            <div>Quiz Output</div>
+            <div>Frontend<br><small>HTML, CSS, JS</small></div>
+            <div>Backend API<br><small>Node.js, Express.js</small></div>
+            <div>AI Model / API<br><small>Quiz generation</small></div>
+            <div>MongoDB<br><small>Users + progress</small></div>
+            <div>Quiz Output<br><small>Score + feedback</small></div>
           </div>
         </article>
 
@@ -103,53 +80,80 @@
           <h2>Workflow / Process</h2>
           <div class="workflow-flow">
             <div><b>1</b><span>Login / Register</span></div>
-            <div><b>2</b><span>Select Topic / Source</span></div>
-            <div><b>3</b><span>Generate Quiz</span></div>
-            <div><b>4</b><span>Attempt Quiz</span></div>
-            <div><b>5</b><span>View Score / Feedback</span></div>
-            <div><b>6</b><span>Download / Review</span></div>
+            <div><b>2</b><span>Select Topic, PDF, or URL</span></div>
+            <div><b>3</b><span>Choose difficulty and question settings</span></div>
+            <div><b>4</b><span>Generate and attempt quiz</span></div>
+            <div><b>5</b><span>View score, explanations, and recommendations</span></div>
+            <div><b>6</b><span>Review flashcards and track progress</span></div>
+          </div>
+        </article>
+
+        <article class="panel tech-panel">
+          <h2>Tech Stack</h2>
+          <div class="chips">
+            <span>HTML</span><span>CSS</span><span>JavaScript</span><span>Vite</span>
+            <span>Node.js</span><span>Express.js</span><span>MongoDB</span>
+            <span>AI API</span><span>NLP</span><span>PDF Parsing</span><span>URL Extraction</span>
           </div>
         </article>
       </section>
 
-      <section class="content-grid">
-        <article class="panel features">
-          <h2>Key Features</h2>
-          <div class="feature-grid">
-            <div><strong>AI Quiz Generation</strong><span>Creates questions from topic, PDF, or URL input.</span></div>
-            <div><strong>Instant Feedback</strong><span>Shows score, accuracy, explanations, and recommendations.</span></div>
-            <div><strong>Progress Analytics</strong><span>Tracks attempts, accuracy, XP, streaks, and performance trends.</span></div>
-            <div><strong>Teacher Dashboard</strong><span>Displays learner activity, topic signals, and class insights.</span></div>
-            <div><strong>Flashcards</strong><span>Supports quick revision using AI-generated study terms.</span></div>
-            <div><strong>Brain Lab</strong><span>Includes memory, reaction, and recall practice activities.</span></div>
+      <section class="evidence-grid">
+        <div class="left-info-stack">
+          <article class="panel features">
+            <h2>Key Features</h2>
+            <div class="feature-grid">
+              <div><strong>AI Quiz Generation</strong><span>Questions from topics, PDFs, and URLs.</span></div>
+              <div><strong>Custom Quiz Settings</strong><span>Question count, timer, type, and difficulty control.</span></div>
+              <div><strong>Instant Evaluation</strong><span>Scores, explanations, and recommendations.</span></div>
+              <div><strong>Progress Analytics</strong><span>Attempts, accuracy, XP, streaks, and trends.</span></div>
+              <div><strong>Teacher Dashboard</strong><span>Learner activity, topic signals, and class insights.</span></div>
+              <div><strong>Brain Lab</strong><span>Memory, reaction, and recall practice.</span></div>
+            </div>
+          </article>
+
+          <article class="panel outcomes">
+            <h2>Project Outcomes</h2>
+            <div class="outcome-row">
+              <div><strong>Automates</strong><span>quiz creation from multiple learning sources</span></div>
+              <div><strong>Personalizes</strong><span>practice with feedback and revision support</span></div>
+              <div><strong>Supports</strong><span>teachers with learner progress analytics</span></div>
+            </div>
+          </article>
+
+          <article class="panel team">
+            <h2>Team Members</h2>
+            <ul>
+              <li>ADDANKI ANDAL ANSHULA <span>24BD1A05C1</span></li>
+              <li>ISHIKA SHIVARAM SHETTY <span>24BD1A668K</span></li>
+              <li>PANGA LIKITHA <span>24BD1A669B</span></li>
+              <li>PANNALA BHAVITHA <span>24BD1A669C</span></li>
+              <li>PANYALA RASHMITHA REDDY <span>24BD1A669D</span></li>
+            </ul>
+          </article>
+        </div>
+
+        <aside class="screens-panel">
+          <h2>Application Screens</h2>
+          <div class="screens-grid">
+            <figure class="mockup">
+              <img src="./assets/homepage.png" alt="Quizzy homepage screenshot">
+              <figcaption>Homepage</figcaption>
+            </figure>
+            <figure class="mockup">
+              <img src="./assets/generate.png" alt="Quiz generation setup screenshot">
+              <figcaption>Quiz Setup</figcaption>
+            </figure>
+            <figure class="mockup">
+              <img src="./assets/results.png" alt="Quiz results and recommendation screenshot">
+              <figcaption>Results & Feedback</figcaption>
+            </figure>
+            <figure class="mockup">
+              <img src="./assets/teacher.png" alt="Teacher dashboard screenshot">
+              <figcaption>Teacher Dashboard</figcaption>
+            </figure>
           </div>
-        </article>
-
-        <article class="panel team-panel">
-          <h2>Team Members</h2>
-          <ul>
-            <li>ADDANKI ANDAL ANSHULA <span>24BD1A05C1</span></li>
-            <li>ISHIKA SHIVARAM SHETTY <span>24BD1A668K</span></li>
-            <li>PANGA LIKITHA <span>24BD1A669B</span></li>
-            <li>PANNALA BHAVITHA <span>24BD1A669C</span></li>
-            <li>PANYALA RASHMITHA REDDY <span>24BD1A669D</span></li>
-          </ul>
-        </article>
-      </section>
-
-      <section class="screens">
-        <figure class="device">
-          <img src="./assets/dashboard.png" alt="Dashboard analytics screenshot">
-          <figcaption>Dashboard & Analytics</figcaption>
-        </figure>
-        <figure class="device">
-          <img src="./assets/teacher.png" alt="Teacher dashboard screenshot">
-          <figcaption>Teacher Dashboard</figcaption>
-        </figure>
-        <figure class="device">
-          <img src="./assets/brain-lab.png" alt="Brain Lab screenshot">
-          <figcaption>Brain Lab</figcaption>
-        </figure>
+        </aside>
       </section>
     </main>
   </body>

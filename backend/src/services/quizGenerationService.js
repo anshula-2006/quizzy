@@ -33,9 +33,15 @@ function normalizeMcqCorrect(correct, options) {
 function questionDedupeKey(question) {
   return String(question || "")
     .toLowerCase()
+    .replace(/^fallback review\s+\d+\s*:\s*/i, "")
+    .replace(/^(which|what|why|how)\s+/i, "")
     .replace(/[^\p{L}\p{N}\s]/gu, "")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function dedupeQuestions(rawQuestions = [], questionMode = "mcq", questionCount = 5) {
+  return sanitizeQuestions(rawQuestions, questionMode, Math.max(questionCount, rawQuestions.length)).slice(0, questionCount);
 }
 
 function extractJsonBlock(rawOutput) {
@@ -223,6 +229,23 @@ function buildFallbackQuestions({ topic, text, questionMode, questionCount }) {
   const label = topicLabel(topic);
   const snippets = contentSentences(text, topic, questionCount);
   const mcqTarget = questionMode === "mixed" ? Math.max(1, Math.round(questionCount * 0.6)) : questionCount;
+  const mcqStems = [
+    `Which statement best matches the selected material about ${label}?`,
+    `What idea is directly supported by the source content on ${label}?`,
+    `Which option should a student remember while revising ${label}?`,
+    `Which statement is most useful for a quick review of ${label}?`,
+    `Which option is grounded in the quiz source for ${label}?`,
+    `Which statement belongs to the selected topic instead of unrelated material?`,
+    `What is the most relevant review point from this content?`,
+    `Which option correctly reflects the source material?`
+  ];
+  const shortStems = [
+    `What is the main focus of this quiz material?`,
+    `Name the topic this practice set is based on.`,
+    `Which topic should the learner revise for this quiz?`,
+    `Write the central subject of the selected material.`
+  ];
+
   const questions = Array.from({ length: questionCount }, (_, index) => {
     const type = questionMode === "short"
       ? "short"
@@ -233,7 +256,7 @@ function buildFallbackQuestions({ topic, text, questionMode, questionCount }) {
 
     if (type === "short") {
       return {
-        question: `Fallback review ${index + 1}: in one phrase, what is the main focus of this quiz material?`,
+        question: `Fallback review ${index + 1}: ${shortStems[index % shortStems.length]}`,
         type: "short",
         correct: label,
         shortAnswer: label,
@@ -245,13 +268,13 @@ function buildFallbackQuestions({ topic, text, questionMode, questionCount }) {
     }
 
     return {
-      question: `Fallback review ${index + 1}: which statement is most directly related to ${label}?`,
+      question: `Fallback review ${index + 1}: ${mcqStems[index % mcqStems.length]}`,
       type: "mcq",
       options: [
         snippet,
-        "A random fact that is not connected to the selected material.",
-        "An unrelated entertainment update.",
-        "A statement about a different subject area."
+        `A statement about a topic unrelated to ${label}.`,
+        "A generic statement not supported by the selected source.",
+        "A distractor that belongs to a different subject area."
       ],
       correct: "A",
       shortAnswer: null,
@@ -263,6 +286,20 @@ function buildFallbackQuestions({ topic, text, questionMode, questionCount }) {
   });
 
   return sanitizeQuestions(questions, questionMode, questionCount);
+}
+
+function completeWithFallbackQuestions({ questions, topic, text, questionMode, questionCount }) {
+  const uniqueQuestions = dedupeQuestions(questions, questionMode, questionCount);
+  if (uniqueQuestions.length >= questionCount) return uniqueQuestions;
+
+  const fallbackQuestions = buildFallbackQuestions({
+    topic,
+    text,
+    questionMode,
+    questionCount: questionCount + 8
+  });
+
+  return dedupeQuestions([...uniqueQuestions, ...fallbackQuestions], questionMode, questionCount);
 }
 
 function buildFallbackFlashcards({ topic, text }) {
@@ -340,6 +377,8 @@ ${topicOnlyRule}
 - Avoid generic explanations such as "this is correct because it is the right answer"; explain the concept, rule, or calculation.
 - Explanation length: ${explanationDepthRule}
 - Focus on highly specific, varied, and insightful facts. Do NOT generate generic, repetitive, or obvious questions.
+- No two questions may test the same fact, formula, definition, example, or wording pattern. Use different subtopics and different question stems.
+- Avoid repeated stems like "Which statement is correct" for multiple questions. Every question must feel distinct.
 - For topics involving future dates (e.g., 2026), rely strictly on established structural rules, schedules, term limits, and current contexts rather than substituting past events.
 - If the topic involves dates around or after ${today}, rely on established schedules, laws, and the most current data available.
 - If unsure, choose safer facts.
@@ -465,6 +504,7 @@ export async function generateQuizSession({ userId = null, topic = "", text = ""
 
   try {
     const batchResults = await runLimited(batches, 1, async (batchCount, batchIndex) => {
+      const requestedBatchCount = Math.min(batchCount + 3, 14);
       const prompt = buildQuizPrompt({
         topic,
         text: effectiveText,
@@ -473,7 +513,7 @@ export async function generateQuizSession({ userId = null, topic = "", text = ""
         learnerMode,
         questionMode,
         outputLanguage,
-        questionCount: batchCount,
+        questionCount: requestedBatchCount,
         totalQuestionCount: resolvedCount,
         timerEnabled: Boolean(timerEnabled),
         timerSeconds: resolvedTimerSeconds,
@@ -482,9 +522,15 @@ export async function generateQuizSession({ userId = null, topic = "", text = ""
         userTimezone
       });
 
-      return generateQuestionBatch(prompt, questionMode, batchCount);
+      return generateQuestionBatch(prompt, questionMode, requestedBatchCount);
     });
-    questions = batchResults.flat().slice(0, resolvedCount);
+    questions = completeWithFallbackQuestions({
+      questions: batchResults.flat(),
+      topic,
+      text: effectiveText,
+      questionMode,
+      questionCount: resolvedCount
+    });
   } catch (error) {
     usedFallback = true;
     questions = buildFallbackQuestions({ topic, text: effectiveText, questionMode, questionCount: resolvedCount });

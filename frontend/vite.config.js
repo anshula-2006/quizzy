@@ -30,7 +30,7 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      "/auth": {
+      "^/auth(?:/|$)": {
         target: proxyTarget,
         changeOrigin: true
       },

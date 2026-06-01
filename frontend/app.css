@@ -3095,3 +3095,325 @@ select:focus,
     line-height: 1.4 !important;
   }
 }
+
+/* QR/mobile pass: keep the live demo comfortable after scanning from the poster. */
+@media (max-width: 720px) {
+  html,
+  body {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    min-width: 0;
+  }
+
+  .page-shell,
+  .center-page {
+    width: 100%;
+    min-height: 100dvh;
+    padding: 0 !important;
+  }
+
+  .page-container,
+  .container {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 10px !important;
+  }
+
+  .top-nav {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    align-items: stretch !important;
+    padding: 10px !important;
+    border-radius: 0 0 18px 18px !important;
+    backdrop-filter: blur(16px);
+  }
+
+  .top-nav .brand,
+  .brand {
+    min-width: 0;
+  }
+
+  .top-nav .nav-links,
+  .nav-links {
+    display: flex !important;
+    width: 100%;
+    max-width: 100%;
+    gap: 8px !important;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .top-nav .nav-links::-webkit-scrollbar,
+  .nav-links::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-link {
+    flex: 0 0 auto;
+    min-height: 40px;
+    padding: 0.62rem 0.82rem !important;
+    border-radius: 12px !important;
+    font-size: 0.88rem !important;
+    white-space: nowrap;
+  }
+
+  .hero-home {
+    grid-template-columns: 1fr !important;
+    padding: 18px !important;
+    border-radius: 20px !important;
+  }
+
+  .hero-home .page-title {
+    max-width: 100%;
+    font-size: clamp(2rem, 11vw, 3.15rem) !important;
+    line-height: 1.02 !important;
+  }
+
+  .hero-home .page-subtitle,
+  .section-copy,
+  .helper-text,
+  .meta-copy {
+    font-size: 0.95rem !important;
+    line-height: 1.55 !important;
+  }
+
+  .hero-home .landing-actions,
+  .button-row,
+  .card-title-row,
+  .result-actions,
+  .quiz-actions,
+  .flash-study-actions {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+
+  .btn,
+  .btn-primary,
+  .btn-secondary,
+  .btn-outline,
+  button.btn,
+  a.btn,
+  a.btn-outline {
+    width: 100%;
+    min-height: 46px;
+    justify-content: center !important;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .hero-home .landing-pill-row {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hero-home .landing-pill-row span,
+  .hero-home .landing-metric-strip span {
+    min-width: 0;
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  .hero-home .landing-preview-panel {
+    padding: 14px !important;
+  }
+
+  .preview-topline,
+  .generation-status-head,
+  .teacher-topic-row,
+  .dashboard-flashcard-item {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+    align-items: start !important;
+  }
+
+  .preview-source-grid,
+  .hero-home .preview-grid,
+  .landing-feature-grid,
+  .source-grid,
+  .generate-form,
+  .generate-workspace,
+  .split-grid.two-col,
+  .dashboard-hero,
+  .dashboard-content-grid,
+  .dashboard-stat-grid,
+  .dashboard-top-metrics,
+  .dashboard-side-grid,
+  .scoreboard-support-grid,
+  .profile-header,
+  .profile-page .dashboard-hero,
+  .profile-page .dashboard-content-grid,
+  .profile-page .dashboard-top-metrics,
+  .flashcards-shell,
+  .flash-viewer,
+  .flash-study-hero,
+  .flash-study-grid,
+  .flash-study-stats,
+  .challenge-grid,
+  .result-insight-grid,
+  .teacher-page .teacher-hero,
+  .teacher-stat-grid,
+  .teacher-grid,
+  .mini-game-shell,
+  .mini-game-stats {
+    grid-template-columns: 1fr !important;
+  }
+
+  .panel,
+  .card,
+  .flow-card,
+  .quiz-card,
+  .game-card,
+  .result-card,
+  .glass-card,
+  .dashboard-main-card,
+  .dashboard-side-card,
+  .saas-stat-card,
+  .chart-card,
+  .stat-card,
+  .source-card,
+  .setting-card,
+  .challenge-card,
+  .mini-game-panel,
+  .lb-row,
+  .profile-metric,
+  .badge-card,
+  .timeline-item {
+    border-radius: 16px !important;
+    padding: 14px !important;
+  }
+
+  .section-title,
+  .auth-title {
+    font-size: clamp(1.25rem, 6vw, 1.65rem) !important;
+    line-height: 1.15 !important;
+  }
+
+  .source-card {
+    display: grid !important;
+    justify-items: start;
+    min-height: 74px;
+  }
+
+  .input,
+  textarea.input,
+  select.input {
+    width: 100%;
+    min-height: 46px;
+    font-size: 16px !important;
+  }
+
+  textarea.input {
+    min-height: 150px !important;
+  }
+
+  .generation-status {
+    width: 100%;
+  }
+
+  #quizRoot .quiz-card {
+    padding: 16px !important;
+  }
+
+  #quizRoot .quiz-focus-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  #quizRoot .quiz-focus-head,
+  #quizRoot .quiz-focus-meta {
+    display: grid !important;
+    justify-content: stretch !important;
+    gap: 10px !important;
+  }
+
+  #quizRoot .quiz-focus-meta > *,
+  .chip,
+  .badge,
+  .pill {
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  #quizRoot .question-text {
+    overflow-wrap: anywhere;
+    font-size: clamp(1.2rem, 6vw, 1.55rem) !important;
+  }
+
+  #quizRoot .option-card,
+  .option-card {
+    min-height: 58px;
+    align-items: start;
+    overflow-wrap: anywhere;
+  }
+
+  .chart-card canvas,
+  .dashboard-page canvas {
+    max-width: 100%;
+    max-height: 220px;
+  }
+
+  .teacher-table-wrap,
+  .table-wrap,
+  .leaderboard-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .teacher-table {
+    min-width: 720px;
+  }
+
+  .memory-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  .reaction-stage,
+  .recall-stage,
+  .flash-scene,
+  .flash-card-3d {
+    min-height: 240px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .page-container,
+  .container {
+    padding: 8px !important;
+  }
+
+  .hero-home,
+  .panel,
+  .card,
+  .flow-card,
+  .quiz-card,
+  .result-card,
+  .glass-card {
+    padding: 12px !important;
+  }
+
+  .hero-home .landing-pill-row {
+    grid-template-columns: 1fr;
+  }
+
+  .preview-chart {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .memory-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}

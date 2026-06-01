@@ -872,6 +872,8 @@ function renderAuthBar() {
   if (document.querySelector(".global-auth-bar")) return;
 
   const user = auth?.getSession?.();
+  const dashboardHref = user?.userType === "teacher" ? "teacher-dashboard.html" : "dashboard.html";
+  const dashboardLabel = user?.userType === "teacher" ? "Teacher Dashboard" : "Dashboard";
   const bar = document.createElement("div");
   bar.className = "global-auth-bar";
 
@@ -879,6 +881,7 @@ function renderAuthBar() {
     <a class="global-auth-home" href="${buildHref("index.html")}">Quizzy</a>
     <div class="global-auth-actions">
       ${user ? `<span class="global-auth-user">Hi, ${user.name}</span>` : ""}
+      ${user ? `<a class="global-auth-link" href="${buildHref(dashboardHref)}">${dashboardLabel}</a>` : ""}
       ${user ? `<a class="global-auth-link" href="${buildHref("profile.html")}">Profile</a>` : ""}
       ${user ? "" : `<a class="global-auth-link" href="${buildHref("login.html")}">Login</a>`}
       ${user ? "" : `<a class="global-auth-link global-auth-link-strong" href="${buildHref("register.html")}">Register</a>`}

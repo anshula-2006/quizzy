@@ -1,7 +1,10 @@
 import { FlashDeck } from "../models/FlashDeck.js";
+import { PublishedQuiz } from "../models/PublishedQuiz.js";
 import { QuizAttempt } from "../models/QuizAttempt.js";
+import { QuizSession } from "../models/QuizSession.js";
 import { SavedQuestion } from "../models/SavedQuestion.js";
 import { User } from "../models/User.js";
+import { createJsonCompletion } from "../services/aiProviderService.js";
 import { extractSourceContent, getExtractionJobStatus } from "../services/contentExtractionService.js";
 import { buildProfileSummary } from "../services/gamificationService.js";
 import { evaluateQuizAttempt } from "../services/quizEvaluationService.js";
@@ -45,6 +48,47 @@ function toLeaderboardRow(item, index) {
     leaderboardScore: Number(stats.leaderboardScore || 0),
     achievements: Array.isArray(stats.achievements) ? stats.achievements : []
   };
+}
+
+function requireTeacher(user) {
+  if ((user?.userType || "student") !== "teacher") {
+    throw new AppError("Teacher account required", 403);
+  }
+}
+
+function cleanPublishedQuestion(item) {
+  if (!item || typeof item !== "object") return null;
+  const question = String(item.question || "").trim();
+  const type = String(item.type || "").trim().toLowerCase() === "short" ? "short" : "mcq";
+  if (!question) return null;
+
+  const base = {
+    question,
+    type,
+    explanation: String(item.explanation || "").trim(),
+    wrongExplanation: item.wrongExplanation ? String(item.wrongExplanation).trim() : "",
+    image: item.image || null
+  };
+
+  if (type === "short") {
+    const shortAnswer = String(item.shortAnswer || item.correct || "").trim();
+    if (!shortAnswer) return null;
+    return {
+      ...base,
+      correct: shortAnswer,
+      shortAnswer,
+      acceptableAnswers: Array.isArray(item.acceptableAnswers)
+        ? item.acceptableAnswers.map((answer) => String(answer || "").trim()).filter(Boolean)
+        : []
+    };
+  }
+
+  const options = Array.isArray(item.options)
+    ? item.options.map((option) => String(option || "").trim()).filter(Boolean).slice(0, 4)
+    : [];
+  const correct = String(item.correct || "").trim().toUpperCase();
+  if (options.length < 2 || !["A", "B", "C", "D"].includes(correct)) return null;
+  return { ...base, options, correct, shortAnswer: null, acceptableAnswers: [] };
 }
 
 export async function extractContent(req, res) {
@@ -167,7 +211,7 @@ export async function teacherDashboardData(req, res) {
     throw new AppError("Teacher account required", 403);
   }
 
-  const [users, attempts] = await Promise.all([
+  const [users, attempts, publishedQuizzes] = await Promise.all([
     User.find({
       userType: { $ne: "teacher" },
       name: { $not: /dummy|fake/i },
@@ -181,6 +225,10 @@ export async function teacherDashboardData(req, res) {
       .populate({ path: "user", select: "name email userType grade" })
       .sort({ createdAt: -1 })
       .limit(150)
+      .lean(),
+    PublishedQuiz.find({ teacher: req.user._id })
+      .sort({ publishedAt: -1, createdAt: -1 })
+      .limit(50)
       .lean()
   ]);
 
@@ -252,6 +300,20 @@ export async function teacherDashboardData(req, res) {
         lastAttemptAt: stats.lastAttemptAt || null
       };
     }),
+    publishedQuizzes: publishedQuizzes.map((quiz) => {
+      const attemptsForQuiz = studentAttempts.filter((attempt) => String(attempt?.settings?.publishedQuizId || "") === String(quiz._id));
+      const totalQuestions = attemptsForQuiz.reduce((sum, attempt) => sum + Number(attempt.total || 0), 0);
+      const totalCorrect = attemptsForQuiz.reduce((sum, attempt) => sum + Number(attempt.score || 0), 0);
+      return {
+        id: quiz._id?.toString(),
+        title: quiz.title,
+        sourceInput: quiz.sourceInput,
+        questionCount: Array.isArray(quiz.questions) ? quiz.questions.length : 0,
+        attempts: attemptsForQuiz.length,
+        averageAccuracy: totalQuestions ? Math.round((totalCorrect / totalQuestions) * 100) : 0,
+        publishedAt: quiz.publishedAt || quiz.createdAt
+      };
+    }),
     recentAttempts: studentAttempts.slice(0, 12).map((attempt) => ({
       id: attempt._id?.toString(),
       studentName: String(attempt.user?.name || "Learner"),
@@ -265,6 +327,117 @@ export async function teacherDashboardData(req, res) {
       createdAt: attempt.createdAt
     })),
     topicStats
+  });
+}
+
+export async function listGlobalQuizzes(req, res) {
+  const quizzes = await PublishedQuiz.find({ isGlobal: true })
+    .sort({ publishedAt: -1, createdAt: -1 })
+    .limit(50)
+    .select("title sourceType sourceInput settings teacherName questions publishedAt createdAt")
+    .lean();
+
+  res.json({
+    quizzes: quizzes.map((quiz) => ({
+      id: quiz._id?.toString(),
+      title: quiz.title,
+      sourceType: quiz.sourceType,
+      sourceInput: quiz.sourceInput,
+      teacherName: quiz.teacherName,
+      settings: quiz.settings || {},
+      questionCount: Array.isArray(quiz.questions) ? quiz.questions.length : 0,
+      publishedAt: quiz.publishedAt || quiz.createdAt
+    }))
+  });
+}
+
+export async function publishGlobalQuiz(req, res) {
+  requireTeacher(req.user);
+  const questions = (Array.isArray(req.body?.questions) ? req.body.questions : [])
+    .map(cleanPublishedQuestion)
+    .filter(Boolean);
+
+  if (questions.length < 1) throw new AppError("At least one valid question is required.", 400);
+
+  const title = String(req.body?.title || req.body?.sourceInput || req.body?.settings?.topic || "Teacher Quiz")
+    .trim()
+    .slice(0, 140);
+
+  const doc = await PublishedQuiz.create({
+    teacher: req.user._id,
+    teacherName: req.user.name || req.user.email || "Teacher",
+    title,
+    sourceType: String(req.body?.sourceType || "topic"),
+    sourceInput: String(req.body?.sourceInput || title).slice(0, 240),
+    settings: req.body?.settings || {},
+    questions,
+    isGlobal: true
+  });
+
+  res.status(201).json({ quiz: toClientDoc(doc.toObject()) });
+}
+
+export async function startGlobalQuiz(req, res) {
+  const quiz = await PublishedQuiz.findOne({ _id: req.params.id, isGlobal: true }).lean();
+  if (!quiz) throw new AppError("Published quiz not found.", 404);
+
+  const session = await QuizSession.create({
+    user: req.user?._id || null,
+    sourceType: "global",
+    sourceInput: quiz.title,
+    topic: quiz.title,
+    extractedText: "",
+    settings: {
+      ...(quiz.settings || {}),
+      topic: quiz.title,
+      publishedQuizId: quiz._id?.toString(),
+      teacherId: quiz.teacher?.toString(),
+      teacherName: quiz.teacherName || "Teacher"
+    },
+    questions: quiz.questions || []
+  });
+
+  res.json({
+    quizId: session._id.toString(),
+    questions: quiz.questions || [],
+    meta: {
+      sourceType: "global",
+      sourceInput: quiz.title,
+      publishedQuizId: quiz._id?.toString(),
+      teacherName: quiz.teacherName || "Teacher"
+    },
+    settings: session.settings
+  });
+}
+
+export async function generateTeacherExplanation(req, res) {
+  requireTeacher(req.user);
+  const question = String(req.body?.question || "").trim();
+  const correct = String(req.body?.correct || "").trim();
+  const options = Array.isArray(req.body?.options) ? req.body.options.map((option) => String(option || "").trim()).filter(Boolean) : [];
+  if (!question || !correct) throw new AppError("Question and correct answer are required.", 400);
+
+  const output = await createJsonCompletion(`
+Return ONLY valid JSON in this format:
+{"explanation":"teacher-friendly explanation","wrongExplanation":"short note about a common mistake"}
+
+Question: ${question}
+Options: ${options.join(" | ") || "Short-answer question"}
+Correct answer: ${correct}
+
+Write clear, classroom-ready explanations in 1-3 sentences each.
+`, 0.2);
+
+  const firstBrace = output.indexOf("{");
+  const lastBrace = output.lastIndexOf("}");
+  let parsed = null;
+  if (firstBrace >= 0 && lastBrace > firstBrace) {
+    parsed = JSON.parse(output.slice(firstBrace, lastBrace + 1));
+  }
+
+  res.json({
+    explanation: String(parsed?.explanation || "").trim(),
+    wrongExplanation: String(parsed?.wrongExplanation || "").trim()
   });
 }
 

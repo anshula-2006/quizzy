@@ -23,7 +23,7 @@ function updateUserTypeHint() {
 }
 
 if (auth?.getSession()) {
-  window.location.href = "./index.html";
+  window.location.href = auth.getSession()?.userType === "teacher" ? "./teacher-dashboard.html" : "./index.html";
 }
 
 userTypeSelect?.addEventListener("change", updateUserTypeHint);
@@ -109,6 +109,6 @@ form?.addEventListener("submit", async (e) => {
   message.textContent = "Registration successful. Redirecting...";
   message.classList.add("success");
   setTimeout(() => {
-    window.location.href = "./index.html";
+    window.location.href = result.user?.userType === "teacher" ? "./teacher-dashboard.html" : "./index.html";
   }, 500);
 });

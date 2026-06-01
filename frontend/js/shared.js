@@ -605,6 +605,54 @@ export async function submitQuizAttempt(quizState) {
   return data;
 }
 
+export async function fetchGlobalQuizzes() {
+  const data = await apiRequest("/data/global-quizzes");
+  return Array.isArray(data?.quizzes) ? data.quizzes : [];
+}
+
+export async function startGlobalQuiz(quizId) {
+  const session = getSession();
+  if (!session?.token) throw new Error("Login required to start a teacher quiz.");
+  const response = await fetch(`${API_BASE}/data/global-quizzes/${encodeURIComponent(quizId)}/start`, {
+    method: "POST",
+    headers: buildJsonHeaders()
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "Could not start this quiz.");
+  const questions = (Array.isArray(data.questions) ? data.questions : [])
+    .map(normalizeQuestion)
+    .filter(Boolean);
+  if (!questions.length) throw new Error("This published quiz has no valid questions.");
+  return {
+    quizId: data.quizId,
+    questions,
+    settings: data.settings || {},
+    meta: data.meta || {}
+  };
+}
+
+export async function publishGlobalQuiz(payload) {
+  const response = await fetch(`${API_BASE}/data/global-quizzes`, {
+    method: "POST",
+    headers: buildJsonHeaders(),
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "Could not publish this quiz.");
+  return data.quiz;
+}
+
+export async function requestTeacherExplanation(question) {
+  const response = await fetch(`${API_BASE}/data/global-quizzes/explain`, {
+    method: "POST",
+    headers: buildJsonHeaders(),
+    body: JSON.stringify(question)
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "Could not generate an explanation.");
+  return data;
+}
+
 export function buildResultState(quizState, evaluationOverride = null) {
   const answers = quizState.questions.map((question, index) => {
     const answer = quizState.answers[index];

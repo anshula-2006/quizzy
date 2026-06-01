@@ -1,4 +1,4 @@
-import { extractContent, requestQuiz, requestFlashcards, setQuizState, setResultState, addFlashDeck, getSession, getSavedQuizHistory, getFlashDecks, escapeHtml, clearQuizFlow } from "./shared.js";
+import { extractContent, requestQuiz, requestFlashcards, setQuizState, setResultState, addFlashDeck, getSession, getSavedQuizHistory, getFlashDecks, escapeHtml, clearQuizFlow, fetchGlobalQuizzes, startGlobalQuiz } from "./shared.js";
 import { createIcons, FileText, FileUp, Link, Plus, Play } from 'lucide';
 
 const sourceCards = document.querySelectorAll("[data-source]");
@@ -256,6 +256,61 @@ function renderWorkspace() {
   `;
 }
 
+async function renderGlobalQuizShelf() {
+  const sidebar = document.getElementById("generateSidebar");
+  if (!sidebar) return;
+  const session = getSession();
+  const isTeacher = session?.user?.userType === "teacher";
+  const quizzes = await fetchGlobalQuizzes();
+  const shelf = document.createElement("section");
+  shelf.className = "panel flow-card";
+  shelf.innerHTML = `
+    <p class="eyebrow">${isTeacher ? "Published quizzes" : "Teacher quizzes"}</p>
+    <h2 style="font-size: 1.05rem; margin: 0 0 10px;">${isTeacher ? "Global classroom bank" : "Solve a teacher quiz"}</h2>
+    <div class="dashboard-list" id="globalQuizList">
+      ${quizzes.length ? quizzes.slice(0, 5).map((quiz) => `
+        <article class="dashboard-activity-item">
+          <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start;">
+            <div>
+              <strong>${escapeHtml(quiz.title)}</strong>
+              <span class="section-copy">${Number(quiz.questionCount || 0)} questions · ${escapeHtml(quiz.teacherName || "Teacher")}</span>
+            </div>
+            ${isTeacher ? "" : `<button class="btn btn-secondary global-quiz-start" type="button" data-id="${escapeHtml(quiz.id)}">Start</button>`}
+          </div>
+        </article>
+      `).join("") : `<p class="section-copy">No teacher quizzes have been published yet.</p>`}
+    </div>
+  `;
+  sidebar.prepend(shelf);
+
+  shelf.querySelectorAll(".global-quiz-start").forEach((button) => {
+    button.addEventListener("click", async () => {
+      errorNode.hidden = true;
+      button.disabled = true;
+      button.textContent = "Starting...";
+      try {
+        const payload = await startGlobalQuiz(button.dataset.id);
+        setQuizState({
+          quizId: payload.quizId,
+          questions: payload.questions,
+          currentIndex: 0,
+          answers: [],
+          generatedAt: new Date().toISOString(),
+          settings: payload.settings,
+          meta: payload.meta
+        });
+        setResultState(null);
+        window.location.href = "./quiz.html";
+      } catch (error) {
+        errorNode.hidden = false;
+        errorNode.textContent = error.message || "Could not start this quiz.";
+        button.disabled = false;
+        button.textContent = "Start";
+      }
+    });
+  });
+}
+
 function setSource(source) {
   activeSource = source;
   sourceCards.forEach((card) => card.classList.toggle("is-active", card.dataset.source === source));
@@ -392,6 +447,24 @@ form?.addEventListener("submit", async (event) => {
       variation: `${Date.now()}-${Math.random().toString(36).slice(2)}`
     });
 
+    if (getSession()?.user?.userType === "teacher") {
+      sessionStorage.setItem("quizzy-teacher-review-v1", JSON.stringify({
+        quizId: quizPayload.quizId,
+        questions: quizPayload.questions,
+        generatedAt: new Date().toISOString(),
+        settings,
+        meta: quizPayload.meta || {
+          sourceType: contentPayload.sourceType,
+          sourceInput: contentPayload.sourceInput
+        },
+        title: contentPayload.sourceInput || contentPayload.topic || "Teacher Quiz"
+      }));
+      setResultState(null);
+      stopGenerationStatus({ complete: true });
+      window.location.href = "./teacher-review.html";
+      return;
+    }
+
     setQuizState({
       quizId: quizPayload.quizId,
       questions: quizPayload.questions,
@@ -421,6 +494,7 @@ form?.addEventListener("submit", async (event) => {
 });
 
 renderWorkspace();
+renderGlobalQuizShelf();
 
 flashcardsBtn?.addEventListener("click", async (event) => {
   event.preventDefault();

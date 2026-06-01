@@ -67,6 +67,7 @@ function renderDashboard(data) {
   const students = Array.isArray(data.students) ? data.students : [];
   const recentAttempts = Array.isArray(data.recentAttempts) ? data.recentAttempts : [];
   const topicStats = Array.isArray(data.topicStats) ? data.topicStats : [];
+  const publishedQuizzes = Array.isArray(data.publishedQuizzes) ? data.publishedQuizzes : [];
 
   if (!students.length && !recentAttempts.length) {
     renderEmpty(data);
@@ -135,6 +136,29 @@ function renderDashboard(data) {
       </section>
 
       <div class="dashboard-side-grid">
+        <section class="panel flow-card">
+          <div class="dashboard-block">
+            <div>
+              <strong class="section-title">Published Quizzes</strong>
+              <p class="section-copy">Teacher-reviewed quizzes available to students globally.</p>
+            </div>
+            <div class="dashboard-list">
+              ${publishedQuizzes.length ? publishedQuizzes.map((quiz) => `
+                <article class="dashboard-activity-item">
+                  <div style="display:flex; justify-content:space-between; gap:12px;">
+                    <div>
+                      <strong>${escapeHtml(quiz.title)}</strong>
+                      <span class="section-copy">${Number(quiz.questionCount || 0)} questions · ${formatDate(quiz.publishedAt)}</span>
+                    </div>
+                    <b>${Number(quiz.averageAccuracy || 0)}%</b>
+                  </div>
+                  <span class="section-copy">${Number(quiz.attempts || 0)} student attempt${Number(quiz.attempts || 0) === 1 ? "" : "s"}</span>
+                </article>
+              `).join("") : `<p class="section-copy">No published quizzes yet. Create one from Generate.</p>`}
+            </div>
+          </div>
+        </section>
+
         <section class="panel flow-card">
           <div class="dashboard-block">
             <div>

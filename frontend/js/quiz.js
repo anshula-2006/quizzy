@@ -2,6 +2,7 @@ import {
   buildResultState,
   getQuizState,
   gradeShortAnswer,
+  normalizeMcqCorrect,
   saveQuizAttemptLocal,
   setQuizState,
   setResultState,
@@ -107,14 +108,15 @@ function persist() {
 
 function saveAnswer(selected) {
   const question = getCurrentQuestion();
+  const correctMcq = question.type === "mcq" ? normalizeMcqCorrect(question.correct, question.options) : null;
   const isCorrect = question.type === "short"
     ? gradeShortAnswer(selected, question)
-    : selected === question.correct;
+    : selected === correctMcq;
 
   quizState.answers[quizState.currentIndex] = {
     question: question.question,
     selected,
-    correct: question.type === "short" ? question.shortAnswer : question.correct,
+    correct: question.type === "short" ? question.shortAnswer : correctMcq,
     isCorrect,
     type: question.type,
     explanation: question.explanation || "",
@@ -350,9 +352,10 @@ function render() {
 
   const answerStack = document.getElementById("answerStack");
   if (question.type === "mcq") {
+    const correctKey = normalizeMcqCorrect(question.correct, question.options);
     answerStack.innerHTML = question.options.map((option, index) => {
       const key = String.fromCharCode(65 + index);
-      const correct = answer && !isExam && question.correct === key;
+      const correct = answer && !isExam && correctKey === key;
       const wrong = answer && !isExam && answer.selected === key && !answer.isCorrect;
       const selected = answer && isExam && answer.selected === key;
       return `
@@ -392,7 +395,7 @@ function render() {
       feedbackWrap.innerHTML = `
         <div class="feedback-box ${answer.isCorrect ? "good" : "bad"}">
           <h3 class="feedback-title">${answer.isCorrect ? "Correct" : "Needs review"}</h3>
-          <p class="feedback-copy">${question.type === "short" ? `Correct answer: ${question.shortAnswer}` : `Correct option: ${question.correct}`}</p>
+          <p class="feedback-copy">${question.type === "short" ? `Correct answer: ${question.shortAnswer}` : `Correct option: ${normalizeMcqCorrect(question.correct, question.options)}`}</p>
           <p class="feedback-copy" style="margin-top:10px;">${question.explanation || "No explanation available."}</p>
           ${!answer.isCorrect && question.wrongExplanation ? `<p class="feedback-copy" style="margin-top:10px;">${question.wrongExplanation}</p>` : ""}
         </div>

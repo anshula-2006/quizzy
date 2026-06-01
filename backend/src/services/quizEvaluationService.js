@@ -28,6 +28,26 @@ function gradeShortAnswer(answer, question) {
   return { isCorrect: false, confidence: 0.18 };
 }
 
+function normalizeAnswerText(value) {
+  return String(value || "")
+    .trim()
+    .replace(/^(?:option\s*)?[A-D][\).:\-\s]+/i, "")
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+}
+
+function normalizeMcqAnswer(value, options = []) {
+  const raw = String(value || "").trim();
+  const letters = ["A", "B", "C", "D"];
+  const letterMatch = raw.match(/^(?:Option\s*)?([A-D])(?:[\).:\-]|\s*$)/i);
+  if (letterMatch) return letterMatch[1].toUpperCase();
+
+  const optionIndex = Array.isArray(options)
+    ? options.slice(0, 4).findIndex((option) => normalizeAnswerText(option) === normalizeAnswerText(raw))
+    : -1;
+  return optionIndex >= 0 ? letters[optionIndex] : raw.toUpperCase();
+}
+
 function evaluateAnswer(submittedAnswer, question) {
   if (question.type === "short") {
     const shortResult = gradeShortAnswer(submittedAnswer, question);
@@ -39,8 +59,8 @@ function evaluateAnswer(submittedAnswer, question) {
     };
   }
 
-  const selected = String(submittedAnswer || "").trim().toUpperCase();
-  const correct = String(question.correct || "").trim().toUpperCase();
+  const selected = normalizeMcqAnswer(submittedAnswer, question.options);
+  const correct = normalizeMcqAnswer(question.correct, question.options);
   return {
     selected,
     correct,

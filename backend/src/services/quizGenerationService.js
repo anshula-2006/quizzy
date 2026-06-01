@@ -7,21 +7,35 @@ function normalizeQuestionType(type) {
   return String(type || "").trim().toLowerCase() === "short" ? "short" : "mcq";
 }
 
+function normalizeAnswerText(value) {
+  return String(value || "")
+    .trim()
+    .replace(/^(?:option\s*)?[A-D][\).:\-\s]+/i, "")
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+}
+
 function normalizeMcqCorrect(correct, options) {
   const normalizedOptions = Array.isArray(options)
     ? options.slice(0, 4).map((option) => String(option || "").trim()).filter(Boolean)
     : [];
   const raw = String(correct || "").trim();
   
-  const exactIndex = normalizedOptions.findIndex((option) => option.toLowerCase() === raw.toLowerCase());
+  const exactIndex = normalizedOptions.findIndex((option) => normalizeAnswerText(option) === normalizeAnswerText(raw));
   if (exactIndex >= 0) return ["A", "B", "C", "D"][exactIndex];
   
-  const match = raw.match(/^(?:Option\s+)?([A-D])[\).\s]?$/i) || raw.match(/^([A-D])\b/i);
+  const match = raw.match(/^(?:Option\s*)?([A-D])(?:[\).:\-]|\s*$)/i);
   if (match) return match[1].toUpperCase();
 
-  const letter = raw.charAt(0).toUpperCase();
-  if (["A", "B", "C", "D"].includes(letter)) return letter;
   return "A";
+}
+
+function questionDedupeKey(question) {
+  return String(question || "")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function extractJsonBlock(rawOutput) {
@@ -47,11 +61,15 @@ function normalizeJsonCandidate(jsonText) {
 }
 
 function sanitizeQuestions(rawQuestions, questionMode, questionCount) {
+  const seenQuestions = new Set();
   const sanitized = (Array.isArray(rawQuestions) ? rawQuestions : [])
     .map((item) => {
       if (!item || typeof item !== "object") return null;
       const question = String(item.question || "").trim();
       if (!question) return null;
+      const questionKey = questionDedupeKey(question);
+      if (!questionKey || seenQuestions.has(questionKey)) return null;
+      seenQuestions.add(questionKey);
 
       let image = item.image || null;
       if (image && typeof image === "string") {

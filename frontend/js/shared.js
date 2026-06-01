@@ -430,13 +430,12 @@ export function normalizeQuestion(question) {
     const options = Array.isArray(question.options) && question.options.length >= 2
       ? question.options.slice(0, 4)
       : null;
-    const correct = String(question.correct || "A").trim().charAt(0).toUpperCase();
     if (!options) return null;
     return {
       ...question,
       type,
       options,
-      correct: ["A", "B", "C", "D"].includes(correct) ? correct : "A"
+      correct: normalizeMcqCorrect(question.correct, options)
     };
   }
 
@@ -446,6 +445,26 @@ export function normalizeQuestion(question) {
     shortAnswer: question.shortAnswer || question.correct || "",
     acceptableAnswers: Array.isArray(question.acceptableAnswers) ? question.acceptableAnswers : []
   };
+}
+
+export function normalizeAnswerText(value) {
+  return String(value || "")
+    .trim()
+    .replace(/^(?:option\s*)?[A-D][\).:\-\s]+/i, "")
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+}
+
+export function normalizeMcqCorrect(value, options = []) {
+  const raw = String(value || "").trim();
+  const letters = ["A", "B", "C", "D"];
+  const letterMatch = raw.match(/^(?:Option\s*)?([A-D])(?:[\).:\-]|\s*$)/i);
+  if (letterMatch) return letterMatch[1].toUpperCase();
+
+  const optionIndex = Array.isArray(options)
+    ? options.slice(0, 4).findIndex((option) => normalizeAnswerText(option) === normalizeAnswerText(raw))
+    : -1;
+  return optionIndex >= 0 ? letters[optionIndex] : "A";
 }
 
 export function normalizeShortAnswer(value) {

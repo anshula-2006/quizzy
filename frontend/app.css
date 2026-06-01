@@ -998,6 +998,11 @@
 .scoreboard-head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-3); }
 .scoreboard-content-grid { grid-template-columns: 1fr !important; }
 .scoreboard-support-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 0.55fr); gap: var(--space-4); align-items: start; }
+.scoreboard-side-stack {
+  display: grid;
+  gap: var(--space-4);
+  align-content: start;
+}
 
 .podium-wrapper {
   display: flex;
@@ -2573,7 +2578,9 @@ select:focus,
 }
 
 .scoreboard-shell .dashboard-content-grid {
-  grid-template-columns: minmax(0, 1.05fr) minmax(340px, 0.95fr) !important;
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.75fr) !important;
+  align-items: start;
+  gap: var(--space-4);
 }
 
 .scoreboard-shell .panel {
@@ -2583,6 +2590,16 @@ select:focus,
 .scoreboard-shell .podium-container,
 .scoreboard-shell .podium-wrapper {
   gap: 12px;
+  min-height: 88px !important;
+  margin-bottom: 14px !important;
+}
+
+.scoreboard-shell .scoreboard-table-wrap {
+  padding: 22px !important;
+}
+
+.scoreboard-shell .scoreboard-side-stack .panel {
+  margin: 0;
 }
 
 .scoreboard-shell .podium-card,

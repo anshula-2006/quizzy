@@ -731,8 +731,8 @@ function renderBoard() {
 
   const leaderboardMarkup = cloudLeaderboard.length
     ? `
-      <section class="panel flow-card scoreboard-table-wrap glass-card" style="padding: 32px; position: relative;">
-        <div class="table-header-block" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; text-align: left; padding: 0; border: none;">
+      <section class="panel flow-card scoreboard-table-wrap glass-card" style="padding: 22px; position: relative;">
+        <div class="table-header-block" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; text-align: left; padding: 0; border: none;">
           <div>
             <h3 style="font-size: 1.5rem; font-weight: 800; color: var(--text); margin: 0;">Global Leaderboard</h3>
             <p style="color: var(--muted); font-size: 0.85rem; margin: 4px 0 0;">Top players ranked by total points and XP.</p>
@@ -743,24 +743,24 @@ function renderBoard() {
         </div>
 
         ${hasPodium ? `
-        <div class="podium-wrapper fade-in" style="display: flex; justify-content: center; align-items: flex-end; gap: 8px; margin-bottom: 24px; min-height: 120px;">
+        <div class="podium-wrapper fade-in" style="display: flex; justify-content: center; align-items: flex-end; gap: 8px; margin-bottom: 14px; min-height: 88px;">
           <div class="podium-step rank-2" style="display: flex; flex-direction: column; align-items: center; width: 30%; max-width: 90px;">
             <div class="podium-avatar glow-hover" style="font-size: 1.1rem; font-weight: 800; color: #fff; background: linear-gradient(135deg, #9ca3af, #d1d5db); width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; border: 2px solid var(--glass-border); margin-bottom: 8px; box-shadow: 0 2px 8px rgba(156, 163, 175, 0.4);">2</div>
             <div class="podium-name" style="font-size: 0.9rem; font-weight: 600; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; color: var(--text); padding: 0 4px;">${escapeHtml(p2.name || 'Player')}</div>
             <div class="podium-score" style="font-size: 0.8rem; color: var(--color-accent); font-weight: 700; margin: 4px 0 8px;">${p2.totalXp || 0} XP</div>
-            <div class="podium-bar" style="width: 100%; height: 45px; border-radius: 8px 8px 0 0; background: linear-gradient(180deg, rgba(156, 163, 175, 0.2), transparent); border: 1px solid rgba(156, 163, 175, 0.3); border-bottom: none;"></div>
+            <div class="podium-bar" style="width: 100%; height: 30px; border-radius: 8px 8px 0 0; background: linear-gradient(180deg, rgba(156, 163, 175, 0.2), transparent); border: 1px solid rgba(156, 163, 175, 0.3); border-bottom: none;"></div>
           </div>
           <div class="podium-step rank-1" style="display: flex; flex-direction: column; align-items: center; width: 30%; max-width: 100px; z-index: 2;">
             <div class="podium-avatar glow-hover" style="font-size: 1.3rem; font-weight: 900; color: #fff; background: linear-gradient(135deg, #fbbf24, #f59e0b); width: 56px; height: 56px; display: grid; place-items: center; border-radius: 50%; margin-bottom: 8px; border: 2px solid #fef3c7; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.5);">1</div>
             <div class="podium-name" style="font-size: 1rem; font-weight: 700; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; color: var(--text); padding: 0 4px;">${escapeHtml(p1.name || 'Player')}</div>
             <div class="podium-score" style="font-size: 0.9rem; color: var(--color-accent); font-weight: 800; margin: 4px 0 8px;">${p1.totalXp || 0} XP</div>
-            <div class="podium-bar" style="width: 100%; height: 60px; border-radius: 8px 8px 0 0; background: linear-gradient(180deg, rgba(245, 158, 11, 0.25), transparent); border: 1px solid rgba(245, 158, 11, 0.4); border-bottom: none;"></div>
+            <div class="podium-bar" style="width: 100%; height: 42px; border-radius: 8px 8px 0 0; background: linear-gradient(180deg, rgba(245, 158, 11, 0.25), transparent); border: 1px solid rgba(245, 158, 11, 0.4); border-bottom: none;"></div>
           </div>
           <div class="podium-step rank-3" style="display: flex; flex-direction: column; align-items: center; width: 30%; max-width: 90px;">
             <div class="podium-avatar glow-hover" style="font-size: 1.1rem; font-weight: 800; color: #fff; background: linear-gradient(135deg, #b45309, #d97706); width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; border: 2px solid var(--glass-border); margin-bottom: 8px; box-shadow: 0 2px 8px rgba(217, 119, 6, 0.4);">3</div>
             <div class="podium-name" style="font-size: 0.9rem; font-weight: 600; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; color: var(--text); padding: 0 4px;">${escapeHtml(p3.name || 'Player')}</div>
             <div class="podium-score" style="font-size: 0.8rem; color: var(--color-accent); font-weight: 700; margin: 4px 0 8px;">${p3.totalXp || 0} XP</div>
-            <div class="podium-bar" style="width: 100%; height: 30px; border-radius: 8px 8px 0 0; background: linear-gradient(180deg, rgba(217, 119, 6, 0.2), transparent); border: 1px solid rgba(217, 119, 6, 0.3); border-bottom: none;"></div>
+            <div class="podium-bar" style="width: 100%; height: 24px; border-radius: 8px 8px 0 0; background: linear-gradient(180deg, rgba(217, 119, 6, 0.2), transparent); border: 1px solid rgba(217, 119, 6, 0.3); border-bottom: none;"></div>
           </div>
         </div>
         ` : ""}
@@ -792,7 +792,7 @@ function renderBoard() {
           `}).join("")}
         </div>
         ${totalLeaderboardPages > 1 ? `
-        <div class="lb-pagination" style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--line); margin-top: 24px; padding-top: 20px;">
+        <div class="lb-pagination" style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--line); margin-top: 16px; padding-top: 14px;">
           <button class="btn-outline leaderboard-prev-btn" style="min-height: 36px; padding: 0 16px; font-size: 0.85rem;" ${currentLeaderboardPage === 1 ? "disabled" : ""}>Previous</button>
           <span style="font-size: 0.85rem; color: var(--muted); font-weight: 500;">Page ${currentLeaderboardPage} of ${totalLeaderboardPages}</span>
           <button class="btn-outline leaderboard-next-btn" style="min-height: 36px; padding: 0 16px; font-size: 0.85rem;" ${currentLeaderboardPage === totalLeaderboardPages ? "disabled" : ""}>Next</button>
@@ -844,7 +844,7 @@ function renderBoard() {
   const game = getGamification(entries);
 
   scoreboardContent.innerHTML = `
-    <div class="dashboard-content-grid" style="align-items: start;">
+    <div class="dashboard-content-grid scoreboard-content-grid" style="align-items: start;">
       
       <!-- Left Column -->
       <div style="display: grid; gap: var(--space-4); align-content: start;">
@@ -922,13 +922,12 @@ function renderBoard() {
         </div>
       </div>
 
-      <div class="scoreboard-support-grid">
       <!-- Right Column -->
-      <div style="display: grid; gap: var(--space-4); align-content: start;">
+      <aside class="scoreboard-side-stack">
+        ${renderRecommendedTopics()}
         ${leaderboardMarkup}
         ${renderProgressExtras(entries)}
-        ${renderRecommendedTopics()}
-      </div>
+      </aside>
     </div>
   `;
 

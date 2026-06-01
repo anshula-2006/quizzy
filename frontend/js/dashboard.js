@@ -552,6 +552,12 @@ function renderDashboard(data) {
 
 async function initDashboard() {
   if (!root) return;
+  const session = auth?.getSession?.();
+  if (session?.userType === "teacher") {
+    window.location.replace("./teacher-dashboard.html");
+    return;
+  }
+
   renderSkeleton();
   
   try {

@@ -23,14 +23,14 @@ body {
 }
 
 body {
-  padding: 22px;
+  padding: 18px;
 }
 
 .poster {
   width: 841mm;
-  min-height: 594mm;
+  height: 594mm;
   margin: 0 auto;
-  padding: 14mm;
+  padding: 12mm;
   background:
     radial-gradient(circle at 12% 0%, rgba(36, 107, 254, 0.18), transparent 29%),
     radial-gradient(circle at 92% 8%, rgba(102, 87, 245, 0.2), transparent 26%),
@@ -115,8 +115,8 @@ h1 {
   display: grid;
   grid-template-columns: 0.7fr 1fr 1.1fr;
   gap: 18px;
-  margin-top: 12px;
-  padding: 12px 16px;
+  margin-top: 10px;
+  padding: 10px 16px;
 }
 
 .meta-strip div {
@@ -132,8 +132,8 @@ h1 {
 .middle-grid,
 .evidence-grid {
   display: grid;
-  gap: 14px;
-  margin-top: 14px;
+  gap: 12px;
+  margin-top: 12px;
 }
 
 .overview-grid {
@@ -141,17 +141,18 @@ h1 {
 }
 
 .middle-grid {
-  grid-template-columns: 1.15fr 1fr 0.75fr;
+  grid-template-columns: 1.2fr 0.92fr 0.88fr;
+  align-items: start;
 }
 
 .evidence-grid {
-  grid-template-columns: 0.95fr 1.35fr;
+  grid-template-columns: 0.9fr 1.48fr;
   align-items: start;
 }
 
 .left-info-stack {
   display: grid;
-  gap: 14px;
+  gap: 10px;
 }
 
 .panel,
@@ -162,13 +163,13 @@ h1 {
 .panel h2,
 .screens-panel h2 {
   margin-bottom: 12px;
-  font-size: 26px;
+  font-size: 30px;
 }
 
 .abstract p {
   margin: 0;
   color: #334762;
-  font-size: 22px;
+  font-size: 24px;
   line-height: 1.34;
 }
 
@@ -183,52 +184,29 @@ h1 {
 }
 
 .info-card li {
-  padding: 10px 12px;
+  padding: 12px 14px;
   border-left: 6px solid var(--purple);
   border-radius: 8px;
   background: #f7faff;
   color: #2b3c58;
-  font-size: 19px;
+  font-size: 21px;
   font-weight: 800;
   line-height: 1.28;
 }
 
-.architecture-flow {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 10px;
-}
-
-.architecture-flow div,
 .workflow-flow div {
   position: relative;
   display: grid;
-  min-height: 86px;
+  min-height: 84px;
   place-items: center;
-  padding: 11px;
+  padding: 13px;
   border: 2px solid #d5e1f4;
   border-radius: 8px;
   background: linear-gradient(180deg, #ffffff, #f3f7ff);
   color: var(--ink);
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 900;
   text-align: center;
-}
-
-.architecture-flow div:not(:last-child)::after {
-  position: absolute;
-  right: -12px;
-  color: var(--purple);
-  content: ">";
-  font-size: 24px;
-}
-
-.architecture-flow small {
-  display: block;
-  margin-top: 4px;
-  color: var(--muted);
-  font-size: 14px;
-  font-weight: 800;
 }
 
 .workflow-flow {
@@ -237,10 +215,85 @@ h1 {
   gap: 10px;
 }
 
+.architecture-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.architecture-svg marker path {
+  fill: #263857;
+}
+
+.arch-box rect {
+  stroke-width: 2.5;
+}
+
+.arch-box text {
+  fill: var(--ink);
+  font-size: 27px;
+  font-weight: 900;
+  text-anchor: middle;
+}
+
+.arch-box .sub {
+  fill: var(--muted);
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.arch-user rect {
+  fill: #f8fbff;
+  stroke: #8aa0be;
+}
+
+.arch-front rect {
+  fill: #eaf2ff;
+  stroke: var(--blue);
+}
+
+.arch-back rect {
+  fill: #ecfbf8;
+  stroke: var(--cyan);
+}
+
+.arch-ai rect {
+  fill: #fff5df;
+  stroke: #d89a26;
+}
+
+.arch-db rect {
+  fill: #f3efff;
+  stroke: var(--purple);
+}
+
+.arch-pdf rect {
+  fill: #fff0f5;
+  stroke: #dc5c85;
+}
+
+.arch-line {
+  fill: none;
+  stroke: #263857;
+  stroke-width: 3;
+  marker-end: url(#archArrow);
+}
+
+.arch-stem,
+.arch-bus {
+  fill: none;
+  stroke: #263857;
+  stroke-linecap: round;
+  stroke-width: 3;
+}
+
+.arch-line.branch {
+  stroke-width: 3.2;
+}
+
 .workflow-flow div {
   grid-template-columns: 38px 1fr;
   justify-items: start;
-  min-height: 70px;
   text-align: left;
 }
 
@@ -255,7 +308,8 @@ h1 {
 }
 
 .workflow-flow span {
-  font-size: 18px;
+  font-size: 20px;
+  line-height: 1.22;
 }
 
 .chips {
@@ -265,11 +319,11 @@ h1 {
 }
 
 .chips span {
-  padding: 10px 14px;
+  padding: 12px 16px;
   border-radius: 999px;
   background: #edf4ff;
   color: #1d55c8;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 900;
 }
 
@@ -282,13 +336,13 @@ h1 {
 .outcome-row {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  gap: 9px;
 }
 
 .feature-grid div,
 .outcome-row div {
   min-height: 82px;
-  padding: 14px;
+  padding: 13px;
   border-left: 6px solid var(--blue);
   border-radius: 8px;
   background: #f7faff;
@@ -307,7 +361,7 @@ h1 {
 .feature-grid strong,
 .outcome-row strong {
   display: block;
-  font-size: 20px;
+  font-size: 22px;
 }
 
 .feature-grid span,
@@ -315,19 +369,19 @@ h1 {
   display: block;
   margin-top: 5px;
   color: var(--muted);
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.25;
 }
 
 .screens-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  gap: 10px;
 }
 
 .mockup {
   margin: 0;
-  padding: 8px;
+  padding: 10px;
 }
 
 .mockup::before {
@@ -346,7 +400,7 @@ h1 {
 .mockup img {
   display: block;
   width: 100%;
-  max-height: 245px;
+  max-height: 285px;
   object-fit: contain;
   object-position: top center;
   border: 6px solid #0c1428;
@@ -355,26 +409,26 @@ h1 {
 }
 
 figcaption {
-  margin-top: 6px;
+  margin-top: 8px;
   color: #263857;
-  font-size: 17px;
+  font-size: 19px;
   font-weight: 900;
 }
 
 .team li {
   display: grid;
   gap: 3px;
-  padding: 8px 11px;
+  padding: 8px 12px;
   border-radius: 8px;
   background: #f7faff;
   color: #263857;
-  font-size: 17px;
+  font-size: 19px;
   font-weight: 900;
 }
 
 .team span {
   color: var(--purple);
-  font-size: 15px;
+  font-size: 16px;
 }
 
 @page {

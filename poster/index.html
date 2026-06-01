@@ -66,14 +66,56 @@
       <section class="middle-grid">
         <article class="panel architecture">
           <h2>Architecture Diagram</h2>
-          <div class="architecture-flow">
-            <div>User</div>
-            <div>Frontend<br><small>HTML, CSS, JS</small></div>
-            <div>Backend API<br><small>Node.js, Express.js</small></div>
-            <div>AI Model / API<br><small>Quiz generation</small></div>
-            <div>MongoDB<br><small>Users + progress</small></div>
-            <div>Quiz Output<br><small>Score + feedback</small></div>
-          </div>
+          <svg class="architecture-svg" viewBox="0 0 980 350" role="img" aria-label="Quizzy system architecture diagram">
+            <defs>
+              <marker id="archArrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+                <path d="M1,1 L9,5 L1,9 Z"></path>
+              </marker>
+            </defs>
+
+            <g class="arch-box arch-user">
+              <rect x="330" y="8" width="320" height="58" rx="10"></rect>
+              <text x="490" y="43">User</text>
+            </g>
+
+            <g class="arch-box arch-front">
+              <rect x="305" y="86" width="370" height="66" rx="10"></rect>
+              <text x="490" y="116">Frontend</text>
+              <text class="sub" x="490" y="140">HTML, CSS, JavaScript</text>
+            </g>
+
+            <g class="arch-box arch-back">
+              <rect x="305" y="180" width="370" height="66" rx="10"></rect>
+              <text x="490" y="210">Backend</text>
+              <text class="sub" x="490" y="234">Node.js, Express.js</text>
+            </g>
+
+            <g class="arch-box arch-ai">
+              <rect x="35" y="284" width="250" height="58" rx="10"></rect>
+              <text x="160" y="310">AI API</text>
+              <text class="sub" x="160" y="332">NLP Processing</text>
+            </g>
+
+            <g class="arch-box arch-db">
+              <rect x="365" y="284" width="250" height="58" rx="10"></rect>
+              <text x="490" y="310">Database</text>
+              <text class="sub" x="490" y="332">MongoDB</text>
+            </g>
+
+            <g class="arch-box arch-pdf">
+              <rect x="695" y="284" width="250" height="58" rx="10"></rect>
+              <text x="820" y="310">PDF Processor</text>
+              <text class="sub" x="820" y="332">Python Module</text>
+            </g>
+
+            <path class="arch-line" d="M490 66 V86"></path>
+            <path class="arch-line" d="M490 152 V180"></path>
+            <path class="arch-stem" d="M490 246 V265"></path>
+            <path class="arch-bus" d="M160 265 H820"></path>
+            <path class="arch-line branch" d="M160 265 V284"></path>
+            <path class="arch-line branch" d="M490 265 V284"></path>
+            <path class="arch-line branch" d="M820 265 V284"></path>
+          </svg>
         </article>
 
         <article class="panel workflow">

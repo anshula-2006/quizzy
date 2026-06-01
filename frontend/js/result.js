@@ -9,7 +9,8 @@ import {
   getSavedQuizHistory,
   setQuizState,
   setResultState,
-  escapeHtml
+  escapeHtml,
+  reportQuestion
 } from "./shared.js";
 
 const resultRoot = document.getElementById("resultRoot");
@@ -100,6 +101,7 @@ if (resultState) {
               <div style="flex: 1; min-width: 0;">
                 <strong style="display: block; font-size: 1rem; color: var(--text); margin-bottom: 4px; line-height: 1.4;">${escapeHtml(answer.question || "Question")}</strong>
                 <span style="font-size: 0.85rem; color: var(--muted); display: block;">Correct answer: ${escapeHtml(answer.correct || "-")}</span>
+                <button class="btn-outline report-question-btn" type="button" data-index="${index}" style="margin-top:10px; padding:6px 10px; font-size:0.8rem;">Report Question</button>
               </div>
             </div>
           `).join("")}
@@ -118,6 +120,34 @@ if (resultState) {
     setQuizState(quizState);
     setResultState(null);
     window.location.href = "./quiz.html";
+  });
+
+  document.querySelectorAll(".report-question-btn").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const index = Number(button.dataset.index);
+      const answer = answers[index];
+      const reason = window.prompt("Why are you reporting this question?", "Answer seems incorrect");
+      if (!reason) return;
+      button.disabled = true;
+      button.textContent = "Reporting...";
+      try {
+        await reportQuestion({
+          quizId: quizState?.quizId || null,
+          publishedQuizId: quizState?.meta?.publishedQuizId || "",
+          teacherName: quizState?.meta?.teacherName || "",
+          question: answer?.question || "",
+          selected: answer?.selected || "",
+          correct: answer?.correct || "",
+          explanation: answer?.explanation || answer?.wrongExplanation || "",
+          reason
+        });
+        button.textContent = "Reported";
+      } catch (error) {
+        alert(error.message || "Could not report this question.");
+        button.disabled = false;
+        button.textContent = "Report Question";
+      }
+    });
   });
 
   document.getElementById("newQuizBtn")?.addEventListener("click", () => {

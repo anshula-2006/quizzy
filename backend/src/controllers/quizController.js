@@ -2,6 +2,7 @@ import { FlashDeck } from "../models/FlashDeck.js";
 import { PublishedQuiz } from "../models/PublishedQuiz.js";
 import { QuizAttempt } from "../models/QuizAttempt.js";
 import { QuizSession } from "../models/QuizSession.js";
+import { ReportedQuestion } from "../models/ReportedQuestion.js";
 import { SavedQuestion } from "../models/SavedQuestion.js";
 import { User } from "../models/User.js";
 import { createJsonCompletion } from "../services/aiProviderService.js";
@@ -89,6 +90,21 @@ function cleanPublishedQuestion(item) {
   const correct = String(item.correct || "").trim().toUpperCase();
   if (options.length < 2 || !["A", "B", "C", "D"].includes(correct)) return null;
   return { ...base, options, correct, shortAnswer: null, acceptableAnswers: [] };
+}
+
+function toPublicQuestion(question) {
+  if (!question || typeof question !== "object") return null;
+  const type = question.type === "short" ? "short" : "mcq";
+  const base = {
+    question: String(question.question || ""),
+    type,
+    image: question.image || null
+  };
+  if (type === "short") return { ...base, acceptableAnswers: [] };
+  return {
+    ...base,
+    options: Array.isArray(question.options) ? question.options : []
+  };
 }
 
 export async function extractContent(req, res) {
@@ -211,7 +227,7 @@ export async function teacherDashboardData(req, res) {
     throw new AppError("Teacher account required", 403);
   }
 
-  const [users, attempts, publishedQuizzes] = await Promise.all([
+  const [users, attempts, publishedQuizzes, reportedQuestions] = await Promise.all([
     User.find({
       userType: { $ne: "teacher" },
       name: { $not: /dummy|fake/i },
@@ -229,6 +245,10 @@ export async function teacherDashboardData(req, res) {
     PublishedQuiz.find({ teacher: req.user._id })
       .sort({ publishedAt: -1, createdAt: -1 })
       .limit(50)
+      .lean(),
+    ReportedQuestion.find({})
+      .sort({ createdAt: -1 })
+      .limit(20)
       .lean()
   ]);
 
@@ -314,6 +334,16 @@ export async function teacherDashboardData(req, res) {
         publishedAt: quiz.publishedAt || quiz.createdAt
       };
     }),
+    reportedQuestions: reportedQuestions.map((report) => ({
+      id: report._id?.toString(),
+      userName: report.userName,
+      question: report.question,
+      selected: report.selected,
+      correct: report.correct,
+      reason: report.reason,
+      status: report.status,
+      createdAt: report.createdAt
+    })),
     recentAttempts: studentAttempts.slice(0, 12).map((attempt) => ({
       id: attempt._id?.toString(),
       studentName: String(attempt.user?.name || "Learner"),
@@ -399,7 +429,7 @@ export async function startGlobalQuiz(req, res) {
 
   res.json({
     quizId: session._id.toString(),
-    questions: quiz.questions || [],
+    questions: (quiz.questions || []).map(toPublicQuestion).filter(Boolean),
     meta: {
       sourceType: "global",
       sourceInput: quiz.title,
@@ -408,6 +438,26 @@ export async function startGlobalQuiz(req, res) {
     },
     settings: session.settings
   });
+}
+
+export async function reportQuestion(req, res) {
+  const question = String(req.body?.question || "").trim();
+  if (!question) throw new AppError("Question is required", 400);
+
+  const doc = await ReportedQuestion.create({
+    user: req.user._id,
+    userName: req.user.name || req.user.email || "Learner",
+    quizSession: req.body?.quizId || null,
+    publishedQuizId: String(req.body?.publishedQuizId || ""),
+    teacherName: String(req.body?.teacherName || ""),
+    question,
+    selected: String(req.body?.selected || ""),
+    correct: String(req.body?.correct || ""),
+    explanation: String(req.body?.explanation || ""),
+    reason: String(req.body?.reason || "Answer seems incorrect").slice(0, 500)
+  });
+
+  res.status(201).json({ report: toClientDoc(doc.toObject()) });
 }
 
 export async function generateTeacherExplanation(req, res) {

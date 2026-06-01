@@ -108,15 +108,18 @@ function persist() {
 
 function saveAnswer(selected) {
   const question = getCurrentQuestion();
+  const isOfficialQuiz = quizState.meta?.sourceType === "global";
   const correctMcq = question.type === "mcq" ? normalizeMcqCorrect(question.correct, question.options) : null;
-  const isCorrect = question.type === "short"
+  const isCorrect = isOfficialQuiz
+    ? false
+    : question.type === "short"
     ? gradeShortAnswer(selected, question)
     : selected === correctMcq;
 
   quizState.answers[quizState.currentIndex] = {
     question: question.question,
     selected,
-    correct: question.type === "short" ? question.shortAnswer : correctMcq,
+    correct: isOfficialQuiz ? "" : question.type === "short" ? question.shortAnswer : correctMcq,
     isCorrect,
     type: question.type,
     explanation: question.explanation || "",
@@ -249,6 +252,7 @@ function render() {
   const questionCountLabel = `Questions: ${quizState.questions.length}`;
 
   const modeLabel = quizState.settings?.learnerMode || "quiz";
+  const isOfficialQuiz = quizState.meta?.sourceType === "global";
   const isExam = modeLabel === "exam";
   const isArcade = modeLabel === "arcade";
   const isFocus = modeLabel === "focus";
@@ -384,11 +388,11 @@ function render() {
 
   const feedbackWrap = document.getElementById("feedbackWrap");
   if (answer) {
-    if (isExam) {
+    if (isExam || isOfficialQuiz) {
       feedbackWrap.innerHTML = `
         <div class="feedback-box" style="background: var(--bg-secondary); border-color: var(--line);">
           <h3 class="feedback-title" style="color: var(--text);">Answer Recorded</h3>
-          <p class="feedback-copy">Your response has been saved. Move to the next question.</p>
+          <p class="feedback-copy">${isOfficialQuiz ? "Teacher quiz answers are shown after final submission." : "Your response has been saved. Move to the next question."}</p>
         </div>
       `;
     } else {

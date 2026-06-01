@@ -27,6 +27,19 @@ function cleanUserType(value) {
   return ["student", "teacher", "self_learner"].includes(userType) ? userType : "student";
 }
 
+function loginQuery(identifier) {
+  const value = String(identifier || "").trim();
+  const email = value.toLowerCase();
+  const phone = value.replace(/[^\d+]/g, "").trim();
+  return {
+    $or: [
+      { email },
+      { parentPhone: phone || value },
+      { userId: value }
+    ]
+  };
+}
+
 export async function register(req, res) {
   const name = String(req.body?.name || "").trim();
   const email = String(req.body?.email || "").trim().toLowerCase();
@@ -68,20 +81,68 @@ export async function login(req, res) {
 
   if (!identifier || !password) throw new AppError("Login ID and password are required", 400);
 
-  const query = {
-    $or: [
-      { email },
-      { parentPhone: phone || identifier },
-      { userId: identifier }
-    ]
-  };
-  const user = await User.findOne(query);
+  const user = await User.findOne(loginQuery(identifier));
   if (!user) throw new AppError("Invalid login ID or password", 401);
 
   const isMatch = await bcrypt.compare(password, user.passwordHash);
   if (!isMatch) throw new AppError("Invalid login ID or password", 401);
 
   res.json(buildAuthPayload(user));
+}
+
+export async function forgotPassword(req, res) {
+  const identifier = String(req.body?.identifier || "").trim();
+  const recovery = String(req.body?.recovery || "").trim();
+  if (!identifier || !recovery) throw new AppError("Login ID and recovery detail are required", 400);
+
+  const user = await User.findOne(loginQuery(identifier));
+  const normalizedRecoveryPhone = recovery.replace(/[^\d+]/g, "").trim();
+  const matchesRecovery = user && [
+    String(user.email || "").toLowerCase(),
+    String(user.userId || ""),
+    String(user.parentPhone || "")
+  ].some((value) => value && (value === recovery.toLowerCase() || value === normalizedRecoveryPhone || value === recovery));
+
+  if (!user || !matchesRecovery) {
+    throw new AppError("Could not verify account recovery details", 404);
+  }
+
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  user.passwordResetCodeHash = await bcrypt.hash(code, 10);
+  user.passwordResetExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+  await user.save();
+
+  res.json({
+    message: "Reset code generated. In production this would be sent by email or SMS.",
+    demoCode: code
+  });
+}
+
+export async function resetPassword(req, res) {
+  const identifier = String(req.body?.identifier || "").trim();
+  const code = String(req.body?.code || "").trim();
+  const newPassword = String(req.body?.newPassword || "").trim();
+  if (!identifier || !code || !newPassword) throw new AppError("Login ID, reset code, and new password are required", 400);
+  if (newPassword.length < 6) throw new AppError("New password must be at least 6 characters", 400);
+
+  const user = await User.findOne(loginQuery(identifier));
+  if (!user || !user.passwordResetCodeHash || !user.passwordResetExpiresAt || user.passwordResetExpiresAt < new Date()) {
+    throw new AppError("Reset code is invalid or expired", 400);
+  }
+
+  const isMatch = await bcrypt.compare(code, user.passwordResetCodeHash);
+  if (!isMatch) throw new AppError("Reset code is invalid or expired", 400);
+
+  user.passwordHash = await bcrypt.hash(newPassword, 10);
+  user.passwordResetCodeHash = "";
+  user.passwordResetExpiresAt = null;
+  user.tokenVersion = (user.tokenVersion || 0) + 1;
+  await user.save();
+
+  res.json({
+    message: "Password reset successful",
+    ...buildAuthPayload(user)
+  });
 }
 
 export async function me(req, res) {

@@ -35,10 +35,40 @@ if (togglePasswordBtn && passwordInput) {
 }
 
 if (forgotPasswordLink) {
-  forgotPasswordLink.addEventListener("click", (e) => {
+  forgotPasswordLink.addEventListener("click", async (e) => {
     e.preventDefault();
-    message.textContent = "Forgot password instructions sent to your email/phone.";
-    message.className = "auth-msg success";
+    message.textContent = "";
+    message.className = "auth-msg";
+
+    const identifier = window.prompt("Enter your email, parent phone, or roll number:");
+    if (!identifier) return;
+    const recovery = window.prompt("Enter a recovery detail from your account, such as parent phone, email, or roll number:");
+    if (!recovery) return;
+
+    const requestResult = await auth.forgotPassword({ identifier, recovery });
+    if (!requestResult.ok) {
+      message.textContent = requestResult.error;
+      message.classList.add("error");
+      return;
+    }
+
+    const code = window.prompt(`Reset code generated. Demo code: ${requestResult.data.demoCode}\nEnter the reset code:`);
+    if (!code) return;
+    const newPassword = window.prompt("Enter your new password, minimum 6 characters:");
+    if (!newPassword) return;
+
+    const resetResult = await auth.resetPassword({ identifier, code, newPassword });
+    if (!resetResult.ok) {
+      message.textContent = resetResult.error;
+      message.classList.add("error");
+      return;
+    }
+
+    message.textContent = "Password reset successful. Redirecting...";
+    message.classList.add("success");
+    setTimeout(() => {
+      window.location.href = resetResult.user?.userType === "teacher" ? "./teacher-dashboard.html" : "./index.html";
+    }, 500);
   });
 }
 

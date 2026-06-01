@@ -560,7 +560,12 @@ export async function requestQuiz(payload) {
   if (!response.ok) throw new Error(data.error || "Failed to generate quiz.");
   const questions = (Array.isArray(data.questions) ? data.questions : [])
     .map(normalizeQuestion)
-    .filter(Boolean);
+    .filter(Boolean)
+    .map((question) => {
+      if (data.meta?.sourceType !== "global") return question;
+      const { correct, shortAnswer, explanation, wrongExplanation, acceptableAnswers, ...publicQuestion } = question;
+      return { ...publicQuestion, explanation: "", wrongExplanation: "" };
+    });
   if (!questions.length) throw new Error("No quiz questions were returned.");
   return { quizId: data.quizId || null, questions, meta: data.meta };
 }
@@ -651,6 +656,17 @@ export async function requestTeacherExplanation(question) {
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error || "Could not generate an explanation.");
   return data;
+}
+
+export async function reportQuestion(payload) {
+  const response = await fetch(`${API_BASE}/data/question-reports`, {
+    method: "POST",
+    headers: buildJsonHeaders(),
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "Could not report this question.");
+  return data.report;
 }
 
 export function buildResultState(quizState, evaluationOverride = null) {

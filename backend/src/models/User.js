@@ -36,6 +36,8 @@ const userSchema = new mongoose.Schema(
     userType: { type: String, enum: ["student", "teacher", "self_learner"], default: "student" },
     grade: { type: String, default: "", trim: true },
     tokenVersion: { type: Number, default: 0 },
+    passwordResetCodeHash: { type: String, default: "" },
+    passwordResetExpiresAt: { type: Date, default: null },
     stats: { type: userStatsSchema, default: () => ({}) }
   },
   { timestamps: true }

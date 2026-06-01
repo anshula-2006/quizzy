@@ -102,6 +102,25 @@ const QuizzyAuth = {
     return { ok: true, user: result.data.user };
   },
 
+  async forgotPassword({ identifier, recovery }) {
+    return request("/auth/forgot-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ identifier, recovery })
+    });
+  },
+
+  async resetPassword({ identifier, code, newPassword }) {
+    const result = await request("/auth/reset-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ identifier, code, newPassword })
+    });
+    if (!result.ok) return result;
+    setSession(result.data.token, result.data.user, true);
+    return { ok: true, user: result.data.user };
+  },
+
   async logoutAll() {
     const session = getSession();
     if (!session?.token) return { ok: false, error: "No session" };

@@ -68,6 +68,7 @@ function renderDashboard(data) {
   const recentAttempts = Array.isArray(data.recentAttempts) ? data.recentAttempts : [];
   const topicStats = Array.isArray(data.topicStats) ? data.topicStats : [];
   const publishedQuizzes = Array.isArray(data.publishedQuizzes) ? data.publishedQuizzes : [];
+  const reportedQuestions = Array.isArray(data.reportedQuestions) ? data.reportedQuestions : [];
 
   if (!students.length && !recentAttempts.length) {
     renderEmpty(data);
@@ -136,6 +137,23 @@ function renderDashboard(data) {
       </section>
 
       <div class="dashboard-side-grid">
+        <section class="panel flow-card">
+          <div class="dashboard-block">
+            <div>
+              <strong class="section-title">Reported Questions</strong>
+              <p class="section-copy">Student flags for answers that may need teacher review.</p>
+            </div>
+            <div class="dashboard-list">
+              ${reportedQuestions.length ? reportedQuestions.slice(0, 5).map((report) => `
+                <article class="dashboard-activity-item">
+                  <strong>${escapeHtml(report.question)}</strong>
+                  <span class="section-copy">${escapeHtml(report.reason || "Needs review")} · ${escapeHtml(report.userName || "Learner")} · ${formatDate(report.createdAt)}</span>
+                </article>
+              `).join("") : `<p class="section-copy">No reported questions yet.</p>`}
+            </div>
+          </div>
+        </section>
+
         <section class="panel flow-card">
           <div class="dashboard-block">
             <div>

@@ -582,7 +582,10 @@ async function buildFlashcardPayloadFromAttempt(entry) {
   if (sourceType === "url" && sourceInput) {
     const response = await fetch(`${API_BASE}/extract-content`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${getAuthToken()}`
+      },
       body: JSON.stringify({ url: sourceInput })
     });
     const data = await response.json().catch(() => ({}));
@@ -617,7 +620,10 @@ async function generateFlashcardsFromAttemptSource(entry) {
   const payload = await buildFlashcardPayloadFromAttempt(entry);
   const response = await fetch(`${API_BASE}/generate-flashcards`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${getAuthToken()}`
+    },
     body: JSON.stringify(payload)
   });
   const data = await response.json().catch(() => ({}));

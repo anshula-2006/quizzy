@@ -7,6 +7,41 @@ function buildHref(file) {
   return `${baseHref}/${file}`;
 }
 
+function getStoredSession() {
+  try {
+    const raw = localStorage.getItem("quizzy-session-v2") || sessionStorage.getItem("quizzy-session-v2");
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function requireLoggedInForAppPages() {
+  const page = window.location.pathname.split("/").pop() || "index.html";
+  const protectedPages = new Set([
+    "generate.html",
+    "flashcards.html",
+    "dashboard.html",
+    "profile.html",
+    "arcade.html",
+    "scoreboard.html",
+    "settings.html",
+    "quiz.html",
+    "result.html",
+    "teacher-dashboard.html",
+    "teacher-review.html"
+  ]);
+  const isProtected = protectedPages.has(page) || window.location.pathname.includes("/games/");
+  if (!isProtected) return;
+
+  const session = getStoredSession();
+  if (!session?.token) {
+    window.location.replace(buildHref("login.html"));
+  }
+}
+
+requireLoggedInForAppPages();
+
 const toggleStyles = document.createElement("style");
 toggleStyles.textContent = `
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800;900&display=swap');

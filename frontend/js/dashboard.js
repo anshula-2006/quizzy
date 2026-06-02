@@ -258,7 +258,8 @@ function renderDashboard(data) {
   `;
 
   const quizzesCompleted = attempts.length;
-  const currentName = escapeHtml(auth?.getSession?.()?.name || auth?.getSession?.()?.email || 'Player');
+  const currentName = auth?.getSession?.()?.name || auth?.getSession?.()?.email || "";
+  const welcomeTitle = currentName ? `Welcome back, ${escapeHtml(currentName)}` : "Your learning dashboard";
   const latestFlashcards = Array.isArray(flashDecks) ? flashDecks.slice(0, 3) : [];
   const totalFlashcards = Array.isArray(flashDecks) ? flashDecks.length : 0;
   const recentActivity = recent.slice(0, 4);
@@ -293,7 +294,7 @@ function renderDashboard(data) {
   root.innerHTML = `
     <div class="card-title-row">
       <div>
-        <h1 class="section-title">Welcome back, ${currentName}</h1>
+        <h1 class="section-title">${welcomeTitle}</h1>
         <p class="section-copy">${welcomeSub}</p>
       </div>
       <div>

@@ -88,6 +88,14 @@ function setText(id, value) {
   if (node) node.textContent = value;
 }
 
+function pointGuestActionsToLogin() {
+  const session = getSession();
+  if (session?.token) return;
+  document.querySelectorAll('a[href^="./generate.html"]').forEach((link) => {
+    link.setAttribute("href", "./login.html");
+  });
+}
+
 async function personalizeHomepage() {
   const session = getSession();
   if (!session?.token) return;
@@ -130,4 +138,5 @@ async function personalizeHomepage() {
   setText("heroRankValue", rankText);
 }
 
+window.addEventListener("DOMContentLoaded", pointGuestActionsToLogin);
 window.addEventListener("DOMContentLoaded", personalizeHomepage);

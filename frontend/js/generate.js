@@ -28,6 +28,27 @@ const generationProgress = document.getElementById("generationProgress");
 let activeSource = "text";
 let generationTimerId = null;
 
+function redirectToLogin() {
+  window.location.replace("./login.html");
+}
+
+function requireSession() {
+  return Boolean(getSession()?.token);
+}
+
+if (!requireSession()) {
+  if (form) {
+    form.querySelectorAll("input, textarea, select, button").forEach((node) => {
+      node.disabled = true;
+    });
+  }
+  if (errorNode) {
+    errorNode.hidden = false;
+    errorNode.textContent = "Please log in or create an account to generate quizzes and flashcards.";
+  }
+  redirectToLogin();
+}
+
 const modeDescriptions = {
   focus: "Deep, distraction-free learning. Best for mastering new topics at your own pace.",
   arcade: "Fast-paced, gamified. Earn XP, build streaks, and compete.",
@@ -385,6 +406,10 @@ if (autoGenerate === "flashcards" && flashcardsBtn && prefillTopic) {
 
 form?.addEventListener("submit", async (event) => {
   event.preventDefault();
+  if (!requireSession()) {
+    redirectToLogin();
+    return;
+  }
   clearQuizFlow();
   errorNode.hidden = true;
 
@@ -500,6 +525,10 @@ renderGlobalQuizShelf();
 
 flashcardsBtn?.addEventListener("click", async (event) => {
   event.preventDefault();
+  if (!requireSession()) {
+    redirectToLogin();
+    return;
+  }
   errorNode.hidden = true;
   const originalHTML = flashcardsBtn.innerHTML;
   flashcardsBtn.innerHTML = `<i data-lucide="plus" style="width: 16px; height: 16px; margin-right: 4px;"></i> Generating...`;

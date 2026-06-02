@@ -86,6 +86,13 @@ function buildJsonHeaders(headers = {}) {
   return nextHeaders;
 }
 
+function buildAuthHeaders(headers = {}) {
+  const session = getSession();
+  const nextHeaders = { ...headers };
+  if (session?.token) nextHeaders.Authorization = `Bearer ${session.token}`;
+  return nextHeaders;
+}
+
 export async function apiRequest(path, options = {}) {
   if (!API_BASE && window.location.protocol === "file:") return null;
 
@@ -505,7 +512,7 @@ export async function extractContent(inputMode, values) {
 
     const formData = new FormData();
     formData.append("pdf", file);
-    const response = await fetch(`${API_BASE}/extract-content`, { method: "POST", body: formData });
+    const response = await fetch(`${API_BASE}/extract-content`, { method: "POST", headers: buildAuthHeaders(), body: formData });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || "Could not read the PDF.");
     return {
@@ -520,7 +527,7 @@ export async function extractContent(inputMode, values) {
   if (inputMode === "url") {
     const response = await fetch(`${API_BASE}/extract-content`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: buildJsonHeaders(),
       body: JSON.stringify({ url: values.url.trim() })
     });
     const data = await response.json().catch(() => ({}));
@@ -536,7 +543,7 @@ export async function extractContent(inputMode, values) {
 
   const response = await fetch(`${API_BASE}/extract-content`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: buildJsonHeaders(),
     body: JSON.stringify({ text: values.topic.trim() })
   });
   const data = await response.json().catch(() => ({}));

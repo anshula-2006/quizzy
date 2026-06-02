@@ -3,7 +3,7 @@ import { fileURLToPath } from "url";
 import { resolve } from "path";
 
 const rootDir = fileURLToPath(new URL(".", import.meta.url));
-const proxyTarget = process.env.VITE_API_PROXY_TARGET || "https://quizzy-3lt0.onrender.com";
+const proxyTarget = process.env.VITE_API_PROXY_TARGET || "https://quizzy-11jg.onrender.com";
 
 export default defineConfig({
   build: {

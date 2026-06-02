@@ -75,6 +75,29 @@ export async function evaluateQuizAttempt({ user, quizId, answers = [], sourceTy
     throw new AppError("Quiz session not found or expired. Regenerate the quiz and try again.", 404);
   }
 
+  const existingAttempt = await QuizAttempt.findOne({ user: user._id, quizSession: quizSession._id });
+  if (existingAttempt) {
+    const evaluatedAnswers = Array.isArray(existingAttempt.evaluatedAnswers) ? existingAttempt.evaluatedAnswers : [];
+    return {
+      attempt: existingAttempt,
+      evaluation: {
+        score: Number(existingAttempt.score || 0),
+        total: Number(existingAttempt.total || 0),
+        percentage: Number(existingAttempt.percentage || 0),
+        confidence: Number(existingAttempt.confidence || 0),
+        answers: evaluatedAnswers
+      },
+      gamification: {
+        updatedStats: user.stats || {},
+        unlockedAchievements: [],
+        rewards: {
+          pointsEarned: Number(existingAttempt.pointsEarned || 0),
+          xpEarned: Number(existingAttempt.xpEarned || 0)
+        }
+      }
+    };
+  }
+
   const questions = Array.isArray(quizSession.questions) ? quizSession.questions : [];
   if (!questions.length) {
     throw new AppError("Quiz session has no questions to evaluate.", 400);

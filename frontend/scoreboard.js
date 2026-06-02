@@ -375,24 +375,57 @@ async function cloudRequest(path, options = {}) {
   return { ok: true, data };
 }
 
-async function syncFromCloud() {
-  if (!isLoggedIn()) return;
-  const result = await cloudRequest("/data/bootstrap");
-  if (!result.ok) return;
-  const attempts = Array.isArray(result.data?.attempts) ? result.data.attempts : [];
-  const savedQuestions = Array.isArray(result.data?.savedQuestions) ? result.data.savedQuestions : [];
-  const flashDecks = Array.isArray(result.data?.flashDecks) ? result.data.flashDecks : [];
-  cloudProfile = result.data?.profile || null;
-  cloudLeaderboard = Array.isArray(result.data?.leaderboard) ? result.data.leaderboard.filter(user => {
+function cleanLeaderboardRows(rows) {
+  return (Array.isArray(rows) ? rows : []).filter((user) => {
     if (!user) return false;
-    const name = String(user.name || '').toLowerCase();
-    const email = String(user.email || '').toLowerCase();
-    return !user.isDummy && !user.isFake && !name.includes('dummy') && !name.includes('fake') && !email.includes('dummy');
-  }) : [];
-  saveHistory(attempts);
-  saveSavedQuestions(savedQuestions);
-  saveFlashDecks(flashDecks);
-  if (result.data?.miniGameStats) saveMiniGameStats(result.data.miniGameStats);
+    const name = String(user.name || "").toLowerCase();
+    const email = String(user.email || "").toLowerCase();
+    return !user.isDummy && !user.isFake && !name.includes("dummy") && !name.includes("fake") && !email.includes("dummy") && !email.includes("fake");
+  });
+}
+
+async function fetchGlobalLeaderboard() {
+  try {
+    const response = await fetch(`${API_BASE}/api/gamification/leaderboard?limit=50`);
+    const data = await response.json().catch(() => ({}));
+    if (response.ok) {
+      return cleanLeaderboardRows(data?.leaderboard);
+    }
+  } catch {
+    // Fall through to the legacy endpoint.
+  }
+
+  try {
+    const response = await fetch(`${API_BASE}/api/leaderboard`);
+    const data = await response.json().catch(() => []);
+    if (response.ok) {
+      return cleanLeaderboardRows(data);
+    }
+  } catch {
+    return [];
+  }
+
+  return [];
+}
+
+async function syncFromCloud() {
+  if (isLoggedIn()) {
+    const result = await cloudRequest("/data/bootstrap");
+    if (result.ok) {
+      const attempts = Array.isArray(result.data?.attempts) ? result.data.attempts : [];
+      const savedQuestions = Array.isArray(result.data?.savedQuestions) ? result.data.savedQuestions : [];
+      const flashDecks = Array.isArray(result.data?.flashDecks) ? result.data.flashDecks : [];
+      cloudProfile = result.data?.profile || null;
+      cloudLeaderboard = cleanLeaderboardRows(result.data?.leaderboard);
+      saveHistory(attempts);
+      saveSavedQuestions(savedQuestions);
+      saveFlashDecks(flashDecks);
+      if (result.data?.miniGameStats) saveMiniGameStats(result.data.miniGameStats);
+    }
+  }
+
+  const globalRows = await fetchGlobalLeaderboard();
+  if (globalRows.length) cloudLeaderboard = globalRows;
 }
 
 function renderAuthNav() {

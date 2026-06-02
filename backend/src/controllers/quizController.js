@@ -51,6 +51,21 @@ function toLeaderboardRow(item, index) {
   };
 }
 
+function withAttemptCounts(profile, attempts = []) {
+  const rows = Array.isArray(attempts) ? attempts : [];
+  const totalQuestions = rows.reduce((sum, attempt) => sum + Number(attempt.total || 0), 0);
+  const totalCorrectAnswers = rows.reduce((sum, attempt) => sum + Number(attempt.score || 0), 0);
+  const bestPercentage = rows.reduce((best, attempt) => Math.max(best, Number(attempt.percentage || 0)), 0);
+
+  return {
+    ...profile,
+    totalQuizzes: rows.length,
+    totalQuestions,
+    totalCorrectAnswers,
+    bestPercentage
+  };
+}
+
 function requireTeacher(user) {
   if ((user?.userType || "student") !== "teacher") {
     throw new AppError("Teacher account required", 403);
@@ -217,7 +232,7 @@ export async function bootstrapUserData(req, res) {
     savedQuestions: savedQuestions.map(toClientDoc),
     flashDecks: flashDecks.map(toClientDoc),
     miniGameStats: req.user?.stats?.miniGameStats || {},
-    profile: buildProfileSummary(req.user),
+    profile: withAttemptCounts(buildProfileSummary(req.user), attempts),
     leaderboard: leaderboard.filter(hasRealProgress).map(toLeaderboardRow)
   });
 }

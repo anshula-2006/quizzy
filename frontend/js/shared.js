@@ -288,7 +288,7 @@ export function saveQuizAttemptLocal(quizState, resultState) {
   const next = [normalizeAttemptEntry(entry), ...getSavedQuizHistory()].slice(0, MAX_HISTORY_ITEMS);
   const saved = writeJson(historyKey(), next);
   if (saved) markSessionActivity({ quizDone: true });
-  if (saved) {
+  if (saved && !quizState.quizId) {
     const username = getDisplayUsername();
     const title = quizState.meta?.sourceInput || quizState.meta?.sourceTopic || quizState.settings?.topic || "Quiz";
     postJson("/api/save-score", {

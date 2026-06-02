@@ -14,6 +14,7 @@ const quizRoot = document.getElementById("quizRoot");
 const quizState = getQuizState();
 let timerId = null;
 let timerLeft = 0;
+let isFinishing = false;
 
 if (!quizState?.questions?.length) {
   window.location.replace("./generate.html");
@@ -162,6 +163,8 @@ function saveAnswer(selected) {
 }
 
 async function finishQuiz() {
+  if (isFinishing) return;
+  isFinishing = true;
   clearInterval(timerId);
   let evaluation = null;
 

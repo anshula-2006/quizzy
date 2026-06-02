@@ -1,14 +1,14 @@
 import API_BASE from "./js/config.js";
 import auth from "./auth.js";
 
-const authUser = document.getElementById("authUser");
-const loginLink = document.getElementById("loginLink");
-const registerLink = document.getElementById("registerLink");
-const logoutBtn = document.getElementById("logoutBtn");
+const authUser = document.getElementById("authUser") || document.getElementById("authUserLegacy");
+const loginLink = document.getElementById("loginLink") || document.getElementById("loginLinkLegacy");
+const registerLink = document.getElementById("registerLink") || document.getElementById("registerLinkLegacy");
+const logoutBtn = document.getElementById("logoutBtn") || document.getElementById("logoutBtnLegacy");
 const scoreboardContent = document.getElementById("scoreboardContent");
 const refreshBoardBtn = document.getElementById("refreshBoardBtn");
 const clearBoardBtn = document.getElementById("clearBoardBtn");
-const themeToggle = document.getElementById("themeToggle");
+const themeToggle = document.getElementById("themeToggle") || document.getElementById("themeToggleLegacy");
 
 const HISTORY_BASE = "quizzy-history-v2";
 const SAVED_BASE = "quizzy-saved-v1";
@@ -437,7 +437,7 @@ function renderAuthNav() {
     registerLink?.classList.remove("hidden");
     return;
   }
-  authUser.textContent = `Hi, ${session.name}`;
+  if (authUser) authUser.textContent = `Hi, ${session.name || session.email || "Learner"}`;
   authUser?.classList.remove("hidden");
   logoutBtn?.classList.remove("hidden");
   loginLink?.classList.add("hidden");

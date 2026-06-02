@@ -3434,3 +3434,83 @@ select:focus,
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 }
+
+/* Generate page containment: keep nested grids inside the page shell. */
+.generate-workspace {
+  width: 100%;
+  max-width: 100%;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px) !important;
+  overflow-x: clip;
+}
+
+.generate-workspace > *,
+.generate-form > *,
+.generate-form .field-stack,
+.generate-form .field-stack > *,
+.source-grid,
+.source-card,
+.file-wrap,
+.generation-status {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.generate-form {
+  width: 100%;
+  max-width: 100%;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.9fr) minmax(0, 0.9fr) !important;
+}
+
+.generate-form .input,
+.generate-form textarea,
+.generate-form select,
+.generate-form input,
+.generate-form .file-input,
+.generate-form .btn {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.generate-form textarea {
+  overflow-wrap: anywhere;
+}
+
+.generate-form .source-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+.generate-form .source-card {
+  padding-inline: 10px;
+  overflow: hidden;
+}
+
+.generate-form .source-card strong,
+.generate-form .source-card span,
+#generateSidebar,
+#generateSidebar * {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1180px) {
+  .generate-workspace {
+    grid-template-columns: 1fr !important;
+  }
+
+  .generate-form {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .generate-form,
+  .generate-form .source-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .generate-workspace {
+    overflow-x: hidden;
+  }
+}

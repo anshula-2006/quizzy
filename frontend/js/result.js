@@ -110,7 +110,7 @@ if (resultState) {
       <section class="panel flow-card result-review-list">
         <div class="card-title-row" style="margin-bottom: 16px;"><div><strong style="font-size: 1.1rem;">Question review</strong><span style="display: block; margin-top: 2px; font-size: 0.85rem;">Fast scan of missed concepts</span></div></div>
         <div style="display: grid; gap: 8px;">
-          ${answers.slice(0, 8).map((answer, index) => `
+          ${answers.map((answer, index) => `
                 <div style="display: flex; gap: 16px; padding: 16px; background: var(--panel-soft); border-radius: var(--radius-md); border: 1px solid var(--line); align-items: flex-start;">
                   <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 48px; height: 48px; border-radius: var(--radius-md); background: ${answer.isCorrect ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)'}; color: ${answer.isCorrect ? 'var(--success)' : 'var(--error)'}; font-weight: 700; font-size: 0.9rem; flex-shrink: 0;">
                 Q${index + 1}

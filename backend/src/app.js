@@ -7,7 +7,7 @@ import dataRoutes from "./routes/dataRoutes.js";
 import gamificationRoutes from "./routes/gamificationRoutes.js";
 import quizRoutes from "./routes/quizRoutes.js";
 import simpleDataRoutes from "./routes/simpleDataRoutes.js";
-import { optionalAuth, requireAuth } from "./middleware/auth.js";
+import { requireAuth } from "./middleware/auth.js";
 import { rateLimit } from "./middleware/rateLimit.js";
 import { upload } from "./services/contentExtractionService.js";
 import { asyncHandler } from "./utils/asyncHandler.js";
@@ -28,11 +28,11 @@ app.use("/api/quizzes", quizRoutes);
 app.use("/api/gamification", gamificationRoutes);
 
 // Legacy compatibility routes for the existing frontend.
-app.post("/extract-content", upload.single("pdf"), asyncHandler(extractContent));
-app.get("/extract-content-status", asyncHandler(extractionStatus));
-app.post("/generate-quiz", optionalAuth, rateLimit({ windowMs: 60_000, max: 8, label: "generate-quiz" }), asyncHandler(generateQuiz));
+app.post("/extract-content", requireAuth, upload.single("pdf"), asyncHandler(extractContent));
+app.get("/extract-content-status", requireAuth, asyncHandler(extractionStatus));
+app.post("/generate-quiz", requireAuth, rateLimit({ windowMs: 60_000, max: 8, label: "generate-quiz" }), asyncHandler(generateQuiz));
 app.post("/submit-quiz", requireAuth, asyncHandler(submitQuiz));
-app.post("/generate-flashcards", optionalAuth, rateLimit({ windowMs: 60_000, max: 8, label: "generate-flashcards" }), asyncHandler(generateFlashcardsController));
+app.post("/generate-flashcards", requireAuth, rateLimit({ windowMs: 60_000, max: 8, label: "generate-flashcards" }), asyncHandler(generateFlashcardsController));
 
 app.use((err, req, res, next) => {
   if (err?.name === "MulterError" && err.code === "LIMIT_FILE_SIZE") {

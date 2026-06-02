@@ -865,6 +865,7 @@ function renderBoard() {
           </div>
         </div>
         <div style="display: grid; gap: 24px; align-content: start;">
+          ${leaderboardMarkup}
           ${renderProgressExtras(entries)}
           ${renderRecommendedTopics()}
         </div>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brain Lab | Quizzy</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./design-system.css" />
+  <link rel="stylesheet" href="./app.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <div class="page-container">
+      <header class="top-nav">
+        <a class="brand" href="./index.html"><span class="brand-badge">Q</span><span>Quizzy</span></a>
+        <nav class="nav-links">
+          <a class="nav-link" href="./index.html">Home</a>
+          <a class="nav-link" href="./generate.html">Generate</a>
+          <a class="nav-link" href="./flashcards.html">Flashcards</a>
+          <a class="nav-link" href="./dashboard.html">Dashboard</a>
+          <a class="nav-link" href="./teacher-dashboard.html">Teacher</a>
+          <a class="nav-link is-active" href="./arcade.html">Brain Lab</a>
+          <a class="nav-link" href="./scoreboard.html">Leaderboard</a>
+        </nav>
+      </header>
+
+      <main class="panel flow-card">
+        <div class="card-title-row">
+          <div>
+            <p class="eyebrow">Cognitive Training</p>
+            <h1 class="section-title">Brain Lab</h1>
+            <p class="section-copy">Short drills for recall, attention, and recognition speed.</p>
+          </div>
+        </div>
+
+        <section class="mini-games-grid">
+          <a class="mini-game-panel panel" href="./games/memory.html">
+            <h3 class="heading-5" style="margin: 0 0 var(--space-2);">Memory Match</h3>
+            <p class="text-secondary text-sm" style="margin: 0;">Build visual recall by matching pairs with fewer moves and cleaner focus.</p>
+            <div style="margin-top: auto; padding-top: var(--space-4);"><button class="btn btn-secondary" style="width:100%">Train Recall</button></div>
+          </a>
+
+          <a class="mini-game-panel panel" href="./games/reaction.html">
+            <h3 class="heading-5" style="margin: 0 0 var(--space-2);">Reaction Tap</h3>
+            <p class="text-secondary text-sm" style="margin: 0;">Practice inhibition and fast response timing with one controlled tap.</p>
+            <div style="margin-top: auto; padding-top: var(--space-4);"><button class="btn btn-secondary" style="width:100%">Train Focus</button></div>
+          </a>
+
+          <a class="mini-game-panel panel" href="./games/recall.html">
+            <h3 class="heading-5" style="margin: 0 0 var(--space-2);">Number Recall</h3>
+            <p class="text-secondary text-sm" style="margin: 0;">Strengthen working memory with progressively longer numeric sequences.</p>
+            <div style="margin-top: auto; padding-top: var(--space-4);"><button class="btn btn-secondary" style="width:100%">Train Memory</button></div>
+          </a>
+        </section>
+      </main>
+    </div>
+  </div>
+  <script type="module" src="./js/page-auth.js"></script>
+</body>
+</html>

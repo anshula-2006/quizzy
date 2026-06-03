@@ -1,0 +1,895 @@
+import API_BASE from "./config.js";
+
+export const SESSION_KEY = "quizzy-session-v2";
+export const QUIZ_KEY = "quizzy-vanilla-quiz-v1";
+export const RESULT_KEY = "quizzy-vanilla-result-v1";
+export const MAX_PDF_BYTES = 100 * 1024 * 1024;
+export const HISTORY_BASE = "quizzy-history-v2";
+export const MINI_GAME_BASE = "quizzy-mini-games-v1";
+export const SESSION_ACTIVITY_BASE = "quizzy-session-activity-v1";
+export const FLASH_BASE = "quizzy-flash-v1";
+const MAX_HISTORY_ITEMS = 20;
+
+export function spawnFloatingXP(amount, x, y) {
+  if (!amount) return;
+  
+  // Inject the animation CSS once
+  if (!document.getElementById("floating-xp-styles")) {
+    const style = document.createElement("style");
+    style.id = "floating-xp-styles";
+    style.textContent = `
+      .floating-xp {
+        position: fixed;
+        pointer-events: none;
+        z-index: 9999;
+        color: #10b981; /* Emerald Green */
+        font-size: 2.5rem;
+        font-weight: 900;
+        text-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        animation: floatUpXP 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      }
+      .floating-xp .xp-label {
+        font-size: 1.2rem;
+        color: #34d399;
+      }
+      @keyframes floatUpXP {
+        0% { opacity: 0; transform: translate(-50%, 0) scale(0.5); }
+        15% { opacity: 1; transform: translate(-50%, -20px) scale(1.2); }
+        100% { opacity: 0; transform: translate(-50%, -100px) scale(1); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  const el = document.createElement("div");
+  el.className = "floating-xp";
+  el.innerHTML = `+${amount} <span class="xp-label">XP</span>`;
+  
+  el.style.left = x !== undefined ? `${x}px` : "50%";
+  el.style.top = y !== undefined ? `${y}px` : "50%";
+  
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1200);
+}
+
+export function getSession() {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function isLoggedIn() {
+  const session = getSession();
+  return Boolean(session?.token && (session?.user?.email || session?.email));
+}
+
+function getScopeId() {
+  const session = getSession();
+  return session?.user?.email || session?.email || "guest";
+}
+
+function getDisplayUsername() {
+  const session = getSession();
+  return session?.user?.name || session?.user?.email || session?.email || "guest";
+}
+
+function buildJsonHeaders(headers = {}) {
+  const session = getSession();
+  const nextHeaders = {
+    "Content-Type": "application/json",
+    ...headers
+  };
+  if (session?.token) nextHeaders.Authorization = `Bearer ${session.token}`;
+  return nextHeaders;
+}
+
+function buildAuthHeaders(headers = {}) {
+  const session = getSession();
+  const nextHeaders = { ...headers };
+  if (session?.token) nextHeaders.Authorization = `Bearer ${session.token}`;
+  return nextHeaders;
+}
+
+export async function apiRequest(path, options = {}) {
+  if (!API_BASE && window.location.protocol === "file:") return null;
+
+  const headers = buildJsonHeaders(options.headers);
+
+  try {
+    const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
+    const data = await response.json().catch(() => null);
+    if (!response.ok) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+export function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function postJson(path, payload) {
+  return apiRequest(path, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+}
+
+export function getFlashDecks() {
+  const scopeId = getScopeId() || "guest";
+  try {
+    const raw = localStorage.getItem(`${FLASH_BASE}-${scopeId}`);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveFlashDecks(items) {
+  const scopeId = getScopeId() || "guest";
+  localStorage.setItem(`${FLASH_BASE}-${scopeId}`, JSON.stringify(items.slice(0, 25)));
+}
+
+export async function addFlashDeck(deck) {
+  const decks = getFlashDecks();
+  decks.unshift(deck);
+  saveFlashDecks(decks);
+  markSessionActivity({ flashcardsDone: true });
+
+  const simpleCards = (Array.isArray(deck.flashcards) ? deck.flashcards : [])
+    .map((card) => ({
+      question: card.question || card.front || card.prompt || "",
+      answer: card.answer || card.back || card.response || ""
+    }))
+    .filter((card) => card.question && card.answer);
+  if (simpleCards.length) {
+    postJson("/api/flashcards", { username: getDisplayUsername(), flashcards: simpleCards });
+  }
+
+  const session = getSession();
+  if (session?.token) {
+    try {
+      const response = await fetch(`${API_BASE}/data/flash-decks`, {
+        method: "POST",
+        headers: buildJsonHeaders(),
+        body: JSON.stringify(deck)
+      });
+      const data = await response.json();
+      if (response.ok && data.flashDeck) {
+        // Replace the local deck with the MongoDB document so it has the correct _id for deletions
+        const updatedDecks = getFlashDecks();
+        const idx = updatedDecks.findIndex((d) => d.id === deck.id);
+        if (idx !== -1) {
+          updatedDecks[idx] = data.flashDeck;
+          saveFlashDecks(updatedDecks);
+        }
+      }
+    } catch (e) {}
+  }
+}
+
+function historyKey() {
+  const scopeId = getScopeId();
+  return `${HISTORY_BASE}-${scopeId}`;
+}
+
+function miniGameKey() {
+  const scopeId = getScopeId();
+  return `${MINI_GAME_BASE}-${scopeId}`;
+}
+
+function sessionActivityKey() {
+  const scopeId = getScopeId();
+  return `${SESSION_ACTIVITY_BASE}-${scopeId}`;
+}
+
+function readJson(key, fallback) {
+  if (!key) return fallback;
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function writeJson(key, value) {
+  if (!key) return false;
+  localStorage.setItem(key, JSON.stringify(value));
+  return true;
+}
+
+export function getQuizState() {
+  try {
+    const raw = sessionStorage.getItem(QUIZ_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function setQuizState(value) {
+  if (!value) {
+    sessionStorage.removeItem(QUIZ_KEY);
+    return;
+  }
+  sessionStorage.setItem(QUIZ_KEY, JSON.stringify(value));
+}
+
+export function getResultState() {
+  try {
+    const raw = sessionStorage.getItem(RESULT_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function setResultState(value) {
+  if (!value) {
+    sessionStorage.removeItem(RESULT_KEY);
+    return;
+  }
+  sessionStorage.setItem(RESULT_KEY, JSON.stringify(value));
+}
+
+export function clearQuizFlow() {
+  sessionStorage.removeItem(QUIZ_KEY);
+  sessionStorage.removeItem(RESULT_KEY);
+}
+
+export function getSavedQuizHistory() {
+  const parsed = readJson(historyKey(), []);
+  if ((!Array.isArray(parsed) || !parsed.length) && getScopeId() !== "guest") {
+    const guestParsed = readJson(`${HISTORY_BASE}-guest`, []);
+    return Array.isArray(guestParsed) ? guestParsed.map(normalizeAttemptEntry) : [];
+  }
+  return Array.isArray(parsed) ? parsed.map(normalizeAttemptEntry) : [];
+}
+
+function normalizeAttemptEntry(entry) {
+  if (!entry || typeof entry !== "object") return entry;
+  const evaluatedAnswers = Array.isArray(entry.evaluatedAnswers) ? entry.evaluatedAnswers : [];
+  const currentAnswers = Array.isArray(entry.answers) ? entry.answers : [];
+  return {
+    ...entry,
+    answers: evaluatedAnswers.length ? evaluatedAnswers : currentAnswers
+  };
+}
+
+export function markSessionActivity(activity) {
+  const key = sessionActivityKey();
+  const previous = readJson(key, { quizDone: false, flashcardsDone: false, miniGameDone: false });
+  return writeJson(key, {
+    quizDone: Boolean(activity?.quizDone || previous.quizDone),
+    flashcardsDone: Boolean(activity?.flashcardsDone || previous.flashcardsDone),
+    miniGameDone: Boolean(activity?.miniGameDone || previous.miniGameDone)
+  });
+}
+
+export function saveQuizAttemptLocal(quizState, resultState) {
+  if (!quizState || !resultState) return false;
+
+  const entry = {
+    createdAt: new Date().toISOString(),
+    generatedAt: quizState.generatedAt || null,
+    score: Number(resultState.score || 0),
+    total: Number(resultState.total || 0),
+    percentage: Number(resultState.percentage || 0),
+    confidence: Number(resultState.confidence || 0),
+    answers: Array.isArray(resultState.answers) ? resultState.answers : [],
+    settings: quizState.settings || {},
+    meta: quizState.meta || {}
+  };
+
+  const next = [normalizeAttemptEntry(entry), ...getSavedQuizHistory()].slice(0, MAX_HISTORY_ITEMS);
+  const saved = writeJson(historyKey(), next);
+  if (saved) markSessionActivity({ quizDone: true });
+  if (saved && !quizState.quizId) {
+    const username = getDisplayUsername();
+    const title = quizState.meta?.sourceInput || quizState.meta?.sourceTopic || quizState.settings?.topic || "Quiz";
+    postJson("/api/save-score", {
+      username,
+      score: Number(resultState.percentage || 0),
+      streak: next.filter((item) => Number(item.percentage || 0) >= 70).length
+    });
+    postJson("/api/save-quiz", {
+      username,
+      quizTitle: title,
+      score: Number(resultState.percentage || 0),
+      date: entry.createdAt
+    });
+    const totalScore = next.reduce((sum, item) => sum + Number(item.percentage || 0), 0);
+    postJson("/api/save-stats", {
+      username,
+      totalScore,
+      totalQuizzes: next.length,
+      streak: next.filter((item) => Number(item.percentage || 0) >= 70).length,
+      accuracy: next.length ? Math.round(totalScore / next.length) : 0
+    });
+  }
+  return saved;
+}
+
+export async function fetchPermanentLeaderboard() {
+  const data = await apiRequest("/api/leaderboard");
+  return Array.isArray(data) ? data : [];
+}
+
+export async function fetchPermanentStats(username = getDisplayUsername()) {
+  return apiRequest(`/api/stats/${encodeURIComponent(username)}`);
+}
+
+export async function fetchPermanentQuizHistory(username = getDisplayUsername()) {
+  const data = await apiRequest(`/api/quiz-history/${encodeURIComponent(username)}`);
+  return Array.isArray(data) ? data : [];
+}
+
+export async function fetchPermanentFlashcards(username = getDisplayUsername()) {
+  const data = await apiRequest(`/api/flashcards/${encodeURIComponent(username)}`);
+  return Array.isArray(data) ? data : [];
+}
+
+export function getMiniGameStats() {
+  const parsed = readJson(miniGameKey(), {});
+  return {
+    ...(parsed || {}),
+    memoryWins: Math.max(0, Number(parsed?.memoryWins || 0)),
+    memoryBestMoves: Math.max(0, Number(parsed?.memoryBestMoves || 0)),
+    memoryBestTime: Math.max(0, Number(parsed?.memoryBestTime || 0)),
+    reactionBest: Math.max(0, Number(parsed?.reactionBest || 0)),
+    reactionRuns: Math.max(0, Number(parsed?.reactionRuns || 0)),
+    fillInBlanksBest: Math.max(0, Number(parsed?.fillInBlanksBest || 0)),
+    recallBestLevel: Math.max(0, Number(parsed?.recallBestLevel || 0)),
+    recallRuns: Math.max(0, Number(parsed?.recallRuns || 0))
+  };
+}
+
+function saveMiniGameStats(stats) {
+  const previous = readJson(miniGameKey(), {});
+  const saved = writeJson(miniGameKey(), { ...previous, ...stats });
+  if (saved) markSessionActivity({ miniGameDone: true });
+  return saved;
+}
+
+export function setMiniGameStats(stats) {
+  return saveMiniGameStats({
+    memoryWins: Math.max(0, Number(stats?.memoryWins || 0)),
+    memoryBestMoves: Math.max(0, Number(stats?.memoryBestMoves || 0)),
+    memoryBestTime: Math.max(0, Number(stats?.memoryBestTime || 0)),
+    reactionBest: Math.max(0, Number(stats?.reactionBest || 0)),
+    reactionRuns: Math.max(0, Number(stats?.reactionRuns || 0)),
+    fillInBlanksBest: Math.max(0, Number(stats?.fillInBlanksBest || 0)),
+    recallBestLevel: Math.max(0, Number(stats?.recallBestLevel || 0)),
+    recallRuns: Math.max(0, Number(stats?.recallRuns || 0))
+  });
+}
+
+async function postMiniGameUpdate(type, payload) {
+  const session = getSession();
+  if (!session?.token) return null;
+  const response = await fetch(`${API_BASE}/data/mini-games`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${session.token}`
+    },
+    body: JSON.stringify({ type, ...payload })
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) return null;
+  if (data?.miniGameStats) setMiniGameStats(data.miniGameStats);
+  return data;
+}
+
+export async function recordMemoryWin({ moves, seconds }) {
+  const previous = getMiniGameStats();
+  const saved = saveMiniGameStats({
+    ...previous,
+    memoryWins: previous.memoryWins + 1,
+    memoryBestMoves: previous.memoryBestMoves ? Math.min(previous.memoryBestMoves, moves) : moves,
+    memoryBestTime: previous.memoryBestTime ? Math.min(previous.memoryBestTime, seconds) : seconds
+  });
+  if (!isLoggedIn()) return { saved };
+  const serverResponse = await postMiniGameUpdate("memory", { moves, seconds });
+  return serverResponse || { saved };
+}
+
+export async function recordReactionAttempt(reaction) {
+  const previous = getMiniGameStats();
+  const saved = saveMiniGameStats({
+    ...previous,
+    reactionRuns: previous.reactionRuns + 1,
+    reactionBest: previous.reactionBest ? Math.min(previous.reactionBest, reaction) : reaction
+  });
+  if (!isLoggedIn()) return { saved };
+  const serverResponse = await postMiniGameUpdate("reaction", { reaction });
+  return serverResponse || { saved };
+}
+
+export async function recordRecallAttempt(level) {
+  const previous = getMiniGameStats();
+  const saved = saveMiniGameStats({
+    ...previous,
+    recallRuns: previous.recallRuns + 1,
+    recallBestLevel: Math.max(previous.recallBestLevel, level)
+  });
+  if (!isLoggedIn()) return { saved };
+  const serverResponse = await postMiniGameUpdate("recall", { level });
+  return serverResponse || { saved };
+}
+
+export function normalizeQuestion(question) {
+  if (!question || typeof question !== "object") return null;
+  const type = question.type === "short" ? "short" : "mcq";
+
+  if (type === "mcq") {
+    const options = Array.isArray(question.options) && question.options.length >= 2
+      ? question.options.slice(0, 4)
+      : null;
+    if (!options) return null;
+    return {
+      ...question,
+      type,
+      options,
+      correct: normalizeMcqCorrect(question.correct, options)
+    };
+  }
+
+  return {
+    ...question,
+    type,
+    shortAnswer: question.shortAnswer || question.correct || "",
+    acceptableAnswers: Array.isArray(question.acceptableAnswers) ? question.acceptableAnswers : []
+  };
+}
+
+export function normalizeAnswerText(value) {
+  return String(value || "")
+    .trim()
+    .replace(/^(?:option\s*)?[A-D][\).:\-\s]+/i, "")
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+}
+
+export function normalizeMcqCorrect(value, options = []) {
+  const raw = String(value || "").trim();
+  const letters = ["A", "B", "C", "D"];
+  const letterMatch = raw.match(/^(?:Option\s*)?([A-D])(?:[\).:\-]|\s*$)/i);
+  if (letterMatch) return letterMatch[1].toUpperCase();
+
+  const optionIndex = Array.isArray(options)
+    ? options.slice(0, 4).findIndex((option) => normalizeAnswerText(option) === normalizeAnswerText(raw))
+    : -1;
+  return optionIndex >= 0 ? letters[optionIndex] : "A";
+}
+
+export function normalizeShortAnswer(value) {
+  return String(value || "")
+    .toLocaleLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+export function gradeShortAnswer(value, question) {
+  const user = normalizeShortAnswer(value);
+  const primary = normalizeShortAnswer(question.shortAnswer || question.correct || "");
+  const alternates = Array.isArray(question.acceptableAnswers)
+    ? question.acceptableAnswers.map((item) => normalizeShortAnswer(item))
+    : [];
+  return [primary, ...alternates]
+    .filter(Boolean)
+    .some((candidate) => user === candidate || (candidate.length > 4 && user.includes(candidate)));
+}
+
+export async function extractContent(inputMode, values) {
+  if (inputMode === "text") {
+    const trimmed = values.topic.trim();
+    if (trimmed.length < 50) {
+      return {
+        topic: trimmed,
+        sourceType: "topic",
+        sourceInput: trimmed
+      };
+    }
+  }
+
+  if (inputMode === "pdf") {
+    const file = values.pdfFile;
+    if (!file) throw new Error("Please choose a PDF file.");
+    if (file.size > MAX_PDF_BYTES) throw new Error("PDF is too large. Maximum size is 100MB.");
+
+    const formData = new FormData();
+    formData.append("pdf", file);
+    const response = await fetch(`${API_BASE}/extract-content`, { method: "POST", headers: buildAuthHeaders(), body: formData });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || "Could not read the PDF.");
+    return {
+      text: data.text,
+      extractionId: data.extractionId || null,
+      preferFull: false,
+      sourceType: "pdf",
+      sourceInput: file.name || "pdf"
+    };
+  }
+
+  if (inputMode === "url") {
+    const response = await fetch(`${API_BASE}/extract-content`, {
+      method: "POST",
+      headers: buildJsonHeaders(),
+      body: JSON.stringify({ url: values.url.trim() })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || "Could not read that URL.");
+    return {
+      text: data.text,
+      extractionId: data.extractionId || null,
+      preferFull: false,
+      sourceType: "url",
+      sourceInput: values.url.trim()
+    };
+  }
+
+  const response = await fetch(`${API_BASE}/extract-content`, {
+    method: "POST",
+    headers: buildJsonHeaders(),
+    body: JSON.stringify({ text: values.topic.trim() })
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "Could not prepare that content.");
+  return {
+    text: data.text,
+    extractionId: data.extractionId || null,
+    preferFull: false,
+    sourceType: "text",
+    sourceInput: values.topic.trim().slice(0, 140)
+  };
+}
+
+export async function requestQuiz(payload) {
+  const response = await fetch(`${API_BASE}/generate-quiz`, {
+    method: "POST",
+    headers: buildJsonHeaders(),
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "Failed to generate quiz.");
+  const questions = (Array.isArray(data.questions) ? data.questions : [])
+    .map(normalizeQuestion)
+    .filter(Boolean)
+    .map((question) => {
+      if (data.meta?.sourceType !== "global") return question;
+      const { correct, shortAnswer, explanation, wrongExplanation, acceptableAnswers, ...publicQuestion } = question;
+      return { ...publicQuestion, explanation: "", wrongExplanation: "" };
+    });
+  if (!questions.length) throw new Error("No quiz questions were returned.");
+  return { quizId: data.quizId || null, questions, meta: data.meta };
+}
+
+export async function requestFlashcards(payload) {
+  const response = await fetch(`${API_BASE}/generate-flashcards`, {
+    method: "POST",
+    headers: buildJsonHeaders(),
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "Failed to generate flashcards.");
+  return data;
+}
+
+export async function submitQuizAttempt(quizState) {
+  const session = getSession();
+  const answers = quizState.questions.map((question, index) => ({
+    question: question.question,
+    selected: quizState.answers[index]?.selected ?? ""
+  }));
+
+  if (!session?.token || !quizState.quizId) return null;
+
+  const response = await fetch(`${API_BASE}/submit-quiz`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${session.token}`
+    },
+    body: JSON.stringify({
+      quizId: quizState.quizId,
+      answers,
+      sourceType: quizState.meta?.sourceType || "topic",
+      sourceInput: quizState.meta?.sourceInput || "",
+      settings: quizState.settings
+    })
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "Failed to submit quiz.");
+  return data;
+}
+
+export async function fetchGlobalQuizzes() {
+  const data = await apiRequest("/data/global-quizzes");
+  return Array.isArray(data?.quizzes) ? data.quizzes : [];
+}
+
+export async function startGlobalQuiz(quizId) {
+  const session = getSession();
+  if (!session?.token) throw new Error("Login required to start a teacher quiz.");
+  const response = await fetch(`${API_BASE}/data/global-quizzes/${encodeURIComponent(quizId)}/start`, {
+    method: "POST",
+    headers: buildJsonHeaders()
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "Could not start this quiz.");
+  const questions = (Array.isArray(data.questions) ? data.questions : [])
+    .map(normalizeQuestion)
+    .filter(Boolean);
+  if (!questions.length) throw new Error("This published quiz has no valid questions.");
+  return {
+    quizId: data.quizId,
+    questions,
+    settings: data.settings || {},
+    meta: data.meta || {}
+  };
+}
+
+export async function publishGlobalQuiz(payload) {
+  const response = await fetch(`${API_BASE}/data/global-quizzes`, {
+    method: "POST",
+    headers: buildJsonHeaders(),
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "Could not publish this quiz.");
+  return data.quiz;
+}
+
+export async function requestTeacherExplanation(question) {
+  const response = await fetch(`${API_BASE}/data/global-quizzes/explain`, {
+    method: "POST",
+    headers: buildJsonHeaders(),
+    body: JSON.stringify(question)
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "Could not generate an explanation.");
+  return data;
+}
+
+export async function reportQuestion(payload) {
+  const response = await fetch(`${API_BASE}/data/question-reports`, {
+    method: "POST",
+    headers: buildJsonHeaders(),
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "Could not report this question.");
+  return data.report;
+}
+
+export function buildResultState(quizState, evaluationOverride = null) {
+  const answers = quizState.questions.map((question, index) => {
+    const answer = quizState.answers[index];
+    if (answer) return answer;
+    return {
+      question: question.question,
+      selected: "",
+      correct: question.type === "short" ? question.shortAnswer : question.correct,
+      isCorrect: false,
+      type: question.type,
+      explanation: question.explanation || "",
+      wrongExplanation: question.wrongExplanation || ""
+    };
+  });
+
+  const score = answers.filter((answer) => answer.isCorrect).length;
+  const total = quizState.questions.length;
+  const fallback = {
+    score,
+    total,
+    percentage: total ? Math.round((score / total) * 100) : 0,
+    confidence: 0,
+    answers
+  };
+
+  return {
+    ...fallback,
+    ...(evaluationOverride || {}),
+    generatedAt: quizState.generatedAt,
+    meta: quizState.meta,
+    settings: quizState.settings
+  };
+}
+
+export function feedbackText(percentage) {
+  if (percentage >= 90) return "Nice! You're sharp.";
+  if (percentage >= 75) return "Strong run. You're warming up fast.";
+  if (percentage >= 60) return "Good momentum. One more round will feel even better.";
+  return "You've got this. Try again and level up.";
+}
+
+function clampPercent(value) {
+  return Math.max(0, Math.min(100, Math.round(Number(value || 0))));
+}
+
+function getAttemptPercentages(attempts = [], latest = null) {
+  const rows = [];
+  if (latest && Number.isFinite(Number(latest.percentage))) rows.push(latest);
+  rows.push(...(Array.isArray(attempts) ? attempts : []));
+
+  return rows
+    .map((entry) => Number(entry?.percentage))
+    .filter((value) => Number.isFinite(value));
+}
+
+export function getPerformancePrediction(attempts = [], latest = null) {
+  const scores = getAttemptPercentages(attempts, latest).slice(0, 6);
+  if (!scores.length) {
+    return {
+      label: "Prediction",
+      value: "Needs baseline",
+      score: 0,
+      tone: "neutral",
+      message: "Complete one quiz to unlock a progress prediction."
+    };
+  }
+
+  const recent = scores.slice(0, 3);
+  const previous = scores.slice(3, 6);
+  const recentAverage = recent.reduce((sum, value) => sum + value, 0) / recent.length;
+  const previousAverage = previous.length
+    ? previous.reduce((sum, value) => sum + value, 0) / previous.length
+    : recentAverage;
+  const trend = recentAverage - previousAverage;
+  const predicted = clampPercent(recentAverage + trend * 0.35);
+
+  if (predicted >= 85) {
+    return {
+      label: "Prediction",
+      value: `${predicted}% next target`,
+      score: predicted,
+      tone: "strong",
+      message: "Strong progress. Try hard or adaptive mode to stretch your understanding."
+    };
+  }
+  if (predicted >= 65) {
+    return {
+      label: "Prediction",
+      value: `${predicted}% next target`,
+      score: predicted,
+      tone: "steady",
+      message: "You are close. Review missed concepts, then take one focused practice quiz."
+    };
+  }
+  return {
+    label: "Prediction",
+    value: `${predicted}% next target`,
+    score: predicted,
+    tone: "risk",
+    message: "Revision recommended. Start with easier questions and flashcards before retrying."
+  };
+}
+
+export function buildStudyPlan({ resultState = null, quizState = null, attempts = [] } = {}) {
+  const percentage = Number(resultState?.percentage ?? attempts?.[0]?.percentage ?? 0);
+  const answers = Array.isArray(resultState?.answers) ? resultState.answers : [];
+  const missed = answers.filter((answer) => !answer?.isCorrect).length;
+  const topic = quizState?.settings?.topic
+    || resultState?.settings?.topic
+    || quizState?.meta?.sourceInput
+    || resultState?.meta?.sourceInput
+    || attempts?.[0]?.settings?.topic
+    || attempts?.[0]?.meta?.sourceInput
+    || "this topic";
+
+  if (!resultState && !attempts.length) {
+    return [
+      "Generate one quiz from a topic, PDF, or URL.",
+      "Review the explanations after submitting.",
+      "Create flashcards for the concepts you miss."
+    ];
+  }
+
+  if (percentage < 60) {
+    return [
+      `Revise the basics of ${topic}.`,
+      missed ? `Retry the ${missed} missed question${missed === 1 ? "" : "s"} first.` : "Take a 5-question easy practice quiz.",
+      "Create flashcards for definitions, formulas, and common mistakes."
+    ];
+  }
+
+  if (percentage < 80) {
+    return [
+      `Practice ${topic} again in medium difficulty.`,
+      missed ? "Read every wrong-answer explanation before retrying." : "Use mixed question mode for deeper recall.",
+      "Take one timed quiz after reviewing flashcards."
+    ];
+  }
+
+  return [
+    `Move ${topic} to hard or adaptive mode.`,
+    "Use timer mode to improve exam speed.",
+    "Review explanations once, then try a higher-level quiz."
+  ];
+}
+
+export function getAdaptiveLearningSummary(source = {}) {
+  const settings = source?.settings || {};
+  const meta = source?.meta || {};
+  const isAdaptive = String(settings.difficulty || "").toLowerCase() === "adaptive";
+  const adaptive = meta.adaptive || {};
+
+  if (!isAdaptive) {
+    return {
+      label: "Adaptive Learning",
+      value: "Not used",
+      message: "Use Adaptive difficulty when you want the quiz to react to your answer streaks."
+    };
+  }
+
+  const current = adaptive.currentDifficulty
+    ? String(adaptive.currentDifficulty).charAt(0).toUpperCase() + String(adaptive.currentDifficulty).slice(1)
+    : "Medium";
+  return {
+    label: "Adaptive Learning",
+    value: `${current} level`,
+    message: "During this session, Quizzy adjusted difficulty using your correct and wrong answer streaks."
+  };
+}
+
+export async function syncGuestDataToCloud() {
+  const session = getSession();
+  if (!session?.token) return;
+
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${session.token}`
+  };
+
+  // 1. Sync Guest Flashcards
+  try {
+    const guestDecksRaw = localStorage.getItem(`${FLASH_BASE}-guest`);
+    const guestDecks = guestDecksRaw ? JSON.parse(guestDecksRaw) : [];
+    
+    for (const deck of guestDecks) {
+      await fetch(`${API_BASE}/data/flash-decks`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(deck)
+      });
+    }
+    localStorage.removeItem(`${FLASH_BASE}-guest`);
+  } catch (e) {
+    console.error("Failed to sync guest flashcards", e);
+  }
+
+  // 2. Sync Guest Mini-Game Stats
+  try {
+    const guestStatsRaw = localStorage.getItem(`${MINI_GAME_BASE}-guest`);
+    const guestStats = guestStatsRaw ? JSON.parse(guestStatsRaw) : null;
+    
+    if (guestStats) {
+      if (guestStats.memoryWins > 0) {
+        await fetch(`${API_BASE}/data/mini-games`, { method: "POST", headers, body: JSON.stringify({ type: "memory", moves: guestStats.memoryBestMoves || 10, seconds: guestStats.memoryBestTime || 30 }) });
+      }
+      if (guestStats.reactionRuns > 0) {
+        await fetch(`${API_BASE}/data/mini-games`, { method: "POST", headers, body: JSON.stringify({ type: "reaction", reaction: guestStats.reactionBest || 500 }) });
+      }
+      if (guestStats.recallRuns > 0) {
+        await fetch(`${API_BASE}/data/mini-games`, { method: "POST", headers, body: JSON.stringify({ type: "recall", level: guestStats.recallBestLevel || 1 }) });
+      }
+      localStorage.removeItem(`${MINI_GAME_BASE}-guest`);
+    }
+  } catch (e) {
+    console.error("Failed to sync guest mini-games", e);
+  }
+}

@@ -1,0 +1,25 @@
+Project Expo Submission Folder
+
+Folder name format required by RTRP:
+G-ID_Project Title
+
+Current folder name:
+G-___Quiz Generator
+
+Before uploading, replace ___ with your actual group ID.
+
+Included:
+- Source Code
+- Documentation
+- Presentation/poster files
+- Reports folder
+- Datasets folder
+- Videos folder
+- Screenshots folder
+
+Not included intentionally:
+- node_modules
+- .git
+- .env files
+- build/deployment caches
+- Python bytecode caches

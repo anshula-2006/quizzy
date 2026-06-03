@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Generate Quiz | Quizzy</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./design-system.css" />
+  <link rel="stylesheet" href="./app.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <div class="page-container">
+      <header class="top-nav">
+        <a class="brand" href="./index.html"><span class="brand-badge">Q</span><span>Quizzy</span></a>
+        <nav class="nav-links">
+          <a class="nav-link" href="./index.html">Home</a>
+          <a class="nav-link is-active" href="./generate.html">Generate</a>
+          <a class="nav-link" href="./flashcards.html">Flashcards</a>
+          <a class="nav-link" href="./dashboard.html">Dashboard</a>
+          <a class="nav-link" href="./teacher-dashboard.html">Teacher</a>
+          <a class="nav-link" href="./arcade.html">Brain Lab</a>
+          <a class="nav-link" href="./scoreboard.html">Leaderboard</a>
+        </nav>
+      </header>
+
+      <main class="generate-workspace page-fade split-grid two-col">
+        <section class="panel flow-card">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-4);">
+            <div>
+              <p class="eyebrow">Generate</p>
+              <h1 class="section-title" style="font-size: 1.5rem; margin-top: 0.25rem;">Create your quiz</h1>
+              <p class="section-copy" style="margin-top: var(--space-1);">Choose a source, tune settings, and launch.</p>
+            </div>
+          </div>
+
+          <form id="generateForm" class="field-stack generate-form">
+            
+            <!-- Column 1: Source & Content -->
+            <div class="field-stack">
+              <div>
+                <div class="step-header">
+                  <h3 style="font-size: 1rem; margin: 0 0 var(--space-3); font-weight: 600;">Source</h3>
+                </div>
+                <div class="source-grid">
+                  <button type="button" class="source-card is-active" data-source="text">
+                    <i data-lucide="file-text" style="width: 16px; height: 16px; margin-bottom: 4px; color: var(--color-accent);"></i>
+                    <strong>Topic</strong><span style="font-size: 0.8rem; display: block;">Prompt</span>
+                  </button>
+                  <button type="button" class="source-card" data-source="pdf">
+                    <i data-lucide="file-up" style="width: 16px; height: 16px; margin-bottom: 4px; color: var(--color-accent);"></i>
+                    <strong>PDF</strong><span style="font-size: 0.8rem; display: block;">Upload</span>
+                  </button>
+                  <button type="button" class="source-card" data-source="url">
+                    <i data-lucide="link" style="width: 16px; height: 16px; margin-bottom: 4px; color: var(--color-accent);"></i>
+                    <strong>URL</strong><span style="font-size: 0.8rem; display: block;">Web page</span>
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label class="field-label">Content</label>
+                <textarea id="topicInput" class="input" placeholder="Your topic or notes..." style="min-height: 120px;"></textarea>
+                <input id="urlInput" class="input" type="url" placeholder="https://example.com/article" hidden />
+                <div class="file-wrap" hidden>
+                  <input id="pdfInput" class="file-input" type="file" accept=".pdf,application/pdf" />
+                </div>
+                <p id="sourceHint" class="helper-text" style="margin-top: 0.5rem; font-size: 0.8rem;">Type a topic or paste your notes.</p>
+              </div>
+            </div>
+
+            <!-- Column 2: Quiz Settings -->
+            <div class="field-stack">
+              <div>
+                <label class="field-label" for="difficultySelect">Difficulty</label>
+                <select id="difficultySelect" class="input">
+                  <option value="easy">Easy</option>
+                  <option value="medium" selected>Medium</option>
+                  <option value="hard">Hard</option>
+                  <option value="adaptive">Adaptive</option>
+                </select>
+              </div>
+              <div>
+                <label class="field-label" for="modeSelect">Question Type</label>
+                <select id="modeSelect" class="input">
+                  <option value="mcq" selected>MCQ</option>
+                  <option value="mixed">Mixed</option>
+                  <option value="short">Short</option>
+                </select>
+              </div>
+              <div>
+                <label class="field-label" for="languageSelect">Language</label>
+                <select id="languageSelect" class="input">
+                  <option value="English" selected>English</option>
+                  <option value="Hindi">Hindi</option>
+                  <option value="Bengali">Bengali</option>
+                  <option value="Tamil">Tamil</option>
+                </select>
+              </div>
+              <div>
+                <label class="field-label" for="countInput">Questions</label>
+                <input id="countInput" class="input" type="number" min="5" max="100" step="1" value="10" />
+              </div>
+              <div>
+                <label class="field-label" for="timerMode">Timer</label>
+                <select id="timerMode" class="input">
+                  <option value="off" selected>Off</option>
+                  <option value="on">On</option>
+                </select>
+              </div>
+              <div id="timerSecondsWrap" hidden>
+                <label class="field-label" for="timerSecondsInput">Seconds per question</label>
+                <input id="timerSecondsInput" class="input" type="number" min="15" step="1" value="30" />
+              </div>
+            </div>
+
+            <!-- Column 3: Learn Mode & Actions -->
+            <div class="field-stack">
+              <div>
+                <label class="field-label" for="learnerMode">Mode</label>
+                <select id="learnerMode" class="input">
+                  <option value="focus" selected>Focus Mode</option>
+                  <option value="arcade">Brain Lab Mode</option>
+                  <option value="exam">Exam Mode</option>
+                  <option value="revision">Revision Mode</option>
+                </select>
+                <p id="modeDesc" class="helper-text" style="margin-top: 0.5rem; font-size: 0.75rem;">Deep, distraction-free learning.</p>
+              </div>
+              <div id="generateError" class="error-message" hidden></div>
+              <div style="display: flex; flex-direction: column; gap: var(--space-3); margin-top: auto;">
+                <button id="generateBtn" class="btn btn-primary" type="submit"><i data-lucide="play" style="width: 16px; height: 16px; margin-right: 8px;"></i> Generate Quiz</button>
+                <button id="flashcardsBtn" class="btn btn-secondary" type="button"><i data-lucide="plus" style="width: 16px; height: 16px; margin-right: 8px;"></i> Flashcards</button>
+              </div>
+              <div id="generationStatus" class="generation-status" hidden aria-live="polite">
+                <div class="generation-status-head">
+                  <strong id="generationStatusTitle">Preparing...</strong>
+                  <span id="generationElapsed">0s</span>
+                </div>
+                <div class="progress-track">
+                  <div id="generationProgress" class="progress-fill"></div>
+                </div>
+                <p id="generationEta" class="helper-text">Estimated wait: calculating...</p>
+              </div>
+            </div>
+
+          </form>
+        </section>
+
+        <!-- Personalized Workspace Sidebar -->
+        <aside id="generateSidebar" class="panel flow-card" aria-label="Personalized Workspace"></aside>
+      </main>
+    </div>
+  </div>
+
+  <script type="module" src="./js/page-auth.js"></script>
+  <script type="module" src="./js/generate.js"></script>
+</body>
+</html>

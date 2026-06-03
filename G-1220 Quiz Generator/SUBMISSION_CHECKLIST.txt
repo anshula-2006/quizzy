@@ -1,12 +1,7 @@
 Project Expo Submission Folder
+Folder name:
+G-1220 Quiz Generator
 
-Folder name format required by RTRP:
-G-ID_Project Title
-
-Current folder name:
-G-___Quiz Generator
-
-Before uploading, replace ___ with your actual group ID.
 
 Included:
 - Source Code
